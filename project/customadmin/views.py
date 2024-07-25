@@ -1,9 +1,9 @@
 from django.shortcuts import render,redirect
 from project.users.models import User
-from project.product.models import Category,Product
+from project.product.models import Category,Product,ProductAttribute,ProductAttributeValue
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
-from project.utils.custom_required import check_login_admin
+from project.utils.custom_required import check_login_admin,role_manage,role_required
 from django.contrib.auth.models import Group
 from django.http import JsonResponse
 import re   
@@ -29,9 +29,11 @@ def adminlogin(request):
         
         user = authenticate(username=email,password=password)
 
-        if user is None or not user.is_superuser:
+        if user is None:
             errors['not_admin'] = 'Enter Valid Credentials'
-
+        elif not user.is_superuser and not user.groups.filter(name__in=['inventory manager','order manager']).exists():
+            errors['not_admin'] = 'You do not have permission to access this page.'
+    
         if any(errors.values()):
             return JsonResponse({'errors':errors})
 
@@ -49,27 +51,38 @@ def dashboard(request):
     if not check_login_admin(request.user):
         return redirect('adminlogin')
     user_count = User.objects.filter(is_superuser=False, is_active=True).count()
-    return render(request,'admin/dashboard.html',{'user_count':user_count})
+    role = role_manage(request.user)
+    context = {
+        'user_role':role,
+        'user_count':user_count
+    }
+    return render(request,'admin/dashboard.html',context)
 
 ###################
 # User Management #
 ###################
-
+@role_required('admin')
 def users(request):
+    role = role_manage(request.user)
+
     # Check if the user is an admin
     if not check_login_admin(request.user):
         return redirect('adminlogin')
     
     # Filter users to include only active and non-deleted ones
     users = User.objects.filter(is_active=True, is_delete=False,is_superuser=False).prefetch_related('address')
+    context = {
+        'user_role':role,
+        'users':users
+    }
+    return render(request, 'admin/users/users.html', context)
 
-    
-    return render(request, 'admin/users/users.html', {'users': users})
-
+@role_required('admin')
 def add_users(request):
     if not check_login_admin(request.user):
         return redirect('adminlogin')
     groups = Group.objects.all()
+    role = role_manage(request.user)
     
     if request.method == 'POST':
         first_name = request.POST.get('first_name')
@@ -146,8 +159,13 @@ def add_users(request):
             return JsonResponse({'success': True, 'message': 'User created successfully!'})
         except Exception as e:
             return JsonResponse({'success':False,'errors': {'server':str(e)}})
-    return render(request,'admin/users/add_user.html',{'groups':groups})
+    context = {
+    'user_role':role,
+    'groups':groups
+    }
+    return render(request,'admin/users/add_user.html',context)
 
+@role_required('admin')
 def delete_user(request, pk):
     if not check_login_admin(request.user):
         return redirect('adminlogin')
@@ -168,9 +186,12 @@ def delete_user(request, pk):
     
     return redirect('users')
 
+@role_required('admin')
 def edit_user(request,pk):
     if not check_login_admin(request.user):
         return redirect('adminlogin')
+    role = role_manage(request.user)
+    
     user = User.objects.get(id=pk)
     user_detail = {
         'first_name':user.first_name,
@@ -230,29 +251,46 @@ def edit_user(request,pk):
             return JsonResponse({'success': True,'message':'User Update Successfully!'})
         except Exception as e:
             return JsonResponse({'success':False,'errors':{'server':str(e)}})
-        
-    return render(request,'admin/users/edit_user.html',{'user':user_detail,'user_group_ids': user_group_ids,'groups':groups})
+    context = {
+    'user_role':role,
+    'groups':groups,
+    'user':user_detail,
+    'user_group_ids': user_group_ids
+    }
+    return render(request,'admin/users/edit_user.html',context)
 
 #######################
 # Category Management #
 #######################
-
+@role_required('inventory_manager')
 def category(request):
-    category = Category.objects.filter(parent_id=None)
-    return render(request,'admin/category/category.html',{'category':category})
+    role = role_manage(request.user)
 
+    category = Category.objects.filter(parent_id=None)
+    context = {
+    'user_role':role,
+    'category':category
+    }
+    return render(request,'admin/category/category.html',context)
+
+@role_required('inventory_manager')
 def add_category(request):
+    role = role_manage(request.user)
+    context = {
+    'user_role':role
+    }
     if request.method == 'POST':
+
         category_name = request.POST.get('category_name')
 
         if not category_name:
             messages.error(request, 'Category name is required.')
-            return render(request, 'admin/category/add_category.html', {'category_name': category_name})
+            return render(request, 'admin/category/add_category.html', context)
         
         # Additional validation can go here (e.g., checking if the category already exists)
         if Category.objects.filter(category_name=category_name).exists():
             messages.error(request, 'Category already exists.')
-            return render(request, 'admin/category/add_category.html', {'category_name': category_name})
+            return render(request, 'admin/category/add_category.html', context)
         
         category = Category(
             category_name=category_name
@@ -260,13 +298,18 @@ def add_category(request):
         try:
             category.save()
             messages.success(request, 'Category added successfully!')
-            return render(request, 'admin/category/add_category.html')  
+            return render(request, 'admin/category/add_category.html',context)  
         except Exception as e:
             messages.error(request, f'Error saving category: {e}')
     
-    return render(request, 'admin/category/add_category.html')
+    return render(request, 'admin/category/add_category.html',context)
 
+@role_required('inventory_manager')
 def add_sub_category(request):
+    role = role_manage(request.user)
+    context = {
+    'user_role':role
+    }
     category = Category.objects.filter(parent_id=None)
     if request.method == 'POST':
         sub_category_name = request.POST.get('sub_category_name')
@@ -274,17 +317,20 @@ def add_sub_category(request):
 
         if not sub_category_name:
             messages.error(request, 'Sub Category Name Required')
-            return render(request, 'admin/category/add_sub_category.html', {'category': category, 'sub_category_name': sub_category_name})
+            return render(request, 'admin/category/add_sub_category.html', context)
         
         if not parent_id:
             messages.error(request, 'Please select a category')
-            return render(request, 'admin/category/add_sub_category.html', {'category': category, 'sub_category_name': sub_category_name})
+            return render(request, 'admin/category/add_sub_category.html', context)
         
         Category.objects.create(category_name=sub_category_name, parent_id=parent_id)
         messages.success(request, 'Sub Category added successfully')
-        return render(request, 'admin/category/add_sub_category.html', {'category': category})
-
-    return render(request, 'admin/category/add_sub_category.html', {'category': category})
+        return render(request, 'admin/category/add_sub_category.html', context)
+    context = {
+    'user_role':role,
+    'category':category
+    }
+    return render(request, 'admin/category/add_sub_category.html',context)
 
 ######################
 # Product Management #
@@ -293,5 +339,20 @@ def add_sub_category(request):
 def products(request):
     pass
 
-def product_attribute(request):
-    pass
+@role_required('inventory_manager')
+def add_product_attribute(request):
+    role = role_manage(request.user)
+    context = {
+        'user_role':role
+    }
+    if request.method == 'POST':
+        attribute_name = request.POST.get('attribute_name')
+        if not attribute_name:
+            messages.error(request,'Enter attribute name')
+            return render(request,'admin/product/add_product_attribute.html',context)
+        
+        ProductAttribute.objects.create(name=attribute_name)
+        messages.success(request,'Product Attribute Added Successfully',context)
+
+        return render(request,'admin/product/add_product_attribute.html',context)
+    return render(request,'admin/product/add_product_attribute.html',context)

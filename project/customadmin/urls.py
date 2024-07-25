@@ -13,5 +13,7 @@ urlpatterns = [
     # Category URL
     path('categories/',category,name='categories'),
     path('add-category/',add_category,name='add-category'),
-    path('add-sub-category/',add_sub_category,name='add-sub-category')
+    path('add-sub-category/',add_sub_category,name='add-sub-category'),
+    # Product
+    path('add-product-attribute/',add_product_attribute,name='add-product-attribute')
 ]
