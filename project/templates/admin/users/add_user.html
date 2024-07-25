@@ -1,0 +1,136 @@
+{% extends 'admin/dashboard.html' %}
+{% load static %}
+{% block content %}
+<div class="content-wrapper">
+  <!-- Content Header (Page header) -->
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1>Add User</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+            <li class="breadcrumb-item active">Add User</li>
+          </ol>
+        </div>
+      </div>
+    </div><!-- /.container-fluid -->
+  </section>
+
+  <!-- Main content -->
+  <section class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <!-- left column -->
+        <div class="col-md">
+          <!-- general form elements -->
+          <div class="card card-primary">
+            <div class="card-header">
+              <h3 class="card-title">Add User Details</h3>
+            </div>
+            <!-- /.card-header -->
+            <!-- form start -->
+            <form id="myForm">
+              {% csrf_token %}
+              <div class="card-body">
+                <div class="form-group">
+                  <label for="exampleInputEmail1">First Name</label>
+                  <input type="text" class="form-control" id="first_name" name="first_name"
+                    placeholder="Enter first name">
+                  <span class="error" id="error-first_name"></span><br>
+                </div>
+                <div class="form-group">
+                  <label for="exampleInputEmail1">Last Name</label>
+                  <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Enter last name">
+                  <span class="error" id="error-last_name"></span><br>
+                </div>
+                <div class="form-group">
+                  <label for="exampleInputEmail1">Email address</label>
+                  <input type="email" class="form-control" id="email" name="email" placeholder="Enter email">
+                  <span class="error" id="error-email"></span><br>
+                  <span class="error" id="error-email_exists"></span><br>
+                </div>
+                <div class="form-group">
+                  <label for="exampleInputEmail1">Phone Number</label>
+                  <input type="text" class="form-control" id="phone_number" name="phone_number"
+                    placeholder="Enter last name">
+                  <span class="error" id="error-phone_number"></span><br>
+                </div>
+                <div class="form-group">
+                  <label for="exampleInputPassword1">Password</label>
+                  <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+                  <span class="error" id="error-password"></span><br>
+                </div>
+                <div class="form-group">
+                  <label for="exampleInputPassword1">Confirm Password</label>
+                  <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+                    placeholder="Confirm Password">
+                  <span class="error" id="error-confirm_password"></span>
+                </div>
+                <div class="form-group">
+                  <label>Select Groups</label>
+                  <select class="select2bs4" multiple="multiple" name="groups[]" data-placeholder="Select a State"
+                    style="width: 100%;">
+                    {% for i in groups %}
+                    <option value="{{i.id}}">{{i.name}}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div class="card-footer">
+                <button type="submit" class="btn btn-primary">Submit</button>
+              </div>
+              <!-- /.card-body -->
+            </form>
+          </div>
+          <!-- /.card -->
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- /.content -->
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  $(document).ready(function () {
+  $('#myForm').on('submit', function (e) {
+    e.preventDefault();
+    console.log('Form submitted'); // Check if this log appears
+
+    $.ajax({
+      type: 'POST',
+      url: $(this).attr('action'), // Ensure this is correct
+      data: $(this).serialize(),
+      success: function (res) {
+        console.log('Success response:', res); // Check response structure
+        if (res.success) {
+          Swal.fire({
+            icon: 'success',
+            title: res.message
+          }).then(() => {
+            console.log('Resetting form'); // Check if this log appears
+            $('#myForm')[0].reset();
+            $('.error').text('');
+          });
+        } else {
+          console.log('Errors:', res.errors); // Check errors structure
+          $('.error').text('');
+          for (let field in res.errors) {
+            if (res.errors[field]) {
+              $('#error-' + field).text(res.errors[field]).css('color', 'red');
+            }
+          }
+        }
+      },
+      error: function (err) {
+        console.error('An error occurred:', err);
+        alert('An Error occurred: ' + JSON.stringify(err, null, 2));
+      }
+    });
+  });
+});
+
+</script>
+{% endblock content %}
