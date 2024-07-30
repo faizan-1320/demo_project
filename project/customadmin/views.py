@@ -1,11 +1,18 @@
 from django.shortcuts import render,redirect
 from project.users.models import User
-from project.product.models import Category,Product,ProductAttribute,ProductAttributeValue
+from project.product.models import Category,Product,ProductAttribute,ProductAttributeValue,ProductImage
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
 from project.utils.custom_required import check_login_admin,role_manage,role_required
 from django.contrib.auth.models import Group
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
+from django.core.paginator import Paginator
+from django.db.models import Q
+from django.core.files.storage import FileSystemStorage
+from django.core.exceptions import ValidationError
+from django.db.utils import IntegrityError
 import re   
 
 ####################
@@ -45,7 +52,6 @@ def logoutadmin(request):
     logout(request)
     return redirect('adminlogin')
 
-
 def dashboard(request):
     # Check if the user is an admin
     if not check_login_admin(request.user):
@@ -61,6 +67,8 @@ def dashboard(request):
 ###################
 # User Management #
 ###################
+
+@csrf_exempt
 @role_required('admin')
 def users(request):
     role = role_manage(request.user)
@@ -68,12 +76,27 @@ def users(request):
     # Check if the user is an admin
     if not check_login_admin(request.user):
         return redirect('adminlogin')
-    
+    search_query = request.GET.get('search','')
     # Filter users to include only active and non-deleted ones
-    users = User.objects.filter(is_active=True, is_delete=False,is_superuser=False).prefetch_related('address')
+    users = User.objects.filter(
+        is_active=True,
+        is_delete=False,
+        is_superuser=False
+    ).filter(
+        Q(first_name__icontains=search_query) |
+        Q(last_name__icontains=search_query) |
+        Q(email__icontains=search_query)
+    ).prefetch_related('address')
+
+    paginator = Paginator(users,10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    # Calculate the start number for the current page
+    start_number = (page_obj.number - 1) * paginator.per_page + 1
     context = {
         'user_role':role,
-        'users':users
+        'page_obj':page_obj,
+        'start_number':start_number
     }
     return render(request, 'admin/users/users.html', context)
 
@@ -165,6 +188,7 @@ def add_users(request):
     }
     return render(request,'admin/users/add_user.html',context)
 
+@csrf_exempt
 @role_required('admin')
 def delete_user(request, pk):
     if not check_login_admin(request.user):
@@ -262,14 +286,19 @@ def edit_user(request,pk):
 #######################
 # Category Management #
 #######################
+
 @role_required('inventory_manager')
 def category(request):
     role = role_manage(request.user)
-
-    category = Category.objects.filter(parent_id=None)
+    search_query = request.GET.get('search','')
+    category = Category.objects.filter(is_active=True,is_delete=False,category_name__icontains=search_query)
+    paginator = Paginator(category,10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
     context = {
     'user_role':role,
-    'category':category
+    'category':category,
+    'page_obj':page_obj
     }
     return render(request,'admin/category/category.html',context)
 
@@ -305,6 +334,41 @@ def add_category(request):
     return render(request, 'admin/category/add_category.html',context)
 
 @role_required('inventory_manager')
+def edit_category(request):
+    role = role_manage(request.user)
+    context = {
+        'user_role': role
+    }
+    if request.method == 'POST':
+        category_id = request.POST.get('category_id')
+        category_name = request.POST.get('category_name')
+        category = get_object_or_404(Category, id=category_id)
+        category.category_name = category_name
+        category.save()
+        messages.success(request, 'Category edited successfully')
+        return JsonResponse({'success': True, 'message': 'Category edited successfully'})
+    return render(request, 'admin/category/edit_category.html', context)
+
+@csrf_exempt
+@role_required('inventory_manager')
+def delete_category(request,pk):
+    if request.method == 'DELETE':
+        category = Category.objects.get(id=pk)
+        # Mark this category and all its sub-categories as deleted
+        def mark_as_deleted(cat):
+            cat.is_active = False
+            cat.is_delete = True
+            cat.save()
+            # Recursively mark sub-categories
+            for sub_cat in cat.category_set.all():
+                mark_as_deleted(sub_cat)
+        
+        mark_as_deleted(category)
+        messages.success(request, 'Category Deleted Successfully!')
+        return redirect('categories')
+    return redirect('categories')
+
+@role_required('inventory_manager')
 def add_sub_category(request):
     role = role_manage(request.user)
     context = {
@@ -336,8 +400,51 @@ def add_sub_category(request):
 # Product Management #
 ######################
 
-def products(request):
-    pass
+@role_required('inventory_manager')
+def product(request):
+    role = role_manage(request.user)
+    products = Product.objects.filter(is_active=True, is_delete=False).select_related('category').prefetch_related('product__product', 'products__product_attribute')
+    paginator = Paginator(products,10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    context = {
+        'user_role':role,
+        'page_obj':page_obj
+    }
+
+    return render(request,'admin/product/product.html',context)
+
+@role_required('inventory_manager')
+def add_products(request):
+    role = role_manage(request.user)
+    category = Category.objects.filter(parent_id=None)
+    context = {
+        'user_role':role,
+        'category':category
+    }
+    if request.method == 'POST':
+        name = request.POST.get('product_name')
+        category_id = request.POST.get('category_id')
+        images = request.FILES.getlist('product_images[]')
+        print('images: ', images)
+        if not name:
+            messages.error(request,'Product Name is required')
+            return render(request,'admin/product/add_product.html',context)
+        if not category_id:
+            messages.error(request,'Please Select Category')
+            return render(request,'admin/product/add_product.html',context)
+        
+        try:
+            product = Product.objects.create(name=name, category_id=category_id)
+            for image in images:
+                fs = FileSystemStorage(location='media/product_images')
+                filename = fs.save(image.name, image)
+                ProductImage.objects.create(product=product, image='product_images/' + filename)
+            messages.success(request, 'Product Added Successfully')
+        except IntegrityError:
+            messages.error(request, 'Product with this name already exists in the selected category.')
+        return render(request,'admin/product/add_product.html',context) 
+    return render(request,'admin/product/add_product.html',context)
 
 @role_required('inventory_manager')
 def add_product_attribute(request):
@@ -350,9 +457,39 @@ def add_product_attribute(request):
         if not attribute_name:
             messages.error(request,'Enter attribute name')
             return render(request,'admin/product/add_product_attribute.html',context)
+        if ProductAttribute.objects.filter(name=attribute_name).exists():
+            messages.error(request, 'Product Attribute already exists.')
+            return render(request,'admin/product/add_product_attribute.html',context)
         
         ProductAttribute.objects.create(name=attribute_name)
-        messages.success(request,'Product Attribute Added Successfully',context)
+        messages.success(request,'Product Attribute Added Successfully')
 
         return render(request,'admin/product/add_product_attribute.html',context)
     return render(request,'admin/product/add_product_attribute.html',context)
+
+@role_required('inventory_manager')
+def add_product_attribute_value(request):
+    product_attribute = ProductAttribute.objects.all()
+    product = Product.objects.all()
+    role = role_manage(request.user)
+    context ={
+        'user_role':role,
+        'product_attribute':product_attribute,
+        'product':product
+    }   
+    if request.method == 'POST':
+        product_attribute_value = request.POST.get('product_attribute_value')
+        product_id = request.POST.get('product_id')
+        product_attribute_id = request.POST.get('product_attribute_id')
+
+        if not product_attribute_value:
+            messages.error(request,'Product attribute value is required')
+            return render(request,'admin/product/add_product_attribute_value.html',context)
+        if not product_attribute_id:
+            messages.error(request,'Please Select Product Attribute')
+            return render(request,'admin/product/add_product_attribute_value.html',context)
+
+        ProductAttributeValue.objects.create(value=product_attribute_value,product_attribute_id=product_attribute_id,product_id=product_id)
+        messages.success(request,'Product Attribute added successfully')
+        return render(request,'admin/product/add_product_attribute_value.html',context)
+    return render(request,'admin/product/add_product_attribute_value.html',context)

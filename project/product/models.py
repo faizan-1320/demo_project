@@ -18,16 +18,18 @@ class Category(models.Model):
         verbose_name = 'Category'
         verbose_name_plural = 'Categories'
 
-class ProductAttributeValue(models.Model):
-    value = models.CharField(max_length=150)
+class Product(models.Model):
+    name = models.CharField(max_length=100)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE,related_name='categories')
     is_active = models.BooleanField(default=True)
     is_delete = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
-        verbose_name = 'ProductAttributeValue'
-        verbose_name_plural = 'ProductAttributeValues'
+        verbose_name = 'Product'
+        verbose_name_plural = 'Products'
+        unique_together = ('name', 'category')
 
 class ProductAttribute(models.Model):
     name = models.CharField(max_length=150)
@@ -39,23 +41,22 @@ class ProductAttribute(models.Model):
     class Meta:
         verbose_name = 'ProductAttribute'
         verbose_name_plural = 'ProductAttributes'
-
-class Product(models.Model):
-    name = models.CharField(max_length=100)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    attribute = models.ForeignKey(ProductAttribute,on_delete=models.CASCADE)
-    attribute_value = models.ForeignKey(ProductAttributeValue,on_delete=models.CASCADE)
+        
+class ProductAttributeValue(models.Model):
+    value = models.CharField(max_length=150)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE,related_name='products')
+    product_attribute = models.ForeignKey(ProductAttribute,on_delete=models.CASCADE,related_name='product_attribute')
     is_active = models.BooleanField(default=True)
     is_delete = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
-        verbose_name = 'Product'
-        verbose_name_plural = 'Products'
+        verbose_name = 'ProductAttributeValue'
+        verbose_name_plural = 'ProductAttributeValues'
 
 class ProductImage(models.Model):
-    product = models.ForeignKey(Product,on_delete=models.CASCADE)
+    product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name='product')
     image = models.ImageField(upload_to='product_images/')
 
     class Meta:

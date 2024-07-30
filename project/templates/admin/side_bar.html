@@ -95,9 +95,15 @@
           </a>
           <ul class="nav nav-treeview">
             <li class="nav-item">
-              <a href="#" class="nav-link">
+              <a href="{% url 'products' %}" class="nav-link">
                 <i class="far fa-circle nav-icon"></i>
                 <p>Product</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'add-product' %}" class="nav-link">
+                <i class="far fa-circle nav-icon"></i>
+                <p>Add Product</p>
               </a>
             </li>
             <li class="nav-item">
@@ -107,7 +113,7 @@
               </a>
             </li>
             <li class="nav-item">
-              <a href="#" class="nav-link">
+              <a href="{% url 'add-product-attribute-value' %}" class="nav-link">
                 <i class="far fa-circle nav-icon"></i>
                 <p>Product Attributes Values</p>
               </a>
@@ -161,13 +167,19 @@
               </a>
             </li>
             <li class="nav-item">
-              <a href="#" class="nav-link">
+              <a href="{% url 'add-product' %}" class="nav-link">
+                <i class="far fa-circle nav-icon"></i>
+                <p>Add Product</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'add-product-attribute' %}" class="nav-link">
                 <i class="far fa-circle nav-icon"></i>
                 <p>Product Attributes</p>
               </a>
             </li>
             <li class="nav-item">
-              <a href="#" class="nav-link">
+              <a href="{% url 'add-product-attribute-value' %}" class="nav-link">
                 <i class="far fa-circle nav-icon"></i>
                 <p>Product Attributes Values</p>
               </a>
