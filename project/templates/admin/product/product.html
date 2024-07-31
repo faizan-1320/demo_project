@@ -34,6 +34,7 @@
                                     <tr>
                                         <th>Sr No</th>
                                         <th>Product Name</th>
+                                        <th>Price</th>
                                         <th>Category</th>
                                         <th>Images</th>
                                         <th>Attributes</th>
@@ -45,6 +46,7 @@
                                     <tr data-widget="expandable-table" aria-expanded="false">
                                         <td>{{ forloop.counter }}</td>
                                         <td>{{ product.name }}</td>
+                                        <td>{{ product.price }}</td>
                                         <td>{{ product.category.category_name }}</td>
                                         <td>
                                           {% for image in product.product.all %}
@@ -57,7 +59,7 @@
                                             {% endfor %}
                                         </td>
                                         <td>
-                                            <a href="#"><i class="fas fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#" class="delete-btn"><i class="fas fa-trash"></i></a>
+                                            <a href="{% url 'edit-product' product.id %}"><i class="fas fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#" class="delete-btn"><i class="fas fa-trash"></i></a>
                                         </td>
                                     </tr> 
                                     {% endfor %}

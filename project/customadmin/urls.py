@@ -1,5 +1,3 @@
-from django.conf import settings
-from django.conf.urls.static import static
 from django.urls import path
 from .views import *
 
@@ -21,10 +19,7 @@ urlpatterns = [
     # Product
     path('products/',product,name='products'),
     path('add-product/',add_products,name='add-product'),
+    path('edit-product/<int:pk>',edit_product,name='edit-product'),
     path('add-product-attribute/',add_product_attribute,name='add-product-attribute'),
     path('add-product-attribute-value/',add_product_attribute_value,name='add-product-attribute-value')
 ]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    print('static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT): ', static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT))

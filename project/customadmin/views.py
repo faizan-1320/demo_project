@@ -3,7 +3,7 @@ from project.users.models import User
 from project.product.models import Category,Product,ProductAttribute,ProductAttributeValue,ProductImage
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
-from project.utils.custom_required import check_login_admin,role_manage,role_required
+from project.utils.custom_required import check_login_admin,role_manage
 from django.contrib.auth.models import Group
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
@@ -11,8 +11,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.core.files.storage import FileSystemStorage
-from django.core.exceptions import ValidationError
+from collections import defaultdict
 from django.db.utils import IntegrityError
+from django.contrib.auth.decorators import permission_required
+from decimal import Decimal, InvalidOperation
 import re   
 
 ####################
@@ -57,10 +59,14 @@ def dashboard(request):
     if not check_login_admin(request.user):
         return redirect('adminlogin')
     user_count = User.objects.filter(is_superuser=False, is_active=True).count()
-    role = role_manage(request.user)
+    product_count = Product.objects.filter(is_active=True,is_delete=False).count()
+    category_count = Category.objects.filter(is_active=True,is_delete=False,parent=None).count()
+    sub_category_count = Category.objects.filter(is_active=True,is_delete=False,parent=True).count()
     context = {
-        'user_role':role,
-        'user_count':user_count
+        'product_count':product_count,
+        'user_count':user_count,
+        "category_count":category_count,
+        "sub_category_count":sub_category_count,
     }
     return render(request,'admin/dashboard.html',context)
 
@@ -69,9 +75,8 @@ def dashboard(request):
 ###################
 
 @csrf_exempt
-@role_required('admin')
+@permission_required('users.view_user', raise_exception=True)
 def users(request):
-    role = role_manage(request.user)
 
     # Check if the user is an admin
     if not check_login_admin(request.user):
@@ -94,18 +99,16 @@ def users(request):
     # Calculate the start number for the current page
     start_number = (page_obj.number - 1) * paginator.per_page + 1
     context = {
-        'user_role':role,
         'page_obj':page_obj,
         'start_number':start_number
     }
     return render(request, 'admin/users/users.html', context)
 
-@role_required('admin')
+@permission_required('users.add_user', raise_exception=True)
 def add_users(request):
     if not check_login_admin(request.user):
         return redirect('adminlogin')
     groups = Group.objects.all()
-    role = role_manage(request.user)
     
     if request.method == 'POST':
         first_name = request.POST.get('first_name')
@@ -183,13 +186,12 @@ def add_users(request):
         except Exception as e:
             return JsonResponse({'success':False,'errors': {'server':str(e)}})
     context = {
-    'user_role':role,
     'groups':groups
     }
     return render(request,'admin/users/add_user.html',context)
 
 @csrf_exempt
-@role_required('admin')
+@permission_required('users.delete_user', raise_exception=True)
 def delete_user(request, pk):
     if not check_login_admin(request.user):
         return redirect('adminlogin')
@@ -210,11 +212,10 @@ def delete_user(request, pk):
     
     return redirect('users')
 
-@role_required('admin')
+@permission_required('users.change_user', raise_exception=True)
 def edit_user(request,pk):
     if not check_login_admin(request.user):
         return redirect('adminlogin')
-    role = role_manage(request.user)
     
     user = User.objects.get(id=pk)
     user_detail = {
@@ -268,6 +269,7 @@ def edit_user(request,pk):
             user.email=email
             user.phone_number=phone_number
             user.save()
+            user.groups.clear()
             for id in groupids:
                 group = Group.objects.get(id=id)
                 user.groups.add(group)
@@ -276,9 +278,8 @@ def edit_user(request,pk):
         except Exception as e:
             return JsonResponse({'success':False,'errors':{'server':str(e)}})
     context = {
-    'user_role':role,
     'groups':groups,
-    'user':user_detail,
+    'user':user,
     'user_group_ids': user_group_ids
     }
     return render(request,'admin/users/edit_user.html',context)
@@ -287,39 +288,41 @@ def edit_user(request,pk):
 # Category Management #
 #######################
 
-@role_required('inventory_manager')
+@permission_required('product.view_category', raise_exception=True)
 def category(request):
-    role = role_manage(request.user)
+    # Check if the user is an admin
+    if not check_login_admin(request.user):
+        return redirect('adminlogin')
+    
     search_query = request.GET.get('search','')
     category = Category.objects.filter(is_active=True,is_delete=False,category_name__icontains=search_query)
     paginator = Paginator(category,10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {
-    'user_role':role,
     'category':category,
     'page_obj':page_obj
     }
+    
     return render(request,'admin/category/category.html',context)
 
-@role_required('inventory_manager')
+@permission_required('product.add_category', raise_exception=True)
 def add_category(request):
-    role = role_manage(request.user)
-    context = {
-    'user_role':role
-    }
+    # Check if the user is an admin
+    if not check_login_admin(request.user):
+        return redirect('adminlogin')
     if request.method == 'POST':
 
         category_name = request.POST.get('category_name')
 
         if not category_name:
             messages.error(request, 'Category name is required.')
-            return render(request, 'admin/category/add_category.html', context)
+            return render(request, 'admin/category/add_category.html')
         
         # Additional validation can go here (e.g., checking if the category already exists)
         if Category.objects.filter(category_name=category_name).exists():
             messages.error(request, 'Category already exists.')
-            return render(request, 'admin/category/add_category.html', context)
+            return render(request, 'admin/category/add_category.html')
         
         category = Category(
             category_name=category_name
@@ -327,18 +330,17 @@ def add_category(request):
         try:
             category.save()
             messages.success(request, 'Category added successfully!')
-            return render(request, 'admin/category/add_category.html',context)  
+            return render(request, 'admin/category/add_category.html')  
         except Exception as e:
             messages.error(request, f'Error saving category: {e}')
     
-    return render(request, 'admin/category/add_category.html',context)
+    return render(request, 'admin/category/add_category.html')
 
-@role_required('inventory_manager')
+@permission_required('product.change_category', raise_exception=True)
 def edit_category(request):
-    role = role_manage(request.user)
-    context = {
-        'user_role': role
-    }
+    # Check if the user is an admin
+    if not check_login_admin(request.user):
+        return redirect('adminlogin')
     if request.method == 'POST':
         category_id = request.POST.get('category_id')
         category_name = request.POST.get('category_name')
@@ -347,11 +349,14 @@ def edit_category(request):
         category.save()
         messages.success(request, 'Category edited successfully')
         return JsonResponse({'success': True, 'message': 'Category edited successfully'})
-    return render(request, 'admin/category/edit_category.html', context)
+    return render(request, 'admin/category/edit_category.html')
 
 @csrf_exempt
-@role_required('inventory_manager')
+@permission_required('product.delete_category', raise_exception=True)
 def delete_category(request,pk):
+    # Check if the user is an admin
+    if not check_login_admin(request.user):
+        return redirect('adminlogin')
     if request.method == 'DELETE':
         category = Category.objects.get(id=pk)
         # Mark this category and all its sub-categories as deleted
@@ -368,12 +373,11 @@ def delete_category(request,pk):
         return redirect('categories')
     return redirect('categories')
 
-@role_required('inventory_manager')
+@permission_required('product.delete_category', raise_exception=True)
 def add_sub_category(request):
-    role = role_manage(request.user)
-    context = {
-    'user_role':role
-    }
+    # Check if the user is an admin
+    if not check_login_admin(request.user):
+        return redirect('adminlogin')
     category = Category.objects.filter(parent_id=None)
     if request.method == 'POST':
         sub_category_name = request.POST.get('sub_category_name')
@@ -391,7 +395,6 @@ def add_sub_category(request):
         messages.success(request, 'Sub Category added successfully')
         return render(request, 'admin/category/add_sub_category.html', context)
     context = {
-    'user_role':role,
     'category':category
     }
     return render(request, 'admin/category/add_sub_category.html',context)
@@ -400,80 +403,137 @@ def add_sub_category(request):
 # Product Management #
 ######################
 
-@role_required('inventory_manager')
+@permission_required('product.view_product', raise_exception=True)
 def product(request):
-    role = role_manage(request.user)
+    # Check if the user is an admin
+    if not check_login_admin(request.user):
+        return redirect('adminlogin')
+    
     products = Product.objects.filter(is_active=True, is_delete=False).select_related('category').prefetch_related('product__product', 'products__product_attribute')
     paginator = Paginator(products,10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
+    # Group attribute values by their attribute names
+    attribute_groups = defaultdict(lambda: defaultdict(list))
+    
+    for product in page_obj:
+        for attribute_value in product.products.all():
+            attribute_name = attribute_value.product_attribute.name
+            attribute_groups[product.id][attribute_name].append(attribute_value.value)
     context = {
-        'user_role':role,
-        'page_obj':page_obj
+        'page_obj':page_obj,
+        'attribute_groups': attribute_groups,
     }
 
     return render(request,'admin/product/product.html',context)
 
-@role_required('inventory_manager')
+@permission_required('product.add_product', raise_exception=True)
 def add_products(request):
-    role = role_manage(request.user)
+    # Check if the user is an admin
+    if not check_login_admin(request.user):
+        return redirect('adminlogin')
+    
     category = Category.objects.filter(parent_id=None)
-    context = {
-        'user_role':role,
-        'category':category
-    }
+    context = {'category': category}
+
     if request.method == 'POST':
         name = request.POST.get('product_name')
+        price = request.POST.get('price')
         category_id = request.POST.get('category_id')
         images = request.FILES.getlist('product_images[]')
-        print('images: ', images)
-        if not name:
-            messages.error(request,'Product Name is required')
-            return render(request,'admin/product/add_product.html',context)
-        if not category_id:
-            messages.error(request,'Please Select Category')
-            return render(request,'admin/product/add_product.html',context)
-        
-        try:
-            product = Product.objects.create(name=name, category_id=category_id)
-            for image in images:
-                fs = FileSystemStorage(location='media/product_images')
-                filename = fs.save(image.name, image)
-                ProductImage.objects.create(product=product, image='product_images/' + filename)
-            messages.success(request, 'Product Added Successfully')
-        except IntegrityError:
-            messages.error(request, 'Product with this name already exists in the selected category.')
-        return render(request,'admin/product/add_product.html',context) 
-    return render(request,'admin/product/add_product.html',context)
 
-@role_required('inventory_manager')
-def add_product_attribute(request):
-    role = role_manage(request.user)
+        # Validate the inputs
+        if not name:
+            messages.error(request, 'Product Name is required')
+        elif not price:
+            messages.error(request, 'Product Price is required')
+        else:
+            try:
+                price = Decimal(price)
+                if price < 0:
+                    raise InvalidOperation
+            except InvalidOperation:
+                messages.error(request, 'Please enter a valid positive number for the price')
+                return render(request, 'admin/product/add_product.html', context)
+
+        if not category_id:
+            messages.error(request, 'Please Select Category')
+            return render(request, 'admin/product/add_product.html', context)
+
+        if not messages.get_messages(request):  # Proceed if there are no error messages
+            try:
+                product = Product.objects.create(name=name, price=price, category_id=category_id)
+                for image in images:
+                    fs = FileSystemStorage(location='media/product_images')
+                    filename = fs.save(image.name, image)
+                    ProductImage.objects.create(product=product, image='product_images/' + filename)
+                messages.success(request, 'Product Added Successfully')
+            except IntegrityError:
+                messages.error(request, 'Product with this name already exists in the selected category.')
+        
+        return render(request, 'admin/product/add_product.html', context)
+
+    return render(request, 'admin/product/add_product.html', context)
+
+@permission_required('product.change_product',raise_exception=True)
+def edit_product(request,pk):
+     # Check if the user is an admin
+    if not check_login_admin(request.user):
+        return redirect('adminlogin')
+    product = Product.objects.get(id=pk)
+    category = Category.objects.filter(parent_id=None)
+    product_image = ProductImage.objects.filter(product=product)
+    attribute_value = ProductAttributeValue.objects.filter(product=product)
+    all_attribute = ProductAttributeValue.objects.all()
+    # Group attribute values by attribute name
+    attribute_values_by_name = defaultdict(list)
+    for av in attribute_value:
+        attribute_values_by_name[av.product_attribute.name].append(av.value)
+    print('attribute_values_by_name: ', attribute_values_by_name)
     context = {
-        'user_role':role
+        'product':product,
+        'category':category,    
+        'product_images':product_image,
+        'attribute_values':attribute_value,
+        'attribute_values_by_name':dict(attribute_values_by_name)
     }
+    if request.method == 'POST':
+        product_name = request.POST.get('product_name')
+        price = request.POST.get('price')
+        return render(request,'admin/product/edit_product.html',context)
+    return render(request,'admin/product/edit_product.html',context)
+
+@permission_required('product.add_productattribure', raise_exception=True)
+def add_product_attribute(request):
+    # Check if the user is an admin
+    if not check_login_admin(request.user):
+        return redirect('adminlogin')
+    
     if request.method == 'POST':
         attribute_name = request.POST.get('attribute_name')
         if not attribute_name:
             messages.error(request,'Enter attribute name')
-            return render(request,'admin/product/add_product_attribute.html',context)
+            return render(request,'admin/product/add_product_attribute.html')
         if ProductAttribute.objects.filter(name=attribute_name).exists():
             messages.error(request, 'Product Attribute already exists.')
-            return render(request,'admin/product/add_product_attribute.html',context)
+            return render(request,'admin/product/add_product_attribute.html')
         
         ProductAttribute.objects.create(name=attribute_name)
         messages.success(request,'Product Attribute Added Successfully')
 
-        return render(request,'admin/product/add_product_attribute.html',context)
-    return render(request,'admin/product/add_product_attribute.html',context)
+        return render(request,'admin/product/add_product_attribute.html')
+    return render(request,'admin/product/add_product_attribute.html')
 
-@role_required('inventory_manager')
+@permission_required('product.add_productattributevalue', raise_exception=True)
 def add_product_attribute_value(request):
+    # Check if the user is an admin
+    if not check_login_admin(request.user):
+        return redirect('adminlogin')
     product_attribute = ProductAttribute.objects.all()
     product = Product.objects.all()
-    role = role_manage(request.user)
+    
     context ={
-        'user_role':role,
         'product_attribute':product_attribute,
         'product':product
     }   
@@ -488,8 +548,10 @@ def add_product_attribute_value(request):
         if not product_attribute_id:
             messages.error(request,'Please Select Product Attribute')
             return render(request,'admin/product/add_product_attribute_value.html',context)
-
-        ProductAttributeValue.objects.create(value=product_attribute_value,product_attribute_id=product_attribute_id,product_id=product_id)
-        messages.success(request,'Product Attribute added successfully')
-        return render(request,'admin/product/add_product_attribute_value.html',context)
+        try:
+            ProductAttributeValue.objects.create(value=product_attribute_value,product_attribute_id=product_attribute_id,product_id=product_id)
+            messages.success(request,'Product Attribute added successfully')
+        except IntegrityError:
+            messages.error(request,'Attribute value already exists in Product')
+            return render(request,'admin/product/add_product_attribute_value.html',context)
     return render(request,'admin/product/add_product_attribute_value.html',context)

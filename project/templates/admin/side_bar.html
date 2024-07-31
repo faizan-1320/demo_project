@@ -1,13 +1,15 @@
- {% load static %}
- <!-- Sidebar -->
- <div class="sidebar">
+{% load static %}
+{% load group_filters %}
+
+<!-- Sidebar -->
+<div class="sidebar">
     <!-- Sidebar user panel (optional) -->
     <div class="user-panel mt-3 pb-3 mb-3 d-flex">
       <div class="image">
         <img src="{% static 'admin/dist/img/user2-160x160.jpg' %}" class="img-circle elevation-2" alt="User Image">
       </div>
       <div class="info">
-        <a href="#" class="d-block">{{request.user.email}}</a>
+        <a href="#" class="d-block">{{ request.user.email }}</a>
       </div>
     </div>
     
@@ -25,7 +27,6 @@
     
     <!-- Sidebar Menu -->
     <nav class="mt-2">
-      <a href="#" class="d-block">User Role:{{ user_role }}</a>
       <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
         <!-- Add icons to the links using the .nav-icon class
            with font-awesome or any other icon font library -->
@@ -38,7 +39,7 @@
           </a>
         </li>
         
-        {% if user_role == 'Admin' %}
+        {% if request.user.is_superuser %}
         <!-- Admin Links -->
         <li class="nav-item">
           <a href="{% url 'users' %}" class="nav-link">
@@ -120,7 +121,8 @@
             </li>
           </ul>
         </li>
-        {% elif user_role == 'inventory manager' %}
+        {% endif %}
+        {% if user|has_group:"inventory manager" %}
         <!-- Inventory Manager Links -->
         <li class="nav-item">
           <a href="#" class="nav-link">
@@ -161,7 +163,7 @@
           </a>
           <ul class="nav nav-treeview">
             <li class="nav-item">
-              <a href="#" class="nav-link">
+              <a href="{% url 'products' %}" class="nav-link">
                 <i class="far fa-circle nav-icon"></i>
                 <p>Product</p>
               </a>
@@ -186,7 +188,8 @@
             </li>
           </ul>
         </li>
-        {% elif user_role == 'order manager' %}
+        {% endif %}
+        {% if user|has_group:"order manager" %}
         <!-- Order Manager Links -->
         <li class="nav-item">
           <a href="#" class="nav-link">
