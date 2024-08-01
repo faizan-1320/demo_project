@@ -3,7 +3,7 @@ from project.users.models import User
 from project.product.models import Category,Product,ProductAttribute,ProductAttributeValue,ProductImage
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
-from project.utils.custom_required import check_login_admin,role_manage
+from project.utils.custom_required import check_login_admin
 from django.contrib.auth.models import Group
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
@@ -434,7 +434,7 @@ def add_products(request):
     if not check_login_admin(request.user):
         return redirect('adminlogin')
     
-    category = Category.objects.filter(parent_id=None)
+    category = Category.objects.all()
     context = {'category': category}
 
     if request.method == 'POST':
@@ -477,32 +477,83 @@ def add_products(request):
     return render(request, 'admin/product/add_product.html', context)
 
 @permission_required('product.change_product',raise_exception=True)
-def edit_product(request,pk):
-     # Check if the user is an admin
+def edit_product(request, pk):
+    # Check if the user is an admin
     if not check_login_admin(request.user):
         return redirect('adminlogin')
-    product = Product.objects.get(id=pk)
-    category = Category.objects.filter(parent_id=None)
-    product_image = ProductImage.objects.filter(product=product)
-    attribute_value = ProductAttributeValue.objects.filter(product=product)
-    all_attribute = ProductAttributeValue.objects.all()
+    
+    product = get_object_or_404(Product, id=pk)
+    categories = Category.objects.all()
+    product_images = ProductImage.objects.filter(product=product)
+    attribute_values = ProductAttributeValue.objects.filter(product=product)
+
     # Group attribute values by attribute name
     attribute_values_by_name = defaultdict(list)
-    for av in attribute_value:
+    for av in attribute_values:
         attribute_values_by_name[av.product_attribute.name].append(av.value)
-    print('attribute_values_by_name: ', attribute_values_by_name)
+    
     context = {
-        'product':product,
-        'category':category,    
-        'product_images':product_image,
-        'attribute_values':attribute_value,
-        'attribute_values_by_name':dict(attribute_values_by_name)
+        'product': product,
+        'categories': categories,
+        'product_images': product_images,
+        'attribute_values': attribute_values,
+        'attribute_values_by_name': dict(attribute_values_by_name)
     }
+
     if request.method == 'POST':
         product_name = request.POST.get('product_name')
         price = request.POST.get('price')
-        return render(request,'admin/product/edit_product.html',context)
-    return render(request,'admin/product/edit_product.html',context)
+        category_id = request.POST.get('category_id')
+        images = request.FILES.getlist('product_images')
+
+        # Form validation
+        if not product_name:
+            messages.error(request, 'Product Name is required')
+        if not price:
+            messages.error(request, 'Price is required')
+        else:
+            try:
+                price = Decimal(price)
+                if price < 0:
+                    raise InvalidOperation
+            except InvalidOperation:
+                messages.error(request, 'Please enter a valid positive number for the price')
+                return render(request, 'admin/product/edit_product.html', context)
+        if not category_id:
+            messages.error(request, 'Please Select Category')
+            return render(request, 'admin/product/edit_product.html', context)
+        
+        # Update product if there are no validation errors
+        if not messages.get_messages(request):
+            try:
+                product.name = product_name
+                product.price = price
+                product.category_id = category_id
+                product.save()
+
+                # Update attribute values
+                ProductAttributeValue.objects.filter(product=product).delete()
+                for attribute_name, values in attribute_values_by_name.items():
+                    attribute, created = ProductAttribute.objects.get_or_create(name=attribute_name)
+                    for i, value in enumerate(request.POST.getlist(f'attribute_{attribute_name}[]')):
+                        ProductAttributeValue.objects.create(
+                            product=product,
+                            product_attribute=attribute,
+                            value=value
+                        )
+
+                # # Update product images
+                # for image in images:
+                #     product_image = ProductImage(product=product)
+                #     product_image.image.save(image.name, image)   
+
+                messages.success(request, 'Product Updated Successfully')
+            except IntegrityError:
+                messages.error(request, 'Product with this name already exists in the selected category')
+        
+        return redirect('edit-product', pk=product.id)
+    
+    return render(request, 'admin/product/edit_product.html', context)
 
 @permission_required('product.add_productattribure', raise_exception=True)
 def add_product_attribute(request):

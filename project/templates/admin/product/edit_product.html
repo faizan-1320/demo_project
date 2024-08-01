@@ -3,7 +3,6 @@
 {% load static %}
 {% block content %}
 <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
     <section class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
@@ -17,35 +16,37 @@
                     </ol>
                 </div>
             </div>
-        </div><!-- /.container-fluid -->
+        </div>
     </section>
 
-    <!-- Main content -->
     <section class="content">
         <div class="container-fluid">
             <div class="row">
-                <!-- left column -->
                 <div class="col-md">
-                    <!-- general form elements -->
                     <div class="card card-primary">
                         <div class="card-header">
                             <h3 class="card-title">Edit Product Details</h3>
                         </div>
-                        <!-- /.card-header -->
-                        <!-- form start -->
-                        <form>
+                        <form method="post" enctype="multipart/form-data">
                             {% csrf_token %}
                             <div class="card-body">
+                                {% if messages %}
+                                    <div class="alert-container">
+                                        {% for message in messages %}
+                                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
                                 <div class="form-group">
-                                    <label for="exampleInputEmail1">Product Name</label>
+                                    <label for="product_name">Product Name</label>
                                     <input type="text" class="form-control" id="product_name" name="product_name"
-                                        placeholder="Enter product name" value="{{product.name}}">
+                                        placeholder="Enter product name" value="{{ product.name }}">
                                     <span class="error" id="error-product_name"></span><br>
                                 </div>
                                 <div class="form-group">
-                                    <label for="exampleInputEmail1">Price</label>
+                                    <label for="price">Price</label>
                                     <input type="text" class="form-control" id="price" name="price"
-                                        placeholder="Enter price" value="{{product.price}}">
+                                        placeholder="Enter price" value="{{ product.price }}">
                                     <span class="error" id="error-price"></span><br>
                                 </div>
                                 <div class="form-group">
@@ -54,8 +55,7 @@
                                         <div class="form-group">
                                             <label>{{ attribute }}</label>
                                             {% for value in values %}
-                                                <input type="text" class="form-control" name="attribute_value_{{ forloop.counter0 }}"
-                                                    value="{{ value }}">
+                                                <input type="text" class="form-control" name="attribute_{{ attribute }}[]" value="{{ value }}">
                                             {% endfor %}
                                         </div>
                                     {% endfor %}
@@ -75,8 +75,8 @@
                                 <div class="form-group">
                                     <label for="category_id">Select Category</label>
                                     <select class="form-control" id="category_id" name="category_id">
-                                        {% for cat in category %}
-                                            <option value="{{ cat.id }}" {% if cat.id == product.category_id %}selected{% endif %}>{{ cat.category_name }}</option>
+                                        {% for cat in categories %}
+                                            <option value="{{ cat.id }}" {% if cat.id == product.category_id %}selected{% endif %}>{{ cat.full_path }}</option>
                                         {% endfor %}
                                     </select>
                                     <span class="error" id="error-category_id"></span>
@@ -85,45 +85,11 @@
                             <div class="card-footer">
                                 <button type="submit" class="btn btn-primary">Submit</button>
                             </div>
-                            <!-- /.card-body -->
                         </form>
                     </div>
-                    <!-- /.card -->
                 </div>
             </div>
         </div>
     </section>
-    <!-- /.content -->
 </div>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    $(document).ready(function () {
-        $('form').on('submit', function (e) {
-            e.preventDefault();
-            $.ajax({
-                type: 'POST',
-                data: $(this).serialize(),
-                success: function (res) {
-                    if (res.success) {
-
-                        Swal.fire({
-                            icon: 'success',
-                            title: res.message
-                        }).then(() => {
-                            window.location.href = "{% url 'products' %}";
-                        })
-                        $('.error').text('');
-                    } else {
-                        $('.error').text('');
-                        for (let field in res.errors) {
-                            if (res.errors[field]) {
-                                $('#error-' + field).text(res.errors[field]).css('color', 'red')
-                            }
-                        }
-                    }
-                }
-            })
-        })
-    })
-</script>
 {% endblock content %}

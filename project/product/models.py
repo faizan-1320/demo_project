@@ -4,6 +4,8 @@ from django.utils import timezone
 from django.conf import settings
 from django.core.validators import RegexValidator
 
+CATEGORY_DELIMITER = " / "
+
 # Create your models here.
 class Category(models.Model):
     category_name_regex = RegexValidator(regex=r'^[A-Za-z]+$',message='Enter valid Categoty Name')
@@ -13,6 +15,19 @@ class Category(models.Model):
     is_delete = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
+
+    @property
+    def full_path(self):
+        comp = [self.category_name]
+        parent_cat = self.parent
+
+        while parent_cat is not None:
+            comp.insert(0, parent_cat.category_name)
+            parent_cat = parent_cat.parent
+        return CATEGORY_DELIMITER.join(comp) 
+
+    def __str__(self):
+        return self.category_name
 
     class Meta:
         verbose_name = 'Category'
@@ -27,6 +42,8 @@ class Product(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
 
+    def __str__(self):
+        return self.name
     class Meta:
         verbose_name = 'Product'
         verbose_name_plural = 'Products'
@@ -39,6 +56,8 @@ class ProductAttribute(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
 
+    def __str__(self):
+        return self.name
     class Meta:
         verbose_name = 'ProductAttribute'
         verbose_name_plural = 'ProductAttributes'
@@ -52,6 +71,8 @@ class ProductAttributeValue(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
 
+    def __str__(self):
+        return self.value
     class Meta:
         verbose_name = 'ProductAttributeValue'
         verbose_name_plural = 'ProductAttributeValues'
