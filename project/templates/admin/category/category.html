@@ -38,10 +38,9 @@
                   <div class="input-group-append">
                     <button class="btn btn-primary" type="submit">Search</button>
                   </div>
-
                 </div>
               </form>
-              <h6> <a href="{% url 'add-' %}"></a></h6>
+              <h6 class="mt-2"><a href="{% url 'add-category' %}">+ Add Category</a></h6>
               <table class="table table-bordered table-hover">
                 <thead>
                   <tr>
@@ -55,18 +54,22 @@
                   {% for i in category %}
                   {% if not i.parent %}
                   <tr data-widget="expandable-table" aria-expanded="false">
-                    <td>{{ forloop.counter }}</td>
-                    <td>{{i.category_name}}</td>
+                    <td>{{ forloop.counter0|add:start_number }}</td>
+                    <td>{{ i.category_name }}</td>
                     <td>
                       {% for sub_category in i.category_set.all %}
                       {{ sub_category.category_name }}{% if not forloop.last %},{% endif %}
                       {% endfor %}
                     </td>
-                    <td><button type="button" class="btn btn-default" data-toggle="modal" data-target="#modal-default"
+                    <td>
+                      <button type="button" class="btn btn-default" data-toggle="modal" data-target="#modal-default"
                         onclick="openEditModal('{{ i.id }}', '{{ i.category_name }}')">
                         <i class="fas fa-edit"></i>
-                      </button>&nbsp;&nbsp;&nbsp;&nbsp;<a href="{% url 'delete-category' i.id %}" class="delete-btn"><i
-                          class="fas fa-trash"></i></a>
+                      </button>
+                      &nbsp;&nbsp;&nbsp;&nbsp;
+                      <a href="{% url 'delete-category' i.id %}" class="delete-btn">
+                        <i class="fas fa-trash"></i>
+                      </a>
                     </td>
                   </tr>
                   {% endif %}
@@ -174,20 +177,29 @@
   document.getElementById('save_category').addEventListener('click', function () {
     var form = document.getElementById('myForm');
     var formData = new FormData(form);
+    var categoryId = document.getElementById('category_id').value;
+    var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-    fetch("{% url 'edit-category' %}", {
+    fetch("{% url 'edit-category' 0 %}".replace('0', categoryId), {
       method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken,
+      },
       body: formData,
     })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          $('#modal-default').modal('hide');
-          location.reload();
-        } else {
-          console.log(data.errors);
-        }
-      });
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        $('#modal-default').modal('hide');
+        location.reload();
+      } else {
+        Swal.fire({
+                title: "Error!",
+                text: data.errors || 'An error occurred.',
+                icon: "error"
+              });
+      }
+    });
   });
 
   $(document).ready(function () {
@@ -195,6 +207,7 @@
       e.preventDefault();
       var url = $(this).attr('href');
       var row = $(this).closest('tr');
+      var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
       Swal.fire({
         title: "Are you sure?",
@@ -208,7 +221,10 @@
         if (res.isConfirmed) {
           $.ajax({
             url: url,
-            method: 'DELETE',
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': csrfToken,
+            },
             success: function (result) {
               Swal.fire({
                 title: "Deleted!",
@@ -231,6 +247,4 @@
     });
   });
 </script>
-
-
 {% endblock content %}

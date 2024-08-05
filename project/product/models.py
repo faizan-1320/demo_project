@@ -1,5 +1,4 @@
 from django.db import models
-from ..users.models import User
 from django.utils import timezone
 from django.conf import settings
 from django.core.validators import RegexValidator
@@ -24,7 +23,7 @@ class Category(models.Model):
         while parent_cat is not None:
             comp.insert(0, parent_cat.category_name)
             parent_cat = parent_cat.parent
-        return CATEGORY_DELIMITER.join(comp) 
+        return CATEGORY_DELIMITER.join(comp)
 
     def __str__(self):
         return self.category_name
@@ -81,6 +80,10 @@ class ProductAttributeValue(models.Model):
 class ProductImage(models.Model):
     product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name='product')
     image = models.ImageField(upload_to='product_images/')
+    is_active = models.BooleanField(default=True)
+    is_delete = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         verbose_name = 'ProductImage'

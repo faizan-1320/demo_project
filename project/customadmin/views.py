@@ -1,13 +1,14 @@
 from django.shortcuts import render,redirect
 from project.users.models import User
 from project.product.models import Category,Product,ProductAttribute,ProductAttributeValue,ProductImage
+from .models import Banner
+from .forms import BannerForm
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
 from project.utils.custom_required import check_login_admin
 from django.contrib.auth.models import Group
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.core.files.storage import FileSystemStorage
@@ -34,8 +35,7 @@ def adminlogin(request):
             errors['password'] = 'Please Enter Password'
 
         if not user.exists():
-            errors['user_exists'] = 'Account not found'
-        
+            errors['user_exists'] = 'Account not found'        
         user = authenticate(username=email,password=password)
 
         if user is None:
@@ -74,7 +74,6 @@ def dashboard(request):
 # User Management #
 ###################
 
-@csrf_exempt
 @permission_required('users.view_user', raise_exception=True)
 def users(request):
 
@@ -190,12 +189,11 @@ def add_users(request):
     }
     return render(request,'admin/users/add_user.html',context)
 
-@csrf_exempt
 @permission_required('users.delete_user', raise_exception=True)
 def delete_user(request, pk):
     if not check_login_admin(request.user):
         return redirect('adminlogin')
-    if request.method == 'DELETE':
+    if request.method == 'POST':
         try:
             user = User.objects.get(id=pk)
         except User.DoesNotExist:
@@ -299,9 +297,11 @@ def category(request):
     paginator = Paginator(category,10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    start_number = (page_obj.number - 1) * paginator.per_page + 1
     context = {
     'category':category,
-    'page_obj':page_obj
+    'page_obj':page_obj,
+    'start_number':start_number
     }
     
     return render(request,'admin/category/category.html',context)
@@ -337,27 +337,25 @@ def add_category(request):
     return render(request, 'admin/category/add_category.html')
 
 @permission_required('product.change_category', raise_exception=True)
-def edit_category(request):
+def edit_category(request,pk):
     # Check if the user is an admin
     if not check_login_admin(request.user):
         return redirect('adminlogin')
     if request.method == 'POST':
-        category_id = request.POST.get('category_id')
         category_name = request.POST.get('category_name')
-        category = get_object_or_404(Category, id=category_id)
+        category = Category.objects.get(pk=pk)
         category.category_name = category_name
         category.save()
         messages.success(request, 'Category edited successfully')
         return JsonResponse({'success': True, 'message': 'Category edited successfully'})
     return render(request, 'admin/category/edit_category.html')
 
-@csrf_exempt
 @permission_required('product.delete_category', raise_exception=True)
 def delete_category(request,pk):
     # Check if the user is an admin
     if not check_login_admin(request.user):
         return redirect('adminlogin')
-    if request.method == 'DELETE':
+    if request.method == 'POST':
         category = Category.objects.get(id=pk)
         # Mark this category and all its sub-categories as deleted
         def mark_as_deleted(cat):
@@ -379,6 +377,9 @@ def add_sub_category(request):
     if not check_login_admin(request.user):
         return redirect('adminlogin')
     category = Category.objects.filter(parent_id=None)
+    context = {
+    'category':category
+    }
     if request.method == 'POST':
         sub_category_name = request.POST.get('sub_category_name')
         parent_id = request.POST.get('parent_id')
@@ -394,9 +395,7 @@ def add_sub_category(request):
         Category.objects.create(category_name=sub_category_name, parent_id=parent_id)
         messages.success(request, 'Sub Category added successfully')
         return render(request, 'admin/category/add_sub_category.html', context)
-    context = {
-    'category':category
-    }
+
     return render(request, 'admin/category/add_sub_category.html',context)
 
 ######################
@@ -413,7 +412,7 @@ def product(request):
     paginator = Paginator(products,10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-
+    start_number = (page_obj.number - 1) * paginator.per_page + 1
     # Group attribute values by their attribute names
     attribute_groups = defaultdict(lambda: defaultdict(list))
     
@@ -424,6 +423,7 @@ def product(request):
     context = {
         'page_obj':page_obj,
         'attribute_groups': attribute_groups,
+        'start_number':start_number
     }
 
     return render(request,'admin/product/product.html',context)
@@ -476,6 +476,16 @@ def add_products(request):
 
     return render(request, 'admin/product/add_product.html', context)
 
+@permission_required('product.delete_product')
+def delete_product(request,pk):
+    if request.method == 'POST':
+        product = Product.objects.get(id=pk)
+        product.is_active = False
+        product.is_delete = True
+        product.save()
+        return redirect('products')
+    return render(request,'admin/product/product.html')
+
 @permission_required('product.change_product',raise_exception=True)
 def edit_product(request, pk):
     # Check if the user is an admin
@@ -484,11 +494,12 @@ def edit_product(request, pk):
     
     product = get_object_or_404(Product, id=pk)
     categories = Category.objects.all()
-    product_images = ProductImage.objects.filter(product=product)
+    product_images = ProductImage.objects.filter(product=product,is_active=True,is_delete=False)
     attribute_values = ProductAttributeValue.objects.filter(product=product)
 
     # Group attribute values by attribute name
     attribute_values_by_name = defaultdict(list)
+    # print('attribute_values_by_name: ', attribute_values_by_name)
     for av in attribute_values:
         attribute_values_by_name[av.product_attribute.name].append(av.value)
     
@@ -504,7 +515,8 @@ def edit_product(request, pk):
         product_name = request.POST.get('product_name')
         price = request.POST.get('price')
         category_id = request.POST.get('category_id')
-        images = request.FILES.getlist('product_images')
+        images_to_delete = request.POST.getlist('images_to_delete')
+        images = request.FILES.getlist('product_images[]')
 
         # Form validation
         if not product_name:
@@ -542,15 +554,17 @@ def edit_product(request, pk):
                             value=value
                         )
 
-                # # Update product images
-                # for image in images:
-                #     product_image = ProductImage(product=product)
-                #     product_image.image.save(image.name, image)   
+                # Soft delete images
+                if images_to_delete:
+                    print('images_to_delete check conditions --: ', images_to_delete)
+                    ProductImage.objects.filter(id__in=images_to_delete).delete()
+                for image in images:
+                    print('image: ', image)
+                    ProductImage.objects.create(product=product, image=image)  
 
                 messages.success(request, 'Product Updated Successfully')
             except IntegrityError:
-                messages.error(request, 'Product with this name already exists in the selected category')
-        
+                messages.error(request, 'Product with this name already exists in the selected category')        
         return redirect('edit-product', pk=product.id)
     
     return render(request, 'admin/product/edit_product.html', context)
@@ -606,3 +620,52 @@ def add_product_attribute_value(request):
             messages.error(request,'Attribute value already exists in Product')
             return render(request,'admin/product/add_product_attribute_value.html',context)
     return render(request,'admin/product/add_product_attribute_value.html',context)
+
+@permission_required('customadmin.view_banner',raise_exception=True)
+def banner(request):
+    # Check if the user is an admin
+    if not check_login_admin(request.user):
+        return redirect('adminlogin')
+    banner = Banner.objects.filter(is_active=True,is_delete=False)
+    paginator = Paginator(banner,10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    start_number = (page_obj.number - 1) * paginator.per_page + 1
+
+    context = {
+        'page_obj':page_obj,
+        'start_number':start_number
+    }
+    return render(request,'admin/banner/banner.html',context)
+
+@permission_required('customadmin.add_banner',raise_exception=True)
+def add_banner(request):
+    # Check if the user is an admin
+    if not check_login_admin(request.user):
+        return redirect('adminlogin')
+    
+    if request.method == 'POST':
+        form = BannerForm(request.POST,request.FILES)
+        if form.is_valid():
+            images = form.cleaned_data['banner_images']
+            for image in images:
+                print('image: ', image)
+                banner = Banner(image=image)
+                banner.save()
+            messages.success(request, 'Banners added successfully')
+            return redirect('add-banner')
+
+    else:
+        form = BannerForm()
+
+    return render(request, 'admin/banner/add_banner.html',{'form':form})
+
+@permission_required('customadmin.delete_banner',raise_exception=True)
+def delete_banner(request,pk):
+    if request.method == 'POST':
+        banner = Banner.objects.get(id=pk)
+        banner.is_active = False
+        banner.is_delete = True
+        banner.save()
+        return redirect('banner')
+    return render(request,'admin/banner/banner.html')

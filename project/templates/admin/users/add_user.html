@@ -98,25 +98,21 @@
   $(document).ready(function () {
   $('#myForm').on('submit', function (e) {
     e.preventDefault();
-    console.log('Form submitted'); // Check if this log appears
 
     $.ajax({
       type: 'POST',
       url: $(this).attr('action'), // Ensure this is correct
       data: $(this).serialize(),
       success: function (res) {
-        console.log('Success response:', res); // Check response structure
         if (res.success) {
           Swal.fire({
             icon: 'success',
             title: res.message
           }).then(() => {
-            console.log('Resetting form'); // Check if this log appears
             $('#myForm')[0].reset();
             $('.error').text('');
           });
         } else {
-          console.log('Errors:', res.errors); // Check errors structure
           $('.error').text('');
           for (let field in res.errors) {
             if (res.errors[field]) {
@@ -126,7 +122,6 @@
         }
       },
       error: function (err) {
-        console.error('An error occurred:', err);
         alert('An Error occurred: ' + JSON.stringify(err, null, 2));
       }
     });

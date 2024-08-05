@@ -55,20 +55,23 @@
                                         <div class="form-group">
                                             <label>{{ attribute }}</label>
                                             {% for value in values %}
-                                                <input type="text" class="form-control" name="attribute_{{ attribute }}[]" value="{{ value }}">
+                                                <input type="text" class="form-control mt-2" name="attribute_{{ attribute }}[]" value="{{ value }}">
                                             {% endfor %}
                                         </div>
                                     {% endfor %}
                                 </div>
                                 <div class="form-group">
                                     <label for="product_images">Product Images</label>
-                                    <input type="file" class="form-control" id="product_images" name="product_images[]" multiple>
+                                    <input type="file" class="form-control" id="product_images" name="product_images[]"
+                                        multiple>
                                     <span class="error" id="error-product_images"></span>
                                     <div class="row mt-3">
                                         {% for image in product_images %}
-                                            <div class="col-md-3">
-                                                <img src="{{ image.image.url }}" class="img-thumbnail" alt="Product Image">
-                                            </div>
+                                        <div class="col-md-3">
+                                            <img src="{{ image.image.url }}" class="img-thumbnail" alt="Product Image">
+                                            <input type="checkbox" name="images_to_delete" value="{{ image.id }}">
+                                            Delete
+                                        </div>
                                         {% endfor %}
                                     </div>
                                 </div>

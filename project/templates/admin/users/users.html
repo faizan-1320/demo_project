@@ -155,10 +155,6 @@
       var row = $(this).closest('tr'); // Find the closest row (assuming you're working with table rows)
       var expandableRow = row.next('.expandable-body'); // Find the next row with class 'expandable-body'
 
-      console.log('Delete URL:', url);
-      console.log('Main Row:', row);
-      console.log('Expandable Row:', expandableRow);
-
       Swal.fire({
         title: "Are you sure?",
         text: "You want to delete this user?",
@@ -172,7 +168,10 @@
           // Proceed with AJAX request only if confirmed
           $.ajax({
             url: url,
-            method: 'DELETE',
+            method: 'POST',
+            data:{
+              csrfmiddlewaretoken:'{{csrf_token}}'
+            },
             success: function (res) {
               Swal.fire({
                 title: "Deleted!",
