@@ -50,6 +50,22 @@
           </a>
         </li>
         <li class="nav-item">
+          <a href="{% url 'banner' %}" class="nav-link">
+            <i class="fas fa-circle"></i>
+            <p>
+              Banner
+            </p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'coupon' %}" class="nav-link">
+            <i class="fas fa-circle"></i>
+            <p>
+              Coupon
+            </p>
+          </a>
+        </li>
+        <li class="nav-item">
           <a href="#" class="nav-link">
             <i class="nav-icon fas fa-copy"></i>
             <p>
@@ -109,23 +125,7 @@
             </li>
           </ul>
         </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link">
-            <i class="nav-icon fas fa-box"></i>
-            <p>
-              Banner
-              <i class="right fas fa-angle-left"></i>
-            </p>
-          </a>
-          <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="{% url 'banner' %}" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Banner</p>
-              </a>
-            </li>
-          </ul>
-        </li>
+        
         {% endif %}
         {% if user|has_group:"inventory manager" %}
         <!-- Inventory Manager Links -->

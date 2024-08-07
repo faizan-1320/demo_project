@@ -1,0 +1,86 @@
+{% extends 'admin/dashboard.html' %}
+{% block title %}Edit Banner{% endblock %}
+{% block content %}
+<div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>Edit Banner</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+                        <li class="breadcrumb-item active">Edit Banner</li>
+                    </ol>
+                </div>
+            </div>
+        </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <!-- left column -->
+                <div class="col-md">
+                    <!-- general form elements -->
+                    <div class="card card-primary">
+                        <div class="card-header">
+                            <h3 class="card-title">Edit Banner</h3>
+                        </div>
+                        <!-- /.card-header -->
+
+                        <!-- Display messages -->
+                        {% if messages %}
+                        <div class="card-body">
+                            <div class="alert-container">
+                                {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Form -->
+                        <form id="myForm" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="card-body">
+                                <!-- Display current image -->
+                                {% if banner.image %}
+                                <div class="form-group">
+                                    <label>Current Image</label>
+                                    <div class="mb-3">
+                                        <img src="{{ banner.image.url }}" alt="Current Banner Image" class="img-thumbnail" style="max-width: 200px;">
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                <!-- Display form fields -->
+                                {% for field in form %}
+                                <div class="form-group">
+                                    {{ field.label_tag }}
+                                    {% if field.errors %}
+                                    <div class="alert alert-danger">
+                                        {{ field.errors }}
+                                    </div>
+                                    {% endif %}
+                                    {{ field }}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div class="card-footer">
+                                <button type="submit" class="btn btn-primary">Submit</button>
+                            </div>
+                            <!-- /.card-footer -->
+                        </form>
+                    </div>
+                    <!-- /.card -->
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- /.content -->
+</div>
+{% endblock content %}

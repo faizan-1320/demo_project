@@ -27,4 +27,5 @@ urlpatterns = [
     path('banner/',banner,name='banner'),
     path('banner/add/',add_banner,name='add-banner'),
     path('banner/<int:pk>/delete/',delete_banner,name='delete-banner'),
+    path('banner/<int:pk>/edit/',edit_banner,name='edit-banner'),
 ]

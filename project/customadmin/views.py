@@ -2,7 +2,7 @@ from django.shortcuts import render,redirect
 from project.users.models import User
 from project.product.models import Category,Product,ProductAttribute,ProductAttributeValue,ProductImage
 from .models import Banner
-from .forms import BannerForm
+from .forms import BannerForm,BannerEditForm
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
 from project.utils.custom_required import check_login_admin
@@ -621,6 +621,10 @@ def add_product_attribute_value(request):
             return render(request,'admin/product/add_product_attribute_value.html',context)
     return render(request,'admin/product/add_product_attribute_value.html',context)
 
+#####################
+# Banner Management #
+#####################
+
 @permission_required('customadmin.view_banner',raise_exception=True)
 def banner(request):
     # Check if the user is an admin
@@ -649,12 +653,10 @@ def add_banner(request):
         if form.is_valid():
             images = form.cleaned_data['banner_images']
             for image in images:
-                print('image: ', image)
                 banner = Banner(image=image)
                 banner.save()
             messages.success(request, 'Banners added successfully')
-            return redirect('add-banner')
-
+            return redirect('banner')
     else:
         form = BannerForm()
 
@@ -669,3 +671,19 @@ def delete_banner(request,pk):
         banner.save()
         return redirect('banner')
     return render(request,'admin/banner/banner.html')
+
+@permission_required('customadmin.change_banner',raise_exception=True)
+def edit_banner(request,pk):
+    banner = get_object_or_404(Banner,id=pk)
+    if request.method == 'POST':
+        form = BannerEditForm(request.POST,request.FILES)
+        print('form: ', form)
+        if form.is_valid():
+            image = form.cleaned_data['banner_image']
+            banner.image = image
+            banner.save()
+            messages.success(request,'Banner updated successfully')
+            return redirect('banner')
+    else:
+        form = BannerEditForm()
+    return render(request,'admin/banner/edit_banner.html',{'form':form,'banner':banner})

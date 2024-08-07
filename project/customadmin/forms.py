@@ -36,3 +36,19 @@ class BannerForm(forms.Form):
             raise forms.ValidationError(f"Unsupported file types: {', '.join(invalid_images)}. Please upload PNG, JPEG, or JPG images.")
         
         return images
+    
+class BannerEditForm(forms.Form):
+    banner_image = forms.FileField(
+        label='Banner Image',
+        required=True,
+        widget=forms.ClearableFileInput(attrs={'class': 'form-control'}),
+    )
+
+    def clean_banner_image(self):
+        image = self.cleaned_data.get('banner_image')
+        image_types = ['.png', '.jpeg', '.jpg']
+
+        if image and not any(image.name.lower().endswith(ext) for ext in image_types):
+            raise forms.ValidationError("Unsupported file type. Please upload PNG, JPEG, or JPG images.")
+        
+        return image

@@ -9,7 +9,6 @@ from django.db import IntegrityError
 def home(request):
     return render(request,'front_end/index.html')
 
-
 def view_login(request):
     page = 'login'
     if request.method == 'POST':

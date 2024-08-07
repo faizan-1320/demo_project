@@ -41,7 +41,8 @@ DEAFULT_APPS = [
 LOCAL_APPS = [
     'project.users',
     'project.product',
-    'project.customadmin'
+    'project.customadmin',
+    'project.coupon',
 ]
 
 THIRD_PARTY_APPS = []
