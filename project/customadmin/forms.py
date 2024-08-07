@@ -22,7 +22,11 @@ class BannerForm(forms.Form):
         required=True,
         widget=MultipleFileInput(attrs={'class': 'form-control'})
     )
-
+    priority = forms.IntegerField(
+        label='Priority',
+        required=True,
+        widget=forms.NumberInput(attrs={'class': 'form-control'})
+    )
     def clean_banner_images(self):
         images = self.files.getlist('banner_images')
         image_types = ['.png', '.jpeg', '.jpg']

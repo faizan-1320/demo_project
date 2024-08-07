@@ -58,9 +58,6 @@
                                                     <input type="checkbox" name="delete_attribute_values" value="{{ av.id }}">&nbsp;Delete
                                                 </div>
                                             {% endfor %}
-                                            <div class="d-flex align-items-center">
-                                                <input type="text" class="form-control mt-2 mr-2" name="attribute_{{ attribute }}[]" placeholder="Enter new {{ attribute }} value">
-                                            </div>
                                             <button type="button" class="btn btn-sm btn-success mt-2 add-attribute-value" data-attribute="{{ attribute }}">Add {{ attribute }} Value</button>
                                         </div>
                                     {% endfor %}

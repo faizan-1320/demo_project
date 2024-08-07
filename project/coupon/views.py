@@ -29,7 +29,7 @@ def add_coupon(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Coupon created successfully!')
-            return redirect('coupon')
+            return redirect('coupons')
     else:
         form = CouponForm()
     return render(request, 'admin/coupon/add_coupon.html', {'form': form})
@@ -41,7 +41,7 @@ def edit_coupon(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, 'Coupon updated successfully!')
-            return redirect('coupon')
+            return redirect('coupons')
     else:
         form = CouponForm(instance=coupon)
     return render(request, 'admin/coupon/edit_coupon.html', {'form': form})
@@ -52,5 +52,5 @@ def delete_coupon(request, pk):
         coupon.is_delete = True
         coupon.save()
         messages.success(request, 'Coupon deleted successfully!')
-        return redirect('coupon')
+        return redirect('coupons')
     return render(request, 'admin/coupon/coupon.html', {'coupon': coupon})

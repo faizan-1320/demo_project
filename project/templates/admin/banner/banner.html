@@ -39,6 +39,7 @@
                                     <tr>
                                         <th>Sr No</th>
                                         <th>Image</th>
+                                        <th>Priority</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -48,6 +49,7 @@
                                         <td>{{ forloop.counter0|add:start_number }}</td>
                                         <td><img src="{{ banner.image.url }}" alt="No image" width="50" height="50">
                                         </td>
+                                        <td>{{banner.priority}}</td>
                                         <td><a href="{% url 'edit-banner' banner.id %}"><i class="fas fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;<a
                                                 href="{% url 'delete-banner' banner.id %}" class="delete-btn"><i
                                                     class="fas fa-trash"></i></a></td>

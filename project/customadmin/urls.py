@@ -24,8 +24,8 @@ urlpatterns = [
     path('products/add-attribute/', add_product_attribute, name='add-product-attribute'),
     path('products/add-attribute-value/', add_product_attribute_value, name='add-product-attribute-value'),
     # Banner URL
-    path('banner/',banner,name='banner'),
-    path('banner/add/',add_banner,name='add-banner'),
-    path('banner/<int:pk>/delete/',delete_banner,name='delete-banner'),
-    path('banner/<int:pk>/edit/',edit_banner,name='edit-banner'),
+    path('banners/',banner,name='banners'),
+    path('banners/add/',add_banner,name='add-banner'),
+    path('banners/<int:pk>/delete/',delete_banner,name='delete-banner'),
+    path('banners/<int:pk>/edit/',edit_banner,name='edit-banner'),
 ]

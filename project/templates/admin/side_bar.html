@@ -50,16 +50,16 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="{% url 'banner' %}" class="nav-link">
-            <i class="fas fa-circle"></i>
+          <a href="{% url 'banners' %}" class="nav-link">
+            <i class="fas fa-ad"></i>
             <p>
               Banner
             </p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="{% url 'coupon' %}" class="nav-link">
-            <i class="fas fa-circle"></i>
+          <a href="{% url 'coupons' %}" class="nav-link">
+            <i class="fas fa-ticket-alt"></i>
             <p>
               Coupon
             </p>
@@ -124,6 +124,25 @@
               </a>
             </li>
           </ul>
+        </li>
+        <li class="nav-header">CMS</li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon fas fa-envelope"></i>
+            <p>Contact US</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon fas fa-question-circle"></i>
+            <p>FAQ</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon fas fa-file-contract"></i>
+            <p>Term & Condition</p>
+          </a>
         </li>
         
         {% endif %}
@@ -205,25 +224,6 @@
           </a>
         </li>
         {% endif %}
-        <li class="nav-header">CMS</li>
-        <li class="nav-item">
-          <a href="#" class="nav-link">
-            <i class="nav-icon fas fa-envelope"></i>
-            <p>Contact US</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link">
-            <i class="nav-icon fas fa-question-circle"></i>
-            <p>FAQ</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link">
-            <i class="nav-icon fas fa-file-contract"></i>
-            <p>Term & Condition</p>
-          </a>
-        </li>
         <li class="nav-item">
           <a href="{% url 'logout-admin' %}" id="logout" class="nav-link">
             <i class="nav-icon fas fa-sign-out-alt"></i>

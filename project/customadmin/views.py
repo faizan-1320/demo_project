@@ -3,6 +3,7 @@ from project.users.models import User
 from project.product.models import Category,Product,ProductAttribute,ProductAttributeValue,ProductImage
 from .models import Banner
 from .forms import BannerForm,BannerEditForm
+from project.coupon.models import Coupon
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
 from project.utils.custom_required import check_login_admin
@@ -62,11 +63,15 @@ def dashboard(request):
     product_count = Product.objects.filter(is_active=True,is_delete=False).count()
     category_count = Category.objects.filter(is_active=True,is_delete=False,parent=None).count()
     sub_category_count = Category.objects.filter(is_active=True,is_delete=False,parent=True).count()
+    coupon_count = Coupon.objects.filter(is_active=True,is_delete=False).count()
+    banner_count = Banner.objects.filter(is_active=True,is_delete=False).count()
     context = {
         'product_count':product_count,
         'user_count':user_count,
         "category_count":category_count,
         "sub_category_count":sub_category_count,
+        'coupon_count':coupon_count,
+        'banner_count':banner_count,
     }
     return render(request,'admin/dashboard.html',context)
 
@@ -155,6 +160,9 @@ def add_users(request):
             errors['confirm_password'] = 'Please Enter Confirm Password'
         elif password != confirm_password:
             errors['confirm_password'] = 'Password and Confirm password does not mactch'
+
+        if not groupids:
+            errors['groupids'] = 'Please Select Group'
 
         # Check User Exitst or not
         if User.objects.filter(email=email).exists():
@@ -672,11 +680,12 @@ def add_banner(request):
         form = BannerForm(request.POST,request.FILES)
         if form.is_valid():
             images = form.cleaned_data['banner_images']
+            priority = form.cleaned_data['priority']
             for image in images:
-                banner = Banner(image=image)
+                banner = Banner(image=image,priority=priority)
                 banner.save()
             messages.success(request, 'Banners added successfully')
-            return redirect('banner')
+            return redirect('banners')
     else:
         form = BannerForm()
 
@@ -689,7 +698,7 @@ def delete_banner(request,pk):
         banner.is_active = False
         banner.is_delete = True
         banner.save()
-        return redirect('banner')
+        return redirect('banners')
     return render(request,'admin/banner/banner.html')
 
 @permission_required('customadmin.change_banner',raise_exception=True)
@@ -703,7 +712,7 @@ def edit_banner(request,pk):
             banner.image = image
             banner.save()
             messages.success(request,'Banner updated successfully')
-            return redirect('banner')
+            return redirect('banners')
     else:
         form = BannerEditForm()
     return render(request,'admin/banner/edit_banner.html',{'form':form,'banner':banner})
