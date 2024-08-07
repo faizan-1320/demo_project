@@ -494,14 +494,17 @@ def edit_product(request, pk):
     
     product = get_object_or_404(Product, id=pk)
     categories = Category.objects.all()
-    product_images = ProductImage.objects.filter(product=product,is_active=True,is_delete=False)
+    product_images = ProductImage.objects.filter(product=product, is_active=True, is_delete=False)
     attribute_values = ProductAttributeValue.objects.filter(product=product)
 
     # Group attribute values by attribute name
     attribute_values_by_name = defaultdict(list)
-    # print('attribute_values_by_name: ', attribute_values_by_name)
     for av in attribute_values:
-        attribute_values_by_name[av.product_attribute.name].append(av.value)
+        attribute_values_by_name[av.product_attribute.name].append({
+            'id': av.id,
+            'value': av.value
+        })
+    # print('attribute_values_by_name: ', attribute_values_by_name)
     
     context = {
         'product': product,
@@ -517,6 +520,7 @@ def edit_product(request, pk):
         category_id = request.POST.get('category_id')
         images_to_delete = request.POST.getlist('images_to_delete')
         images = request.FILES.getlist('product_images[]')
+        delete_attribute_values = request.POST.getlist('delete_attribute_values')
 
         # Form validation
         if not product_name:
@@ -538,34 +542,50 @@ def edit_product(request, pk):
         # Update product if there are no validation errors
         if not messages.get_messages(request):
             try:
+                # import pdb;pdb.set_trace()
                 product.name = product_name
                 product.price = price
                 product.category_id = category_id
                 product.save()
 
+                # Delete attribute values marked for deletion
+                deleted_values = []
+                if delete_attribute_values:
+                    delete_value = ProductAttributeValue.objects.filter(id__in=delete_attribute_values)
+                    for av in delete_value:
+                        deleted_values.append(av.value)
+                    delete_value.delete()
+
                 # Update attribute values
-                ProductAttributeValue.objects.filter(product=product).delete()
                 for attribute_name, values in attribute_values_by_name.items():
                     attribute, created = ProductAttribute.objects.get_or_create(name=attribute_name)
-                    for i, value in enumerate(request.POST.getlist(f'attribute_{attribute_name}[]')):
-                        ProductAttributeValue.objects.create(
-                            product=product,
-                            product_attribute=attribute,
-                            value=value
-                        )
+                    existing_values = {av.value for av in ProductAttributeValue.objects.filter(product=product, product_attribute=attribute)}
+                    new_values = set(request.POST.getlist(f'attribute_{attribute_name}[]'))
+
+                    # Delete old attribute values not in new values
+                    ProductAttributeValue.objects.filter(product=product, product_attribute=attribute).exclude(value__in=new_values).delete()
+
+                    # Add new attribute values not already present
+                    for value in new_values - existing_values:
+                        if value not in deleted_values and value:
+                    
+                            ProductAttributeValue.objects.create(
+                                product=product,
+                                product_attribute=attribute,
+                                value=value
+                            )
 
                 # Soft delete images
                 if images_to_delete:
-                    print('images_to_delete check conditions --: ', images_to_delete)
-                    ProductImage.objects.filter(id__in=images_to_delete).delete()
+                    ProductImage.objects.filter(id__in=images_to_delete).update(is_active=False, is_delete=True)
                 for image in images:
-                    print('image: ', image)
-                    ProductImage.objects.create(product=product, image=image)  
-
-                messages.success(request, 'Product Updated Successfully')
+                    ProductImage.objects.create(product=product, image=image)
             except IntegrityError:
-                messages.error(request, 'Product with this name already exists in the selected category')        
-        return redirect('edit-product', pk=product.id)
+                messages.error(request, 'Product with this name already exists in the selected category') 
+
+            messages.success(request, 'Product Updated Successfully')
+                 
+        return redirect('products')
     
     return render(request, 'admin/product/edit_product.html', context)
 

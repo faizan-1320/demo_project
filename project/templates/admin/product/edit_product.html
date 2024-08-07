@@ -36,27 +36,32 @@
                                         <div class="alert alert-{{ message.tags }}">{{ message }}</div>
                                         {% endfor %}
                                     </div>
-                                    {% endif %}
+                                {% endif %}
                                 <div class="form-group">
                                     <label for="product_name">Product Name</label>
                                     <input type="text" class="form-control" id="product_name" name="product_name"
                                         placeholder="Enter product name" value="{{ product.name }}">
-                                    <span class="error" id="error-product_name"></span><br>
                                 </div>
                                 <div class="form-group">
                                     <label for="price">Price</label>
                                     <input type="text" class="form-control" id="price" name="price"
                                         placeholder="Enter price" value="{{ product.price }}">
-                                    <span class="error" id="error-price"></span><br>
                                 </div>
                                 <div class="form-group">
                                     <label>Attribute Values</label>
-                                    {% for attribute, values in attribute_values_by_name.items %}
+                                    {% for attribute, av_list in attribute_values_by_name.items %}
                                         <div class="form-group">
                                             <label>{{ attribute }}</label>
-                                            {% for value in values %}
-                                                <input type="text" class="form-control mt-2" name="attribute_{{ attribute }}[]" value="{{ value }}">
+                                            {% for av in av_list %}
+                                                <div class="d-flex align-items-center">
+                                                    <input type="text" class="form-control mt-2 mr-2" name="attribute_{{ attribute }}[]" value="{{ av.value }}">
+                                                    <input type="checkbox" name="delete_attribute_values" value="{{ av.id }}">&nbsp;Delete
+                                                </div>
                                             {% endfor %}
+                                            <div class="d-flex align-items-center">
+                                                <input type="text" class="form-control mt-2 mr-2" name="attribute_{{ attribute }}[]" placeholder="Enter new {{ attribute }} value">
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-success mt-2 add-attribute-value" data-attribute="{{ attribute }}">Add {{ attribute }} Value</button>
                                         </div>
                                     {% endfor %}
                                 </div>
@@ -64,13 +69,11 @@
                                     <label for="product_images">Product Images</label>
                                     <input type="file" class="form-control" id="product_images" name="product_images[]"
                                         multiple>
-                                    <span class="error" id="error-product_images"></span>
                                     <div class="row mt-3">
                                         {% for image in product_images %}
                                         <div class="col-md-3">
                                             <img src="{{ image.image.url }}" class="img-thumbnail" alt="Product Image">
-                                            <input type="checkbox" name="images_to_delete" value="{{ image.id }}">
-                                            Delete
+                                            <input type="checkbox" name="images_to_delete" value="{{ image.id }}"> Delete
                                         </div>
                                         {% endfor %}
                                     </div>
@@ -82,7 +85,6 @@
                                             <option value="{{ cat.id }}" {% if cat.id == product.category_id %}selected{% endif %}>{{ cat.full_path }}</option>
                                         {% endfor %}
                                     </select>
-                                    <span class="error" id="error-category_id"></span>
                                 </div>
                             </div>
                             <div class="card-footer">
@@ -95,4 +97,26 @@
         </div>
     </section>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.add-attribute-value').forEach(button => {
+            button.addEventListener('click', function () {
+                const attribute = this.dataset.attribute;
+                const inputGroup = document.createElement('div');
+                inputGroup.classList.add('d-flex', 'align-items-center');
+                inputGroup.innerHTML = `
+                    <input type="text" class="form-control mt-2 mr-2" name="attribute_${attribute}[]" placeholder="Enter ${attribute} value">
+                    <button type="button" class="btn btn-sm btn-danger mt-2 remove-attribute-value">Remove</button>
+                `;
+                this.insertAdjacentElement('beforebegin', inputGroup);
+
+                // Add event listener to the remove button
+                inputGroup.querySelector('.remove-attribute-value').addEventListener('click', function() {
+                    inputGroup.remove();
+                });
+            });
+        });
+    });
+</script>
 {% endblock content %}
