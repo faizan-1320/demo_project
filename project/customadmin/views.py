@@ -1,8 +1,8 @@
 from django.shortcuts import render,redirect
 from project.users.models import User
 from project.product.models import Category,Product,ProductAttribute,ProductAttributeValue,ProductImage
-from .models import Banner
-from .forms import BannerForm,BannerEditForm
+from .models import Banner,ContactUs
+from .forms import BannerForm,CustomFlatPageForm
 from project.coupon.models import Coupon
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
@@ -17,6 +17,7 @@ from collections import defaultdict
 from django.db.utils import IntegrityError
 from django.contrib.auth.decorators import permission_required
 from decimal import Decimal, InvalidOperation
+from django.contrib.flatpages.models import FlatPage
 import re   
 
 ####################
@@ -106,6 +107,8 @@ def users(request):
         'page_obj':page_obj,
         'start_number':start_number
     }
+    if search_query and not users.exists():
+        context['not_found_message'] = 'No users found'
     return render(request, 'admin/users/users.html', context)
 
 @permission_required('users.add_user', raise_exception=True)
@@ -307,11 +310,11 @@ def category(request):
     page_obj = paginator.get_page(page_number)
     start_number = (page_obj.number - 1) * paginator.per_page + 1
     context = {
-    'category':category,
     'page_obj':page_obj,
     'start_number':start_number
     }
-    
+    if search_query and not category.exists():
+        context['not_found_message'] = 'No Categorys found'
     return render(request,'admin/category/category.html',context)
 
 @permission_required('product.add_category', raise_exception=True)
@@ -415,8 +418,11 @@ def product(request):
     # Check if the user is an admin
     if not check_login_admin(request.user):
         return redirect('adminlogin')
-    
+    search_query = request.GET.get('search')
     products = Product.objects.filter(is_active=True, is_delete=False).select_related('category').prefetch_related('product__product', 'products__product_attribute')
+    # Apply the search filter only if search_query is not None
+    if search_query:
+        products = products.filter(name__icontains=search_query)
     paginator = Paginator(products,10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -433,7 +439,8 @@ def product(request):
         'attribute_groups': attribute_groups,
         'start_number':start_number
     }
-
+    if search_query and not products.exists():
+        context['not_found_message'] = 'No products found'
     return render(request,'admin/product/product.html',context)
 
 @permission_required('product.add_product', raise_exception=True)
@@ -512,7 +519,6 @@ def edit_product(request, pk):
             'id': av.id,
             'value': av.value
         })
-    # print('attribute_values_by_name: ', attribute_values_by_name)
     
     context = {
         'product': product,
@@ -670,26 +676,21 @@ def banner(request):
     }
     return render(request,'admin/banner/banner.html',context)
 
-@permission_required('customadmin.add_banner',raise_exception=True)
+@permission_required('customadmin.add_banner', raise_exception=True)
 def add_banner(request):
-    # Check if the user is an admin
     if not check_login_admin(request.user):
         return redirect('adminlogin')
     
     if request.method == 'POST':
-        form = BannerForm(request.POST,request.FILES)
+        form = BannerForm(request.POST, request.FILES)
         if form.is_valid():
-            images = form.cleaned_data['banner_images']
-            priority = form.cleaned_data['priority']
-            for image in images:
-                banner = Banner(image=image,priority=priority)
-                banner.save()
-            messages.success(request, 'Banners added successfully')
+            form.save()
+            messages.success(request, 'Banner added successfully')
             return redirect('banners')
     else:
         form = BannerForm()
 
-    return render(request, 'admin/banner/add_banner.html',{'form':form})
+    return render(request, 'admin/banner/add_banner.html', {'form': form})
 
 @permission_required('customadmin.delete_banner',raise_exception=True)
 def delete_banner(request,pk):
@@ -702,17 +703,83 @@ def delete_banner(request,pk):
     return render(request,'admin/banner/banner.html')
 
 @permission_required('customadmin.change_banner',raise_exception=True)
-def edit_banner(request,pk):
-    banner = get_object_or_404(Banner,id=pk)
+def edit_banner(request, pk):
+    banner = get_object_or_404(Banner, id=pk)
     if request.method == 'POST':
-        form = BannerEditForm(request.POST,request.FILES)
+        # import pdb;pdb.set_trace()
+        form = BannerForm(request.POST, request.FILES, instance=banner)
         print('form: ', form)
         if form.is_valid():
-            image = form.cleaned_data['banner_image']
-            banner.image = image
-            banner.save()
-            messages.success(request,'Banner updated successfully')
+            form.save()
+            messages.success(request, 'Banner updated successfully')
             return redirect('banners')
     else:
-        form = BannerEditForm()
-    return render(request,'admin/banner/edit_banner.html',{'form':form,'banner':banner})
+        form = BannerForm(instance=banner)
+
+    return render(request, 'admin/banner/edit_banner.html', {'form': form, 'banner': banner})
+
+#########################
+# Contact US Management #
+#########################
+
+@permission_required('customadmin.view_contact_us',raise_exception=True)
+def contact_us(request):
+    # Check if the user is an admin
+    if not check_login_admin(request.user):
+        return redirect('adminlogin')
+    search_query = request.GET.get('search','')
+    contact = ContactUs.objects.filter(subject__icontains=search_query)
+    paginator = Paginator(contact,10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    start_number = (page_obj.number - 1) * paginator.per_page + 1
+
+    context = {
+        'page_obj':page_obj,
+        'start_number':start_number
+    }
+    if search_query and not contact.exists():
+        context['message_not_found'] = 'Not Contact Us found'
+    return render(request,'admin/contact_us/contact_us.html',context)
+
+@permission_required('customadmin.change_contact_us',raise_exception=True)
+def contact_us_detail(request, pk):
+    contact = get_object_or_404(ContactUs, pk=pk)
+
+    if request.method == 'POST':
+        reply = request.POST.get('admin_reply')
+        if reply and not contact.is_replied:
+            contact.admin_reply = reply
+            contact.is_replied = True
+            contact.save()
+            return redirect('contact-us')
+    return render(request, 'admin/contact_us/contact_us_detail.html', {'contact': contact})
+
+##################
+# CMS Management #
+##################
+
+def flatpage_list(request):
+    flatpages = FlatPage.objects.all()
+    return render(request, 'admin/cms/flatpage.html', {'flatpages': flatpages})
+
+def add_flatpage(request):
+    if request.method == 'POST':
+        form = CustomFlatPageForm(request.POST)
+        if form.is_valid():
+            flatpage = form.save()
+            return redirect('flatpages')
+    else:
+        form = CustomFlatPageForm()
+    return render(request,'admin/cms/add_flatpage.html',{'form':form})
+
+def edit_flatpage(request,pk):
+    flatpage = get_object_or_404(FlatPage, id=pk)
+    if request.method == 'POST':
+        form = CustomFlatPageForm(request.POST,instance=flatpage)
+        if form.is_valid():
+            form.save()
+            return redirect('flatpages')
+    else:
+        form = CustomFlatPageForm(instance=flatpage)
+    return render(request,'admin/cms/edit_flatpage.html',{'form':form,'flatpage':flatpage})

@@ -28,4 +28,11 @@ urlpatterns = [
     path('banners/add/',add_banner,name='add-banner'),
     path('banners/<int:pk>/delete/',delete_banner,name='delete-banner'),
     path('banners/<int:pk>/edit/',edit_banner,name='edit-banner'),
+    # Contact_US URL
+    path('contact-us/',contact_us,name='contact-us'),
+    path('contact-us/<int:pk>/details',contact_us_detail,name='contact-us-details'),
+    # FAQ URL
+    path('flatpages/', flatpage_list, name='flatpages'),
+    path('flatpages/add/',add_flatpage,name='add-flatpage'),
+    path('flatpages/<int:pk>/edit',edit_flatpage,name='edit-flatpage'),
 ]

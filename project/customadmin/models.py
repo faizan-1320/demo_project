@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from project.utils.base_model import BaseModel
 
 # Create your models here.
 class Banner(models.Model):
@@ -16,3 +17,16 @@ class Banner(models.Model):
 
     def __str__(self):
         return self.image
+    
+from django.db import models
+
+class ContactUs(BaseModel):
+    name = models.CharField(max_length=255)
+    email = models.EmailField()
+    subject = models.CharField(max_length=255)
+    message = models.TextField()
+    admin_reply = models.TextField(blank=True, null=True)
+    is_replied = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.subject

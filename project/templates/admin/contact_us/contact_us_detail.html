@@ -1,0 +1,84 @@
+{% extends 'admin/dashboard.html' %}
+{% block title %}Contact Us Details{% endblock title %}
+{% load static %}
+{% block content %}
+<!-- Content Wrapper. Contains page content -->
+<div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1>Contact Us Details</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item active">Contact Us Details</li>
+            </ol>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <!-- Contact details card -->
+        <div class="card card-primary card-outline">
+          <div class="card-header">
+            <h3 class="card-title">Contact Information</h3>
+          </div>
+          <!-- /.card-header -->
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="contact-name">Name:</label>
+                  <p id="contact-name">{{ contact.name }}</p>
+                </div>
+                <div class="form-group">
+                  <label for="contact-email">Email:</label>
+                  <p id="contact-email">{{ contact.email }}</p>
+                </div>
+                <div class="form-group">
+                  <label for="contact-subject">Subject:</label>
+                  <p id="contact-subject">{{ contact.subject }}</p>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="contact-message">Message:</label>
+                  <p id="contact-message">{{ contact.message }}</p>
+                </div>
+              </div>
+            </div>
+
+            {% if contact.is_replied %}
+              <div class="form-group">
+                <label for="admin-reply">Admin Reply:</label>
+                <p id="admin-reply">{{ contact.admin_reply }}</p>
+              </div>
+              <div class="alert alert-info">
+                <strong>Note:</strong> This message has been replied to and cannot be replied again.
+              </div>
+            {% else %}
+              <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                  <label for="admin_reply">Reply:</label>
+                  <textarea id="admin_reply" name="admin_reply" rows="4" class="form-control"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Send Reply</button>
+              </form>
+            {% endif %}
+          </div>
+          <!-- /.card-body -->
+        </div>
+        <!-- /.card -->
+      </div>
+    </section>
+    <!-- /.content -->
+</div>
+<!-- /.content-wrapper -->
+{% endblock content %}

@@ -3,11 +3,14 @@ from django.contrib import messages
 from .models import Coupon
 from .forms import CouponForm
 from django.core.paginator import Paginator
+from django.contrib.auth.decorators import permission_required
 
 # Create your views here.
+@permission_required('coupon.view_coupon')
 def coupon(request):
     try:
-        coupons = Coupon.objects.filter(is_delete=False)
+        search_query = request.GET.get('search','')
+        coupons = Coupon.objects.filter(is_delete=False,code__icontains=search_query)
         paginator = Paginator(coupons,10)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
@@ -16,6 +19,8 @@ def coupon(request):
             'page_obj':page_obj,
             'start_number':start_number
         }
+        if search_query and not coupons.exists():
+            context['not_found_message'] = 'No Categorys found'
         if not coupons:
             raise Coupon.DoesNotExist
     except Coupon.DoesNotExist:
@@ -23,6 +28,7 @@ def coupon(request):
         return render(request, 'admin/coupon/coupon.html', {'coupon_err': coupon_err})
     return render(request, 'admin/coupon/coupon.html', context)
 
+@permission_required('coupon.add_coupon')
 def add_coupon(request):
     if request.method == 'POST':
         form = CouponForm(request.POST)
@@ -34,6 +40,7 @@ def add_coupon(request):
         form = CouponForm()
     return render(request, 'admin/coupon/add_coupon.html', {'form': form})
 
+@permission_required('coupon.view_coupon')
 def edit_coupon(request, pk):
     coupon = get_object_or_404(Coupon, pk=pk)
     if request.method == 'POST':
@@ -46,6 +53,7 @@ def edit_coupon(request, pk):
         form = CouponForm(instance=coupon)
     return render(request, 'admin/coupon/edit_coupon.html', {'form': form})
 
+@permission_required('coupon.delete_coupon')
 def delete_coupon(request, pk):
     if request.method == 'POST':
         coupon = get_object_or_404(Coupon, id=pk)

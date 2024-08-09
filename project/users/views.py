@@ -58,3 +58,6 @@ def registerPage(request):
 
 def forgot_password(request):
     return render(request,'front_end/authentication/forgot_password.html')
+
+def contact_us(request):
+    return render(request,'front_end/contact.html')

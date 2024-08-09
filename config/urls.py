@@ -18,14 +18,25 @@ from django.contrib import admin
 from django.urls import path,include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.shortcuts import render
+from django.contrib.flatpages import views
+
+def custom_page_not_found_view(request, exception):
+    return render(request, '404_error.html', status=404)
+
+def custom_permission_denied_view(request, exception):
+    return render(request, '403_error.html', status=403)
+
+handler404 = custom_page_not_found_view
+handler403 = custom_permission_denied_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('',include('project.users.urls')),
     path('admin-custom/',include('project.customadmin.urls')),
-    path('admin-custom/',include('project.coupon.urls'))
+    path('admin-custom/',include('project.coupon.urls')),
+    path("pages/", include("django.contrib.flatpages.urls")),
 ]
-
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

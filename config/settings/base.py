@@ -36,6 +36,8 @@ DEAFULT_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'django.contrib.flatpages',
 ]
 
 LOCAL_APPS = [
@@ -44,6 +46,8 @@ LOCAL_APPS = [
     'project.customadmin',
     'project.coupon',
 ]
+
+SITE_ID = 1
 
 THIRD_PARTY_APPS = []
 

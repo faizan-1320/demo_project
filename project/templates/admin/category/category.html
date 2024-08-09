@@ -51,7 +51,8 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {% for i in category %}
+                  {% if page_obj.object_list %}
+                  {% for i in page_obj %}
                   {% if not i.parent %}
                   <tr data-widget="expandable-table" aria-expanded="false">
                     <td>{{ forloop.counter0|add:start_number }}</td>
@@ -74,6 +75,11 @@
                   </tr>
                   {% endif %}
                   {% endfor %}
+                  {% else %}
+                    <tr>
+                      <td colspan="7" class="text-center">No category found.</td>
+                    </tr>
+                  {% endif %}
                 </tbody>
                 <tfoot>
                 </tfoot>

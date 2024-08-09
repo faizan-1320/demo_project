@@ -52,6 +52,7 @@
                   </tr>
                 </thead>
                 <tbody>
+                  {% if page_obj.object_list %}
                   {% for product in page_obj %}
                   <tr data-widget="expandable-table" aria-expanded="false">
                     <td>{{ forloop.counter0|add:start_number }}</td>
@@ -75,6 +76,11 @@
                     </td>
                   </tr>
                   {% endfor %}
+                  {% else %}
+                    <tr>
+                      <td colspan="7" class="text-center">No products found.</td>
+                    </tr>
+                  {% endif %}
                 </tbody>
                 <tfoot>
                 </tfoot>

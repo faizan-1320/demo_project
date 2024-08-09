@@ -32,7 +32,11 @@
                         </div>
                         <!-- /.card-header -->
 
-                        <!-- Display messages -->
+                        
+
+                        <!-- Form -->
+                        <form id="myForm" method="post" enctype="multipart/form-data">
+                            <!-- Display messages -->
                         {% if messages %}
                         <div class="card-body">
                             <div class="alert-container">
@@ -42,9 +46,6 @@
                             </div>
                         </div>
                         {% endif %}
-
-                        <!-- Form -->
-                        <form id="myForm" method="post" enctype="multipart/form-data">
                             {% csrf_token %}
                             <div class="card-body">
                                 <!-- Display current image -->
@@ -58,17 +59,7 @@
                                 {% endif %}
                                 
                                 <!-- Display form fields -->
-                                {% for field in form %}
-                                <div class="form-group">
-                                    {{ field.label_tag }}
-                                    {% if field.errors %}
-                                    <div class="alert alert-danger">
-                                        {{ field.errors }}
-                                    </div>
-                                    {% endif %}
-                                    {{ field }}
-                                </div>
-                                {% endfor %}
+                                {{form.as_p}}
                             </div>
                             <div class="card-footer">
                                 <button type="submit" class="btn btn-primary">Submit</button>
