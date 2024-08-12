@@ -759,10 +759,12 @@ def contact_us_detail(request, pk):
 # CMS Management #
 ##################
 
+@permission_required('flatpages.view_flat_page',raise_exception=True)
 def flatpage_list(request):
     flatpages = FlatPage.objects.all()
     return render(request, 'admin/cms/flatpage.html', {'flatpages': flatpages})
 
+@permission_required('flatpages.add_flat_page',raise_exception=True)
 def add_flatpage(request):
     if request.method == 'POST':
         form = CustomFlatPageForm(request.POST)
@@ -773,6 +775,7 @@ def add_flatpage(request):
         form = CustomFlatPageForm()
     return render(request,'admin/cms/add_flatpage.html',{'form':form})
 
+@permission_required('flatpages.change_flat_page',raise_exception=True)
 def edit_flatpage(request,pk):
     flatpage = get_object_or_404(FlatPage, id=pk)
     if request.method == 'POST':
@@ -783,3 +786,11 @@ def edit_flatpage(request,pk):
     else:
         form = CustomFlatPageForm(instance=flatpage)
     return render(request,'admin/cms/edit_flatpage.html',{'form':form,'flatpage':flatpage})
+
+@permission_required('flatpages.delete_flat_page',raise_exception=True)
+def delete_flatpage(request,pk):
+    flatpage =  FlatPage.objects.filter(id=pk)
+    if request.method == 'POST':
+        flatpage.delete()
+        return redirect('flatpages')
+    return render(request,'admin/cms/flatpage.html')

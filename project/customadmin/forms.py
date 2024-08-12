@@ -27,9 +27,10 @@ class BannerForm(forms.ModelForm):
 class CustomFlatPageForm(forms.ModelForm):
     class Meta:
         model = FlatPage
-        fields = ['title', 'url', 'content']
+        fields = ['title', 'url', 'content','sites']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'url': forms.TextInput(attrs={'class': 'form-control'}),
+            'sites': forms.SelectMultiple(attrs={'class': 'form-control'}),
             'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 10}),
         }

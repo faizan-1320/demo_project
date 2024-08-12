@@ -35,4 +35,5 @@ urlpatterns = [
     path('flatpages/', flatpage_list, name='flatpages'),
     path('flatpages/add/',add_flatpage,name='add-flatpage'),
     path('flatpages/<int:pk>/edit',edit_flatpage,name='edit-flatpage'),
+    path('flatpages/<int:pk>/delete',delete_flatpage,name='delete-flatpage'),
 ]
