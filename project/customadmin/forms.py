@@ -1,6 +1,7 @@
 from django import forms
 from .models import Banner,EmailTemplate
 from django.contrib.flatpages.models import FlatPage
+from project.product.models import Order
 class BannerForm(forms.ModelForm):
     class Meta:
         model = Banner
@@ -65,4 +66,12 @@ class EmailTemplateForm(forms.ModelForm):
             'subject':forms.TextInput(attrs={'class':'form-control'}),
             'body':forms.Textarea(attrs={'class':'form-control','row':10}),
             'template_name':forms.TextInput(attrs={'class':'form-control'})
+        }
+    
+class OrderStatusForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = ['status']
+        widgets = {
+            'status': forms.Select(choices=Order.status_choice,attrs={'class':'form-control'})
         }

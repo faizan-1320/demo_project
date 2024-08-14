@@ -1,8 +1,8 @@
 from django.shortcuts import render,redirect
-from project.users.models import User
-from project.product.models import Category,Product,ProductAttribute,ProductAttributeValue,ProductImage
+from project.users.models import User,Address
+from project.product.models import Category,Product,ProductAttribute,ProductAttributeValue,ProductImage,Order,ProductInOrder
 from .models import Banner,ContactUs,EmailTemplate
-from .forms import BannerForm,CustomFlatPageForm,EmailTemplateForm
+from .forms import BannerForm,CustomFlatPageForm,EmailTemplateForm,OrderStatusForm
 from project.coupon.models import Coupon
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
@@ -880,3 +880,77 @@ def delete_email_template(request, pk):
         template.delete()
         return redirect('emails')
     return render(request, 'admin/email_template/email_template.html', {'template': template})
+
+####################
+# Order Management #
+####################
+
+def order(request):
+    # Check if the user is an admin
+    if not custom_required.check_login_admin(request.user):
+        return redirect('adminlogin')
+    search_query = request.GET.get('search','')
+    orders = Order.objects.filter(order_id__icontains=search_query)
+    paginator = Paginator(orders,10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    start_number = (page_obj.number - 1) * paginator.per_page + 1
+
+    context = {
+        'page_obj':page_obj,
+        'start_number':start_number
+    }
+    if search_query and not orders.exists():
+        context['message_not_found'] = 'Not order found'
+    return render(request, 'admin/orders/orders.html', context)
+
+def order_detail(request, pk):
+    # Check if the user is an admin
+    if not custom_required.check_login_admin(request.user):
+        return redirect('adminlogin')
+
+    # Fetch the order details
+    order = get_object_or_404(Order, id=pk)
+    products_in_order = ProductInOrder.objects.filter(order=order)
+    customer_address = Address.objects.filter(user=order.user, is_active=True).first()
+
+    if request.method == 'POST':
+        form = OrderStatusForm(request.POST, instance=order)
+        if form.is_valid():
+            new_status = form.cleaned_data['status']
+            
+            context_email = {
+                    'order_id': order.order_id,
+                    'datetime_of_payment':order.datetime_of_payment,
+                    'shipping_method':order.shipping_method,
+                    'payment_status':order.payment_status,
+                    'total_amount':order.total_amount,
+                    'first_name': order.user.first_name,
+                    'order_status': dict(Order.status_choice).get(new_status, 'Unknown'),
+                    'products': products_in_order,
+                    'customer_address': customer_address,
+                    'is_cash_on_delivery':order.is_cash_on_delivery
+                }
+            try:
+                custom_eamil.send_custom_mail(
+                    to_email=order.user.email,
+                    context=context_email,
+                    template_name='order_status'
+                )
+            except Exception as e:
+                print('Error sending email:', e)
+    
+            form.save()
+            messages.success(request, 'Order status updated successfully.')
+            return redirect('order-detail', pk=pk)
+    else:
+        form = OrderStatusForm(instance=order)
+
+    context = {
+        'order': order,
+        'products_in_order': products_in_order,
+        'customer_address': customer_address,
+        'form': form
+    }
+
+    return render(request, 'admin/orders/order_detail.html', context)

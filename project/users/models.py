@@ -42,12 +42,22 @@ class Address(models.Model):
     city = models.CharField(max_length=100)
     country = models.CharField(max_length=100)
     district = models.CharField(max_length=100)
-    postcode = models.IntegerField()
+    postcode = models.CharField(max_length=20)
     is_active = models.BooleanField(default=True)
     is_delete = models.BooleanField(default=False)
-    created_at = models.DateTimeField(default=timezone.now)
-    updated_at = models.DateTimeField(default=timezone.now)
+    is_primary = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if self.is_primary:
+            # Unset previous primary addresses for the user
+            Address.objects.filter(user=self.user, is_primary=True).update(is_primary=False)
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = _('address')
         verbose_name_plural = _('addresses')
+
+    def __str__(self):
+        return f"{self.user.email} - {self.address[:20]}{' (Primary)' if self.is_primary else ''}"

@@ -41,4 +41,7 @@ urlpatterns = [
     path('emails/add',add_template,name='email-add'),
     path('emails/<int:pk>/edit/', edit_email_template, name='edit-email'),
     path('emails/<int:pk>/delete/', delete_email_template, name='delete-email'),
+    # Order URL
+    path('orders/', order, name='orders'),
+    path('orders/<int:pk>/detail', order_detail, name='order-detail'),
 ]

@@ -1,5 +1,5 @@
 {% extends 'admin/dashboard.html' %}
-{% block title %}Contact Us{% endblock %}
+{% block title %}Order Management{% endblock %}
 {% load static %}
 {% block content %}
 <!-- Content Wrapper. Contains page content -->
@@ -9,12 +9,12 @@
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>Contact Us
+                    <h1>Order Management</h1>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
-                        <li class="breadcrumb-item active">Contact Us
+                        <li class="breadcrumb-item active">Order Management</li>
                     </ol>
                 </div>
             </div>
@@ -28,49 +28,51 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">Contact Us</h3>
-
+                            <h3 class="card-title">Order List</h3>
                         </div>
                         <!-- /.card-header -->
                         <div class="card-body">
-                            <form method="get" action="{% url 'contact-us' %}" class="mb-3">
+                            <form method="get" action="" class="mb-3">
                                 <div class="input-group">
-                                  <input type="text" class="form-control" name="search" id="search" placeholder="Search Contact us">
-                                  <div class="input-group-append">
-                                    <button class="btn btn-primary" type="submit">Search</button>
-                                  </div>
+                                    <input type="text" class="form-control" name="search" id="search" placeholder="Search Orders">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-primary" type="submit">Search</button>
+                                    </div>
                                 </div>
-                              </form>
-                            <table id="example1" class="table table-bordered table-hover">
+                            </form>
+
+                            {% if message_not_found %}
+                            <p style="color: red; text-align: center;">{{ message_not_found }}</p>
+                            {% else %}
+                            <table id="order_table" class="table table-bordered table-hover">
                                 <thead>
                                     <tr>
                                         <th>Sr No</th>
-                                        <th>Subject</th>
-                                        <th>Email</th>
-                                        <th>Action</th>
+                                        <th>Order ID</th>
+                                        <th>Customer Email</th>
+                                        <th>Total Amount</th>
+                                        <th>Payment Status</th>
+                                        <th>Order Status</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% if page_obj.object_list %}
-                                    {% for contact in page_obj %}
-                                    <tr data-widget="expandable-table" aria-expanded="false">
-                                        <td>{{ forloop.counter0|add:start_number }}</td>
-                                        <td>{{contact.subject}}
-                                        </td>
-                                        <td>{{contact.email}}</td>
-                                        <td><a href="{% url 'contact-us-details' contact.id %}" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a></td>
-                                    </tr>
-                                    {% endfor %}
-                                    {% else %}
+                                    {% for order in page_obj %}
                                     <tr>
-                                        <td colspan="7" class="text-center">No Contact Us found.</td>
+                                        <td>{{ forloop.counter0|add:start_number }}</td>
+                                        <td>{{ order.order_id }}</td>
+                                        <td>{{ order.user.email }}</td>
+                                        <td>{{ order.total_amount }}</td>
+                                        <td>{{ order.get_payment_status_display }}</td>
+                                        <td>{{ order.get_status_display }}</td>
+                                        <td>
+                                            <a href="{% url 'order-detail' order.id %}" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a>
+                                        </td>
                                     </tr>
-                                    {% endif %}
+                                       {% endfor %}
                                 </tbody>
-                                <tfoot>
-                                </tfoot>
                             </table>
-
+                            {% endif %}
                         </div>
                         <!-- /.card-body -->
                         <!-- Pagination Controls -->
@@ -84,8 +86,7 @@
                                     </a>
                                 </li>
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}"
-                                        aria-label="Previous">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
                                         <span aria-hidden="true">&laquo;</span>
                                         <span class="sr-only">Previous</span>
                                     </a>
@@ -106,8 +107,7 @@
                                     </a>
                                 </li>
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}"
-                                        aria-label="Last">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
                                         <span aria-hidden="true">&raquo;&raquo;</span>
                                         <span class="sr-only">Last</span>
                                     </a>
@@ -115,9 +115,7 @@
                                 {% endif %}
                             </ul>
                         </nav>
-
                     </div>
-
                 </div>
                 <!-- /.col -->
             </div>
@@ -129,5 +127,4 @@
 </div>
 <!-- /.content-wrapper -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
 {% endblock content %}
