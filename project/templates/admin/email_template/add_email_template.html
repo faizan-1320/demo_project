@@ -1,61 +1,74 @@
 {% extends 'admin/dashboard.html' %}
-{% block title %}Edit CMS{% endblock title %}
+{% block title %}Add Email{% endblock %}
 {% load static %}
-
 {% block content %}
-<!-- Content Wrapper. Contains page content -->
 <div class="content-wrapper">
     <!-- Content Header (Page header) -->
-    <div class="content-header">
+    <section class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1 class="m-0">Edit CMS</h1>
+                    <h1>Add Email</h1>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>   
-                        <li class="breadcrumb-item active">Edit CMS</li>
+                        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+                        <li class="breadcrumb-item active">Add Email</li>
                     </ol>
                 </div>
             </div>
-        </div>
-    </div>
-    <!-- /.content-header -->
+        </div><!-- /.container-fluid -->
+    </section>
 
     <!-- Main content -->
     <section class="content">
         <div class="container-fluid">
             <div class="row">
-                <div class="col-md-12">
-                    <div class="card">
+                <!-- left column -->
+                <div class="col-md">
+                    <!-- general form elements -->
+                    <div class="card card-primary">
                         <div class="card-header">
-                            <h3 class="card-title">Edit CMS</h3>
+                            <h3 class="card-title">Add Email Details</h3>
                         </div>
-                        <div class="card-body">
-                            <form id="flatpage-form" method="post" action="">
+                        <!-- /.card-header -->
+                        <!-- form start -->
+                        <form id="myForm" method="post">
+                            {% if messages %}
+                            <div class="card-body">
+                                <div class="alert-container">
+                                    {% for message in messages %}
+                                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% csrf_token %}
+                            <div class="card-body">
                                 {% csrf_token %}
                                 {{ form.as_p }}
-                                <button type="submit" class="btn btn-primary">Save Changes</button>
-                            </form>
-                        </div>
+                            </div>
+                            <div class="card-footer">
+                                <button type="submit" class="btn btn-primary">Submit</button>
+                            </div>
+                            <!-- /.card-body -->
+                        </form>
                     </div>
+                    <!-- /.card -->
                 </div>
             </div>
         </div>
     </section>
     <!-- /.content -->
 </div>
-<!-- /.content-wrapper -->
 
 <!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="{% static 'admin/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css" rel="stylesheet">
+<script src="{% static 'admin/plugins/summernote/summernote-bs4.min.js' %}"></script>
 <script>
     $(document).ready(function() {
-        $('#id_content').summernote({
+        $('#id_body').summernote({
             height: 300,  // set editor height
             minHeight: null,  // set minimum height of editor
             maxHeight: null,  // set maximum height of editor

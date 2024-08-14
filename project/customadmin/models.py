@@ -30,3 +30,12 @@ class ContactUs(BaseModel):
 
     def __str__(self):
         return self.subject
+    
+class EmailTemplate(BaseModel):
+    subject = models.CharField(max_length=255)
+    body = models.TextField()
+    template_name = models.CharField(max_length=100, unique=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.template_name

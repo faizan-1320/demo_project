@@ -1,12 +1,12 @@
 from django.shortcuts import render,redirect
 from project.users.models import User
 from project.product.models import Category,Product,ProductAttribute,ProductAttributeValue,ProductImage
-from .models import Banner,ContactUs
-from .forms import BannerForm,CustomFlatPageForm
+from .models import Banner,ContactUs,EmailTemplate
+from .forms import BannerForm,CustomFlatPageForm,EmailTemplateForm
 from project.coupon.models import Coupon
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
-from project.utils.custom_required import check_login_admin
+from project.utils import custom_required,custom_eamil
 from django.contrib.auth.models import Group
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
@@ -58,7 +58,7 @@ def logoutadmin(request):
 
 def dashboard(request):
     # Check if the user is an admin
-    if not check_login_admin(request.user):
+    if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
     user_count = User.objects.filter(is_superuser=False, is_active=True).count()
     product_count = Product.objects.filter(is_active=True,is_delete=False).count()
@@ -66,6 +66,7 @@ def dashboard(request):
     sub_category_count = Category.objects.filter(is_active=True,is_delete=False,parent=True).count()
     coupon_count = Coupon.objects.filter(is_active=True,is_delete=False).count()
     banner_count = Banner.objects.filter(is_active=True,is_delete=False).count()
+    contact = ContactUs.objects.all().count()
     context = {
         'product_count':product_count,
         'user_count':user_count,
@@ -73,6 +74,7 @@ def dashboard(request):
         "sub_category_count":sub_category_count,
         'coupon_count':coupon_count,
         'banner_count':banner_count,
+        'contact_count':contact,
     }
     return render(request,'admin/dashboard.html',context)
 
@@ -84,7 +86,7 @@ def dashboard(request):
 def users(request):
 
     # Check if the user is an admin
-    if not check_login_admin(request.user):
+    if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
     search_query = request.GET.get('search','')
     # Filter users to include only active and non-deleted ones
@@ -113,7 +115,7 @@ def users(request):
 
 @permission_required('users.add_user', raise_exception=True)
 def add_users(request):
-    if not check_login_admin(request.user):
+    if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
     groups = Group.objects.all()
     
@@ -191,6 +193,11 @@ def add_users(request):
             for id in groupids:
                 group = Group.objects.get(id=int(id))
                 new_user.groups.add(group)
+            context_email={
+                'first_name':first_name,
+                'email':email
+            }
+            custom_eamil.send_custom_mail(to_email=email,context=context_email,template_name='register')
 
             return JsonResponse({'success': True, 'message': 'User created successfully!'})
         except Exception as e:
@@ -202,7 +209,7 @@ def add_users(request):
 
 @permission_required('users.delete_user', raise_exception=True)
 def delete_user(request, pk):
-    if not check_login_admin(request.user):
+    if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
     if request.method == 'POST':
         try:
@@ -223,7 +230,7 @@ def delete_user(request, pk):
 
 @permission_required('users.change_user', raise_exception=True)
 def edit_user(request,pk):
-    if not check_login_admin(request.user):
+    if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
     
     user = User.objects.get(id=pk)
@@ -300,7 +307,7 @@ def edit_user(request,pk):
 @permission_required('product.view_category', raise_exception=True)
 def category(request):
     # Check if the user is an admin
-    if not check_login_admin(request.user):
+    if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
     
     search_query = request.GET.get('search','')
@@ -320,7 +327,7 @@ def category(request):
 @permission_required('product.add_category', raise_exception=True)
 def add_category(request):
     # Check if the user is an admin
-    if not check_login_admin(request.user):
+    if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
     if request.method == 'POST':
 
@@ -350,7 +357,7 @@ def add_category(request):
 @permission_required('product.change_category', raise_exception=True)
 def edit_category(request,pk):
     # Check if the user is an admin
-    if not check_login_admin(request.user):
+    if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
     if request.method == 'POST':
         category_name = request.POST.get('category_name')
@@ -364,7 +371,7 @@ def edit_category(request,pk):
 @permission_required('product.delete_category', raise_exception=True)
 def delete_category(request,pk):
     # Check if the user is an admin
-    if not check_login_admin(request.user):
+    if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
     if request.method == 'POST':
         category = Category.objects.get(id=pk)
@@ -385,7 +392,7 @@ def delete_category(request,pk):
 @permission_required('product.delete_category', raise_exception=True)
 def add_sub_category(request):
     # Check if the user is an admin
-    if not check_login_admin(request.user):
+    if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
     category = Category.objects.filter(parent_id=None)
     context = {
@@ -416,7 +423,7 @@ def add_sub_category(request):
 @permission_required('product.view_product', raise_exception=True)
 def product(request):
     # Check if the user is an admin
-    if not check_login_admin(request.user):
+    if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
     search_query = request.GET.get('search')
     products = Product.objects.filter(is_active=True, is_delete=False).select_related('category').prefetch_related('product__product', 'products__product_attribute')
@@ -446,7 +453,7 @@ def product(request):
 @permission_required('product.add_product', raise_exception=True)
 def add_products(request):
     # Check if the user is an admin
-    if not check_login_admin(request.user):
+    if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
     
     category = Category.objects.all()
@@ -493,6 +500,9 @@ def add_products(request):
 
 @permission_required('product.delete_product')
 def delete_product(request,pk):
+    # Check if the user is an admin
+    if not custom_required.check_login_admin(request.user):
+        return redirect('adminlogin')
     if request.method == 'POST':
         product = Product.objects.get(id=pk)
         product.is_active = False
@@ -504,7 +514,7 @@ def delete_product(request,pk):
 @permission_required('product.change_product',raise_exception=True)
 def edit_product(request, pk):
     # Check if the user is an admin
-    if not check_login_admin(request.user):
+    if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
     
     product = get_object_or_404(Product, id=pk)
@@ -627,7 +637,7 @@ def add_product_attribute(request):
 @permission_required('product.add_productattributevalue', raise_exception=True)
 def add_product_attribute_value(request):
     # Check if the user is an admin
-    if not check_login_admin(request.user):
+    if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
     product_attribute = ProductAttribute.objects.all()
     product = Product.objects.all()
@@ -662,7 +672,7 @@ def add_product_attribute_value(request):
 @permission_required('customadmin.view_banner',raise_exception=True)
 def banner(request):
     # Check if the user is an admin
-    if not check_login_admin(request.user):
+    if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
     banner = Banner.objects.filter(is_active=True,is_delete=False)
     paginator = Paginator(banner,10)
@@ -678,7 +688,7 @@ def banner(request):
 
 @permission_required('customadmin.add_banner', raise_exception=True)
 def add_banner(request):
-    if not check_login_admin(request.user):
+    if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
     
     if request.method == 'POST':
@@ -694,6 +704,8 @@ def add_banner(request):
 
 @permission_required('customadmin.delete_banner',raise_exception=True)
 def delete_banner(request,pk):
+    if not custom_required.check_login_admin(request.user):
+        return redirect('adminlogin')
     if request.method == 'POST':
         banner = Banner.objects.get(id=pk)
         banner.is_active = False
@@ -704,6 +716,8 @@ def delete_banner(request,pk):
 
 @permission_required('customadmin.change_banner',raise_exception=True)
 def edit_banner(request, pk):
+    if not custom_required.check_login_admin(request.user):
+        return redirect('adminlogin')
     banner = get_object_or_404(Banner, id=pk)
     if request.method == 'POST':
         # import pdb;pdb.set_trace()
@@ -725,7 +739,7 @@ def edit_banner(request, pk):
 @permission_required('customadmin.view_contact_us',raise_exception=True)
 def contact_us(request):
     # Check if the user is an admin
-    if not check_login_admin(request.user):
+    if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
     search_query = request.GET.get('search','')
     contact = ContactUs.objects.filter(subject__icontains=search_query)
@@ -744,6 +758,9 @@ def contact_us(request):
 
 @permission_required('customadmin.change_contact_us',raise_exception=True)
 def contact_us_detail(request, pk):
+    # Check if the user is an admin
+    if not custom_required.check_login_admin(request.user):
+        return redirect('adminlogin')
     contact = get_object_or_404(ContactUs, pk=pk)
 
     if request.method == 'POST':
@@ -761,36 +778,105 @@ def contact_us_detail(request, pk):
 
 @permission_required('flatpages.view_flat_page',raise_exception=True)
 def flatpage_list(request):
+    # Check if the user is an admin
+    if not custom_required.check_login_admin(request.user):
+        return redirect('adminlogin')
     flatpages = FlatPage.objects.all()
     return render(request, 'admin/cms/flatpage.html', {'flatpages': flatpages})
 
 @permission_required('flatpages.add_flat_page',raise_exception=True)
 def add_flatpage(request):
+    # Check if the user is an admin
+    if not custom_required.check_login_admin(request.user):
+        return redirect('adminlogin')
     if request.method == 'POST':
         form = CustomFlatPageForm(request.POST)
         if form.is_valid():
             flatpage = form.save()
-            return redirect('flatpages')
+            return redirect('cms')
     else:
         form = CustomFlatPageForm()
     return render(request,'admin/cms/add_flatpage.html',{'form':form})
 
 @permission_required('flatpages.change_flat_page',raise_exception=True)
 def edit_flatpage(request,pk):
+    # Check if the user is an admin
+    if not custom_required.check_login_admin(request.user):
+        return redirect('adminlogin')
     flatpage = get_object_or_404(FlatPage, id=pk)
     if request.method == 'POST':
         form = CustomFlatPageForm(request.POST,instance=flatpage)
         if form.is_valid():
             form.save()
-            return redirect('flatpages')
+            return redirect('cms')
     else:
         form = CustomFlatPageForm(instance=flatpage)
     return render(request,'admin/cms/edit_flatpage.html',{'form':form,'flatpage':flatpage})
 
 @permission_required('flatpages.delete_flat_page',raise_exception=True)
 def delete_flatpage(request,pk):
+    # Check if the user is an admin
+    if not custom_required.check_login_admin(request.user):
+        return redirect('adminlogin')
     flatpage =  FlatPage.objects.filter(id=pk)
     if request.method == 'POST':
         flatpage.delete()
-        return redirect('flatpages')
+        return redirect('cms')
     return render(request,'admin/cms/flatpage.html')
+
+#############################
+# Email Templage Management #
+#############################
+
+@permission_required('customadmin.view_email_template',raise_exception=True)
+def email_template(request):
+    # Check if the user is an admin
+    if not custom_required.check_login_admin(request.user):
+        return redirect('adminlogin')
+    
+    email_templates = EmailTemplate.objects.filter(is_active=True)
+    if not email_templates.exists():
+        email_err = 'No email templates available.'
+        return render(request, 'admin/email_template/email_template.html', {'email_err': email_err})
+    
+    return render(request, 'admin/email_template/email_template.html', {'email_templates': email_templates})
+
+@permission_required('customadmin.add_email_template',raise_exception=True)
+def add_template(request):
+    # Check if the user is an admin
+    if not custom_required.check_login_admin(request.user):
+        return redirect('adminlogin')
+    if request.method == 'POST':
+        form = EmailTemplateForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('emails')
+    else:
+        form = EmailTemplateForm()
+    return render(request,'admin/email_template/add_email_template.html',{'form':form})
+
+@permission_required('customadmin.change_email_template',raise_exception=True)
+def edit_email_template(request, pk):
+    # Check if the user is an admin
+    if not custom_required.check_login_admin(request.user):
+        return redirect('adminlogin')
+    template = get_object_or_404(EmailTemplate, pk=pk)
+    if request.method == 'POST':
+        form = EmailTemplateForm(request.POST, instance=template)
+        if form.is_valid():
+            form.save()
+            return redirect('emails')
+    else:
+        form = EmailTemplateForm(instance=template)
+    return render(request, 'admin/email_template/edit_email_template.html', {'form': form})
+
+@permission_required('customadmin.delete_email_template',raise_exception=True)
+def delete_email_template(request, pk):
+    # Check if the user is an admin
+    if not custom_required.check_login_admin(request.user):
+        return redirect('adminlogin')
+    template = get_object_or_404(EmailTemplate, pk=pk)
+    if request.method == 'POST':
+        template.delete()
+        return redirect('emails')
+    return render(request, 'admin/email_template/email_template.html', {'template': template})

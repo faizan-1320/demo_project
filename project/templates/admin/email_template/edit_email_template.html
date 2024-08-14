@@ -1,0 +1,89 @@
+{% extends 'admin/dashboard.html' %}
+{% block title %}Edit Email{% endblock %}
+{% load static %}
+{% block content %}
+<div class="content-wrapper">
+  <!-- Content Header (Page header) -->
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1>Edit Email</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+            <li class="breadcrumb-item active">Edit Email</li>
+          </ol>
+        </div>
+      </div>
+    </div><!-- /.container-fluid -->
+  </section>
+
+  <!-- Main content -->
+  <section class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <!-- left column -->
+        <div class="col-md">
+          <!-- general form elements -->
+          <div class="card card-primary">
+            <div class="card-header">
+              <h3 class="card-title">Edit Email Details</h3>
+            </div>
+            <!-- /.card-header -->
+            <!-- form start -->
+            <form id="myForm" method="post">
+                {% if messages %}
+                        <div class="card-body">
+                            <div class="alert-container">
+                                {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+              {% csrf_token %}
+              <div class="card-body">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+              </div>
+              <div class="card-footer">
+                <button type="submit" class="btn btn-primary">Submit</button>
+              </div>
+              <!-- /.card-body -->
+            </form>
+          </div>
+          <!-- /.card -->
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- /.content -->
+</div>
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{% static 'admin/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'admin/plugins/summernote/summernote-bs4.min.js' %}"></script>
+<script>
+    $(document).ready(function() {
+        $('#id_body').summernote({
+            height: 300,  // set editor height
+            minHeight: null,  // set minimum height of editor
+            maxHeight: null,  // set maximum height of editor
+            focus: true,  // set focus to editable area after initializing summernote
+            toolbar: [
+                // customize your toolbar
+                ['style', ['style']],
+                ['font', ['bold', 'italic', 'underline', 'clear']],
+                ['fontname', ['fontname']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['table', ['table']],
+                ['insert', ['link', 'picture', 'video']],
+                ['view', ['fullscreen', 'codeview', 'help']]
+            ]
+        });
+    });
+</script>
+{% endblock content %}

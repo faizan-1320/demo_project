@@ -6,7 +6,7 @@ from django.core.paginator import Paginator
 from django.contrib.auth.decorators import permission_required
 
 # Create your views here.
-@permission_required('coupon.view_coupon')
+@permission_required('coupon.view_coupon',raise_exception=True)
 def coupon(request):
     try:
         search_query = request.GET.get('search','')
@@ -28,7 +28,7 @@ def coupon(request):
         return render(request, 'admin/coupon/coupon.html', {'coupon_err': coupon_err})
     return render(request, 'admin/coupon/coupon.html', context)
 
-@permission_required('coupon.add_coupon')
+@permission_required('coupon.add_coupon',raise_exception=True)
 def add_coupon(request):
     if request.method == 'POST':
         form = CouponForm(request.POST)
@@ -40,7 +40,7 @@ def add_coupon(request):
         form = CouponForm()
     return render(request, 'admin/coupon/add_coupon.html', {'form': form})
 
-@permission_required('coupon.view_coupon')
+@permission_required('coupon.change_coupon',raise_exception=True)
 def edit_coupon(request, pk):
     coupon = get_object_or_404(Coupon, pk=pk)
     if request.method == 'POST':
@@ -53,7 +53,7 @@ def edit_coupon(request, pk):
         form = CouponForm(instance=coupon)
     return render(request, 'admin/coupon/edit_coupon.html', {'form': form})
 
-@permission_required('coupon.delete_coupon')
+@permission_required('coupon.delete_coupon',raise_exception=True)
 def delete_coupon(request, pk):
     if request.method == 'POST':
         coupon = get_object_or_404(Coupon, id=pk)

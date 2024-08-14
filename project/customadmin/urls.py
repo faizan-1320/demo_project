@@ -31,9 +31,14 @@ urlpatterns = [
     # Contact_US URL
     path('contact-us/',contact_us,name='contact-us'),
     path('contact-us/<int:pk>/details',contact_us_detail,name='contact-us-details'),
-    # FAQ URL
-    path('flatpages/', flatpage_list, name='flatpages'),
-    path('flatpages/add/',add_flatpage,name='add-flatpage'),
-    path('flatpages/<int:pk>/edit',edit_flatpage,name='edit-flatpage'),
-    path('flatpages/<int:pk>/delete',delete_flatpage,name='delete-flatpage'),
+    # CMS URL
+    path('cms/', flatpage_list, name='cms'),
+    path('cms/add/',add_flatpage,name='add-flatpage'),
+    path('cms/<int:pk>/edit',edit_flatpage,name='edit-flatpage'),
+    path('cms/<int:pk>/delete',delete_flatpage,name='delete-flatpage'),
+    # Email URL
+    path('emails/',email_template,name='emails'),
+    path('emails/add',add_template,name='email-add'),
+    path('emails/<int:pk>/edit/', edit_email_template, name='edit-email'),
+    path('emails/<int:pk>/delete/', delete_email_template, name='delete-email'),
 ]

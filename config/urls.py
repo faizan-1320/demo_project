@@ -19,13 +19,14 @@ from django.urls import path,include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import render
-from django.contrib.flatpages import views
 
 def custom_page_not_found_view(request, exception):
-    return render(request, '404_error.html', status=404)
+    """Custom view to handle 404 errors."""
+    return render(request, '404_error.html', {'exception': exception}, status=404)
 
 def custom_permission_denied_view(request, exception):
-    return render(request, '403_error.html', status=403)
+    """Custom view to handle 403 errors."""
+    return render(request, '403_error.html', {'exception': exception}, status=403)
 
 handler404 = custom_page_not_found_view
 handler403 = custom_permission_denied_view
