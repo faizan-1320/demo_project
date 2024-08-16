@@ -38,6 +38,7 @@
                                 {% csrf_token %}
                                 {{ form.as_p }}
                                 <button type="submit" class="btn btn-primary">Save</button>
+                                <button type="button" id="cancelButton" class="btn btn-secondary">Cancel</button>
                             </form>
                         </div>
                         <!-- /.card-body -->
@@ -74,6 +75,9 @@
                 ['view', ['fullscreen', 'codeview', 'help']]
             ]
         });
+        $('#cancelButton').on('click', function () {
+      window.history.back();
+    });
     });
 </script>
 {% endblock content %}

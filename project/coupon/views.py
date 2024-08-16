@@ -17,12 +17,11 @@ def coupon(request):
         start_number = (page_obj.number - 1) * paginator.per_page + 1
         context = {
             'page_obj':page_obj,
-            'start_number':start_number
+            'start_number':start_number,
+            'search_query':search_query
         }
         if search_query and not coupons.exists():
-            context['not_found_message'] = 'No Categorys found'
-        if not coupons:
-            raise Coupon.DoesNotExist
+            context['not_found_message'] = 'No Coupon found'
     except Coupon.DoesNotExist:
         coupon_err = 'No data available'
         return render(request, 'admin/coupon/coupon.html', {'coupon_err': coupon_err})

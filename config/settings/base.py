@@ -145,3 +145,5 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'faizanmahammed.neosoftmail@gmail.com'
 EMAIL_HOST_PASSWORD = 'yxtrdprmhkssvxex'
+
+LOGIN_URL = '/login/'

@@ -1,34 +1,32 @@
 from django.shortcuts import render,redirect
-from .models import User
+from .forms import LoginForm,UserForm,CustomUserCreationForm
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
-from .forms import CustomUserCreationForm
+from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
+from .models import Address
 
 # Create your views here.
 def home(request):
     return render(request,'front_end/index.html')
 
 def view_login(request):
-    page = 'login'
     if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        try:
-            user = User.objects.get(email=email)
-        except:
-            messages.error(request,'User does not exist')
-
-        user = authenticate(request,email=email,password=password)
-
-
-        if user is not None:
-            login(request,user)
-            return redirect('home')
-        else:
-            messages.error(request,'Username or Password does not exist')
-    context = {'page':page}
-    return render(request,'front_end/authentication/login.html',context)
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            password = form.cleaned_data['password']
+            user = authenticate(request, username=email, password=password)
+            
+            if user is not None:
+                login(request, user)
+                return redirect('home')
+            else:
+                messages.error(request, 'Email or Password does not exist')
+    else:
+        form = LoginForm()
+    
+    return render(request, 'front_end/authentication/login.html', {'form': form})
 
 def logoutUser(request):
     logout(request)
@@ -40,7 +38,6 @@ def registerPage(request):
         if form.is_valid():
             try:
                 user = form.save(commit=False)
-                print(user)
                 user.email = user.email.lower()
                 user.save()
                 login(request, user)
@@ -61,3 +58,22 @@ def forgot_password(request):
 
 def contact_us(request):
     return render(request,'front_end/contact.html')
+
+@login_required
+def user_detail(request):
+    user = request.user
+
+    if request.method == 'POST':
+        form = UserForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your details have been updated successfully.')
+            return redirect('user-detail')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = UserForm(instance=user)
+
+    addresses = Address.objects.filter(user=user)
+
+    return render(request, 'front_end/user/user_detail.html', {'form': form,'addresses': addresses})

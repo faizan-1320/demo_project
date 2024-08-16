@@ -62,6 +62,7 @@
               <div class="alert alert-info">
                 <strong>Note:</strong> This message has been replied to and cannot be replied again.
               </div>
+              <button type="button" id="cancelButton" class="btn btn-secondary">Cancel</button>
             {% else %}
               <form method="post">
                 {% csrf_token %}
@@ -70,6 +71,7 @@
                   <textarea id="admin_reply" name="admin_reply" rows="4" class="form-control"></textarea>
                 </div>
                 <button type="submit" class="btn btn-primary">Send Reply</button>
+                <button type="button" id="cancelButton" class="btn btn-secondary">Cancel</button>
               </form>
             {% endif %}
           </div>
@@ -81,4 +83,12 @@
     <!-- /.content -->
 </div>
 <!-- /.content-wrapper -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+ <script>
+   $(document).ready(function(){
+        $('#cancelButton').on('click', function () {
+      window.history.back();
+    });
+    })
+ </script>
 {% endblock content %}

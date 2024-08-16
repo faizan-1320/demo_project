@@ -86,6 +86,7 @@
                             </div>
                             <div class="card-footer">
                                 <button type="submit" class="btn btn-primary">Submit</button>
+                                <button type="button" id="cancelButton" class="btn btn-secondary">Cancel</button>
                             </div>
                         </form>
                     </div>
@@ -94,7 +95,7 @@
         </div>
     </section>
 </div>
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.add-attribute-value').forEach(button => {
@@ -115,5 +116,10 @@
             });
         });
     });
+    $(document).ready(function(){
+        $('#cancelButton').on('click', function () {
+      window.history.back();
+    });
+    })
 </script>
 {% endblock content %}

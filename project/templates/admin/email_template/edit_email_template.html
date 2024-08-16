@@ -50,6 +50,7 @@
               </div>
               <div class="card-footer">
                 <button type="submit" class="btn btn-primary">Submit</button>
+                <button type="button" id="cancelButton" class="btn btn-secondary">Cancel</button>
               </div>
               <!-- /.card-body -->
             </form>
@@ -84,6 +85,9 @@
                 ['view', ['fullscreen', 'codeview', 'help']]
             ]
         });
+        $('#cancelButton').on('click', function () {
+      window.history.back();
+    });
     });
 </script>
 {% endblock content %}

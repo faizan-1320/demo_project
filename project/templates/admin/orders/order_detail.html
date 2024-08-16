@@ -96,10 +96,19 @@
                         {% csrf_token %}
                         {{ form.as_p }}
                         <button type="submit" class="btn btn-primary" {% if order.status == 4 %}disabled{% endif %}>Update Status</button>
+                        <button type="button" id="cancelButton" class="btn btn-secondary">Cancel</button>
                     </form>
                 </div>
             </div>
         </div><!-- /.container-fluid -->
     </section><!-- /.content -->
 </div><!-- /.content-wrapper -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function(){
+        $('#cancelButton').on('click', function () {
+      window.history.back();
+    });
+    })
+</script>
 {% endblock content %}

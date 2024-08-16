@@ -2,73 +2,68 @@
 {% load static %}
 {% block content %}
 
-	<!-- Start Banner Area -->
-	<section class="banner-area organic-breadcrumb">
-		<div class="container">
-			<div class="breadcrumb-banner d-flex flex-wrap align-items-center justify-content-end">
-				<div class="col-first">
-					<h1>Contact Us</h1>
-					<nav class="d-flex align-items-center">
-						<a href="{% url 'home' %}">Home<span class="lnr lnr-arrow-right"></span></a>
-						<a href="#">Contact</a>
-					</nav>
-				</div>
-			</div>
-		</div>
-	</section>
-	<!-- End Banner Area -->
-
-	<!--================Contact Area =================-->
-	<section class="contact_area section_gap_bottom">
-		<div class="container">
-			<div id="mapBox" class="mapBox" data-lat="23.0041165" data-lon="72.5005749" data-zoom="13" data-info="Westgate Block-A, Westgate, 1502, Sarkhej - Gandhinagar Hwy, Makarba, Ahmedabad, Gujarat 380015"
-			 data-mlat="23.0041165" data-mlon="72.5005749">
-			</div>
-			<div class="row">
-				<div class="col-lg-3">
-					<div class="contact_info">
-						<div class="info_item">
-							<i class="lnr lnr-home"></i>
-							<h6>Ahmedabad, India</h6>
-							<p>S G Highway</p>
+<div id="contact-page" class="container">
+	<div class="bg">
+		<div class="row">    		
+			<div class="col-sm">    			   			
+				<h2 class="title text-center">Contact <strong>Us</strong></h2>    			    				    				
+			</div>			 		
+		</div>    	
+		<div class="row">  	
+			<div class="col-sm-8">
+				<div class="contact-form">
+					<h2 class="title text-center">Get In Touch</h2>
+					<div class="status alert alert-success" style="display: none"></div>
+					<form id="main-contact-form" class="contact-form row" name="contact-form" method="post">
+						<div class="form-group col-md-6">
+							<input type="text" name="name" class="form-control" required="required" placeholder="Name">
 						</div>
-						<div class="info_item">
-							<i class="lnr lnr-phone-handset"></i>
-							<h6><a href="#">9904681632</a></h6>
-							<p>Mon to Fri 10am to 7 pm</p>
+						<div class="form-group col-md-6">
+							<input type="email" name="email" class="form-control" required="required" placeholder="Email">
 						</div>
-						<div class="info_item">
-							<i class="lnr lnr-envelope"></i>
-							<h6><a href="#">faizanmahammed.neosoftmail@gmail.com</a></h6>
-							<p>Send us your query anytime!</p>
+						<div class="form-group col-md-12">
+							<input type="text" name="subject" class="form-control" required="required" placeholder="Subject">
 						</div>
-					</div>
-				</div>
-				<div class="col-lg-9">
-					<form class="row contact_form" action="#" method="post" id="contactForm" novalidate="novalidate">
-						<div class="col-md-6">
-							<div class="form-group">
-								<input type="text" class="form-control" id="name" name="name" placeholder="Enter your name" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Enter your name'">
-							</div>
-							<div class="form-group">
-								<input type="email" class="form-control" id="email" name="email" placeholder="Enter email address" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Enter email address'">
-							</div>
-							<div class="form-group">
-								<input type="text" class="form-control" id="subject" name="subject" placeholder="Enter Subject" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Enter Subject'">
-							</div>
-						</div>
-						<div class="col-md-6">
-							<div class="form-group">
-								<textarea class="form-control" name="message" id="message" rows="1" placeholder="Enter Message" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Enter Message'"></textarea>
-							</div>
-						</div>
-						<div class="col-md-12 text-right">
-							<button type="submit" value="submit" class="primary-btn">Send Message</button>
+						<div class="form-group col-md-12">
+							<textarea name="message" id="message" required="required" class="form-control" rows="8" placeholder="Your Message Here"></textarea>
+						</div>                        
+						<div class="form-group col-md-12">
+							<input type="submit" name="submit" class="btn btn-primary pull-right" value="Submit">
 						</div>
 					</form>
 				</div>
 			</div>
-		</div>
-	</section>
-	<!--================Contact Area =================-->
+			<div class="col-sm-4">
+				<div class="contact-info">
+					<h2 class="title text-center">Contact Info</h2>
+					<address>
+						<p>E-Shopper Inc.</p>
+						<p>5th Floor, Near YMCA Club, Ahmedabad</p>
+						<p>Gujarat India</p>
+						<p>Mobile: +2346 17 38 93</p>
+						<p>Fax: 1-714-252-0026</p>
+						<p>Email: info@e-shopper.com</p>
+					</address>
+					<div class="social-networks">
+						<h2 class="title text-center">Social Networking</h2>
+						<ul>
+							<li>
+								<a href="#"><i class="fa fa-facebook"></i></a>
+							</li>
+							<li>
+								<a href="#"><i class="fa fa-twitter"></i></a>
+							</li>
+							<li>
+								<a href="#"><i class="fa fa-google-plus"></i></a>
+							</li>
+							<li>
+								<a href="#"><i class="fa fa-youtube"></i></a>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>    			
+		</div>  
+	</div>	
+</div><!--/#contact-page-->
 {% endblock content %}

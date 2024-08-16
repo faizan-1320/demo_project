@@ -107,7 +107,8 @@ def users(request):
     start_number = (page_obj.number - 1) * paginator.per_page + 1
     context = {
         'page_obj':page_obj,
-        'start_number':start_number
+        'start_number':start_number,
+        'search_query':search_query
     }
     if search_query and not users.exists():
         context['not_found_message'] = 'No users found'
@@ -318,7 +319,8 @@ def category(request):
     start_number = (page_obj.number - 1) * paginator.per_page + 1
     context = {
     'page_obj':page_obj,
-    'start_number':start_number
+    'start_number':start_number,
+    'search_query':search_query
     }
     if search_query and not category.exists():
         context['not_found_message'] = 'No Categorys found'
@@ -425,7 +427,7 @@ def product(request):
     # Check if the user is an admin
     if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
-    search_query = request.GET.get('search')
+    search_query = request.GET.get('search','')
     products = Product.objects.filter(is_active=True, is_delete=False).select_related('category').prefetch_related('product__product', 'products__product_attribute')
     # Apply the search filter only if search_query is not None
     if search_query:
@@ -444,7 +446,8 @@ def product(request):
     context = {
         'page_obj':page_obj,
         'attribute_groups': attribute_groups,
-        'start_number':start_number
+        'start_number':start_number,
+        'search_query':search_query
     }
     if search_query and not products.exists():
         context['not_found_message'] = 'No products found'
@@ -616,7 +619,7 @@ def edit_product(request, pk):
 @permission_required('product.add_productattribure', raise_exception=True)
 def add_product_attribute(request):
     # Check if the user is an admin
-    if not check_login_admin(request.user):
+    if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
     
     if request.method == 'POST':
@@ -750,7 +753,8 @@ def contact_us(request):
 
     context = {
         'page_obj':page_obj,
-        'start_number':start_number
+        'start_number':start_number,
+        'search_query':search_query
     }
     if search_query and not contact.exists():
         context['message_not_found'] = 'Not Contact Us found'
@@ -885,6 +889,7 @@ def delete_email_template(request, pk):
 # Order Management #
 ####################
 
+@permission_required('product.view_order',raise_exception=True)
 def order(request):
     # Check if the user is an admin
     if not custom_required.check_login_admin(request.user):
@@ -898,12 +903,14 @@ def order(request):
 
     context = {
         'page_obj':page_obj,
-        'start_number':start_number
+        'start_number':start_number,
+        'search_query':search_query
     }
     if search_query and not orders.exists():
         context['message_not_found'] = 'Not order found'
     return render(request, 'admin/orders/orders.html', context)
 
+@permission_required('product.change_order',raise_exception=True)
 def order_detail(request, pk):
     # Check if the user is an admin
     if not custom_required.check_login_admin(request.user):

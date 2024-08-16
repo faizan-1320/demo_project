@@ -1,0 +1,33 @@
+{% extends 'front_end/index.html' %}
+{% block content %}
+<div class="container">
+    <h1>User Details</h1>
+    
+    {% if messages %}
+        <div class="alert alert-info">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <form method="POST" novalidate>
+        {% csrf_token %}
+        {{form.as_p}}
+        <button type="submit" class="btn btn-primary">Update Details</button>
+    </form>
+    <h3>Addresses</h3>
+        <ul>
+            {% for address in addresses %}
+                <li>
+                    {{ address.street_address }}, {{ address.city }}, {{ address.state }}, {{ address.zip_code }}, {{ address.country }}
+                    {% if address.is_primary %}
+                        <strong> (Primary)</strong>
+                    {% endif %}
+                </li>
+            {% empty %}
+                <li>No addresses found.</li>
+            {% endfor %}
+        </ul>
+</div>
+{% endblock content %}
