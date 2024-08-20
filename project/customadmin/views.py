@@ -961,3 +961,4 @@ def order_detail(request, pk):
     }
 
     return render(request, 'admin/orders/order_detail.html', context)
+    

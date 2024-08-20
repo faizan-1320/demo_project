@@ -4,10 +4,13 @@ from .models import Coupon
 from .forms import CouponForm
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import permission_required
+from project.utils import custom_required
 
 # Create your views here.
 @permission_required('coupon.view_coupon',raise_exception=True)
 def coupon(request):
+    if not custom_required.check_login_admin(request.user):
+        return redirect('admin-custom')
     try:
         search_query = request.GET.get('search','')
         coupons = Coupon.objects.filter(is_delete=False,code__icontains=search_query)
@@ -29,6 +32,8 @@ def coupon(request):
 
 @permission_required('coupon.add_coupon',raise_exception=True)
 def add_coupon(request):
+    if not custom_required.check_login_admin(request.user):
+        return redirect('admin-custom')
     if request.method == 'POST':
         form = CouponForm(request.POST)
         if form.is_valid():
@@ -41,6 +46,8 @@ def add_coupon(request):
 
 @permission_required('coupon.change_coupon',raise_exception=True)
 def edit_coupon(request, pk):
+    if not custom_required.check_login_admin(request.user):
+        return redirect('admin-custom')
     coupon = get_object_or_404(Coupon, pk=pk)
     if request.method == 'POST':
         form = CouponForm(request.POST, instance=coupon)
@@ -54,6 +61,8 @@ def edit_coupon(request, pk):
 
 @permission_required('coupon.delete_coupon',raise_exception=True)
 def delete_coupon(request, pk):
+    if not custom_required.check_login_admin(request.user):
+        return redirect('admin-custom')
     if request.method == 'POST':
         coupon = get_object_or_404(Coupon, id=pk)
         coupon.is_delete = True

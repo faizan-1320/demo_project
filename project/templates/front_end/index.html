@@ -65,18 +65,18 @@
 						<div class="shop-menu pull-right">
 							<ul class="nav navbar-nav">
 								<li><a href="#"><i class="fa fa-star"></i> Wishlist</a></li>
-								<li><a href="checkout.html"><i class="fa fa-crosshairs"></i> Checkout</a></li>
-								<li><a href="cart.html"><i class="fa fa-shopping-cart"></i> Cart</a></li>
 					
 								{% if user.is_authenticated %}
+									<li><a href="checkout.html"><i class="fa fa-crosshairs"></i> Checkout</a></li>
+									<li><a href="cart.html"><i class="fa fa-shopping-cart"></i> Cart</a></li>
 									<li>
-										<a href="{% url 'user-detail' %}">
+										<a href="{% url 'user' %}">
 											<i class="fa fa-user"></i> {{ user.first_name }}
 										</a>
 									</li>
 									<li><a href="{% url 'logout' %}"><i class="fa fa-unlock"></i> Logout</a></li>
 								{% else %}
-									<li><a href="{% url 'login' %}"><i class="fa fa-lock"></i> Login</a></li>
+									<li><a href="{% url 'auth-view' %}"><i class="fa fa-lock"></i> Login</a></li>
 								{% endif %}
 							</ul>
 						</div>
@@ -887,7 +887,7 @@
 					<div class="col-sm-3">
 						<div class="address">
 							<img src="{% static 'assets/images/home/map.png' %}" alt="" />
-							<p>5th Floor, Near YMCA Club, Ind(Gujarat)</p>
+							<p>Westgate Complex, 5th Floor, Near YMCA Club, Ind(Gujarat)</p>
 						</div>
 					</div>
 				</div>

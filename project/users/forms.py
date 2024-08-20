@@ -31,10 +31,11 @@ class LoginForm(forms.Form):
 class AdressForm(forms.ModelForm):
     class Meta:
         model = Address
-        fields =['address','city','country','district','postcode']
+        fields =['address','city','country','district','postcode','is_primary']
         widgets = {
             'address':forms.Textarea(attrs={'class':'form-control'}),
             'city':forms.TextInput(attrs={'class':'form-control'}),
+            'country':forms.TextInput(attrs={'class':'form-control'}),
             'district':forms.TextInput(attrs={'class':'form-control'}),
             'postcode':forms.TextInput(attrs={'class':'form-control'})
         }

@@ -1,0 +1,19 @@
+{% extends 'front_end/index.html' %}
+{% block content %}
+<div class="container">
+    <h1>Address Chanage</h1>
+    {% if messages %}
+    <div class="alert alert-info">
+        {% for message in messages %}
+        <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST" novalidate>
+        {% csrf_token %}
+        {{address_form.as_p}}
+        <button type="submit" name="update_details" class="btn btn-primary">Update</button>
+    </form>
+</div>
+{% endblock content %}

@@ -1,0 +1,18 @@
+{% extends 'front_end/index.html' %}
+{% block content %}
+<div class="container">
+    <h1>Add New Address</h1>
+    {% if messages %}
+    <div class="alert alert-info">
+        {% for message in messages %}
+        <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <form method="POST">
+        {% csrf_token %}
+        {{ address_form.as_p }}
+        <button type="submit" name="add_address" class="btn btn-success">Add Address</button>
+    </form>
+</div>
+{% endblock content %}

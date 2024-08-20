@@ -1,0 +1,19 @@
+{% extends 'front_end/index.html' %}
+{% block content %}
+<div class="container">
+    <h1>Profile Change</h1>
+    {% if messages %}
+    <div class="alert alert-info">
+        {% for message in messages %}
+        <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST" novalidate>
+        {% csrf_token %}
+        {{form.as_p}}
+        <button type="submit" name="update_details" class="btn btn-primary">Update Details</button>
+    </form>
+</div>
+{% endblock content %}
