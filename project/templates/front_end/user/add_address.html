@@ -12,7 +12,8 @@
     <form method="POST">
         {% csrf_token %}
         {{ address_form.as_p }}
-        <button type="submit" name="add_address" class="btn btn-success">Add Address</button>
+        <button type="submit" name="add_address" class="btn btn-success" style="margin-bottom: 10px;">Add Address</button>
+        <a href="{% url 'user' %}" class="btn btn-info" style="margin-bottom: 10px;">Cancel</a>
     </form>
 </div>
 {% endblock content %}

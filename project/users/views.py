@@ -1,14 +1,49 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .forms import LoginForm,UserForm,CustomUserCreationForm,AdressForm
+from .forms import LoginForm,UserForm,CustomUserCreationForm,AdressForm,ContactForm
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from .models import Address,User
+from project.customadmin.models import Banner
+from project.product.models import Product,Category
+
+def get_category_tree(categories, parent_id=None):
+    """
+    Recursively build a tree structure from a flat list of categories.
+    """
+    tree = []
+    for category in categories.filter(parent_id=parent_id):
+        children = get_category_tree(categories, parent_id=category.id)
+        tree.append({
+            'category': category,
+            'children': children
+        })
+    return tree
+
 
 # Create your views here.
 def home(request):
-    return render(request,'front_end/index.html')
+    banners = Banner.objects.filter(is_active=True, is_delete=False)
+    categories = Category.objects.filter(is_active=True, is_delete=False)
+    category_tree = get_category_tree(categories)
+
+    category_id = request.GET.get('category', None)
+    
+    if category_id:
+        selected_category = get_object_or_404(Category, id=category_id)
+        products = Product.objects.filter(category__id=category_id, is_active=True, is_delete=False).prefetch_related('product')
+    else:
+        products = Product.objects.filter(is_active=True, is_delete=False).prefetch_related('product')
+
+    context = {
+        'banners': banners,
+        'products': products,
+        'categories': category_tree,
+        'selected_category': category_id,
+    }
+    return render(request, 'front_end/index.html', context)
+
 
 def auth_view(request):
     if request.method == 'POST':
@@ -64,7 +99,15 @@ def forgot_password(request):
     return render(request,'front_end/authentication/forgot_password.html')
 
 def contact_us(request):
-    return render(request,'front_end/contact.html')
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request,'Mail send successfully!')
+            return redirect('contact')
+    else:
+        form = ContactForm()
+    return render(request,'front_end/contact.html',{'form':form})
 
 @login_required
 def user_detail(request):
@@ -78,7 +121,6 @@ def user_detail(request):
 @login_required
 def user_detail_edit(request):
     user = request.user
-    addresses = Address.objects.filter(user=user, is_delete=False)
 
     if request.method == 'POST':
         form = UserForm(request.POST, instance=user)
@@ -110,6 +152,7 @@ def add_address(request):
         address_form = AdressForm()
     return render(request,'front_end/user/add_address.html',{'address_form':address_form})
 
+@login_required
 def edit_address(request, pk):
     user = request.user
     address = get_object_or_404(Address, id=pk, user=user)
@@ -127,6 +170,7 @@ def edit_address(request, pk):
     
     return render(request, 'front_end/user/edit_address.html', {'address_form': address_form})
 
+@login_required
 def delete_address(request, pk):
     user = request.user
     address = get_object_or_404(Address, id=pk, user=user)
@@ -134,6 +178,6 @@ def delete_address(request, pk):
     if request.method == 'POST':
         address.delete()
         messages.success(request, 'Address deleted successfully.')
-        return redirect('user')  # Redirect to the user profile or address list page
+        return redirect('user')
 
     return render(request, 'front_end/user/confirm_delete_address.html', {'address': address})

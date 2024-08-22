@@ -10,7 +10,7 @@ CATEGORY_DELIMITER = " / "
 class Category(models.Model):
     category_name_regex = RegexValidator(regex=r'^[A-Za-z]+$',message='Enter valid Categoty Name')
     category_name = models.CharField(max_length=100,validators=[category_name_regex],error_messages={'blank': 'Category name is required.'})
-    parent = models.ForeignKey('self', blank=True, null=True, on_delete=models.CASCADE)
+    parent = models.ForeignKey('self', blank=True, null=True, on_delete=models.CASCADE,related_name='subcategories')
     is_active = models.BooleanField(default=True)
     is_delete = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
@@ -26,6 +26,10 @@ class Category(models.Model):
             parent_cat = parent_cat.parent
         return CATEGORY_DELIMITER.join(comp)
 
+    @property
+    def has_subcategories(self):
+        return self.subcategories.exists()
+    
     def __str__(self):
         return self.category_name
 
@@ -85,6 +89,9 @@ class ProductImage(models.Model):
     is_delete = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self) -> str:
+        return f'{self.product.name} - {self.id}'
 
     class Meta:
         verbose_name = 'ProductImage'

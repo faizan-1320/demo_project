@@ -396,7 +396,7 @@ def add_sub_category(request):
     # Check if the user is an admin
     if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
-    category = Category.objects.filter(parent_id=None)
+    category = Category.objects.filter()
     context = {
     'category':category
     }
@@ -604,7 +604,7 @@ def edit_product(request, pk):
 
                 # Soft delete images
                 if images_to_delete:
-                    ProductImage.objects.filter(id__in=images_to_delete).update(is_active=False, is_delete=True)
+                    ProductImage.objects.filter(id__in=images_to_delete).delete()
                 for image in images:
                     ProductImage.objects.create(product=product, image=image)
             except IntegrityError:

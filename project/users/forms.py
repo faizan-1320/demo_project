@@ -1,6 +1,7 @@
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django import forms
 from .models import User,Address
+from project.customadmin.models import ContactUs
 
 class CustomUserCreationForm(UserCreationForm):
 
@@ -38,4 +39,15 @@ class AdressForm(forms.ModelForm):
             'country':forms.TextInput(attrs={'class':'form-control'}),
             'district':forms.TextInput(attrs={'class':'form-control'}),
             'postcode':forms.TextInput(attrs={'class':'form-control'})
+        }
+
+class ContactForm(forms.ModelForm):
+    class Meta:
+        model = ContactUs
+        fields = ['name','subject','email','message']
+        widgets = {
+            'name':forms.TextInput(attrs={'class':'form-control'}),
+            'subject':forms.TextInput(attrs={'class':'form-control'}),
+            'email':forms.EmailInput(attrs={'class':'form-control'}),
+            'message':forms.Textarea(attrs={'class':'form-control'}),
         }
