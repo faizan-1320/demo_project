@@ -35,6 +35,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('',include('project.users.urls')),
     path('',include('project.product.urls')),
+    path('',include('project.order.urls')),
     path('admin-custom/',include('project.customadmin.urls')),
     path('admin-custom/',include('project.coupon.urls')),
     path("pages/", include("django.contrib.flatpages.urls")),

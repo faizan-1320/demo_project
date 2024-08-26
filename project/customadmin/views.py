@@ -1,6 +1,6 @@
 from django.shortcuts import render,redirect
 from project.users.models import User,Address
-from project.product.models import Category,Product,ProductAttribute,ProductAttributeValue,ProductImage,Order,ProductInOrder
+from project.product.models import Category,Product,ProductAttribute,ProductAttributeValue,ProductImage
 from .models import Banner,ContactUs,EmailTemplate
 from .forms import BannerForm,CustomFlatPageForm,EmailTemplateForm,OrderStatusForm
 from project.coupon.models import Coupon
@@ -19,6 +19,7 @@ from django.contrib.auth.decorators import permission_required
 from decimal import Decimal, InvalidOperation
 from django.contrib.flatpages.models import FlatPage
 import re   
+from project.order.models import Order,ProductInOrder
 
 ####################
 # Admin Management #
@@ -465,6 +466,7 @@ def add_products(request):
     if request.method == 'POST':
         name = request.POST.get('product_name')
         price = request.POST.get('price')
+        quantity = request.POST.get('quantity')
         category_id = request.POST.get('category_id')
         images = request.FILES.getlist('product_images[]')
 
@@ -480,6 +482,17 @@ def add_products(request):
                     raise InvalidOperation
             except InvalidOperation:
                 messages.error(request, 'Please enter a valid positive number for the price')
+                return render(request, 'admin/product/add_product.html', context)
+
+        if not quantity:
+            messages.error(request, 'Product quantity is required')
+        else:
+            try:
+                quantity = Decimal(quantity)
+                if quantity < 0:
+                    raise InvalidOperation
+            except InvalidOperation:
+                messages.error(request, 'Please enter a valid positive number for the quantity')
                 return render(request, 'admin/product/add_product.html', context)
 
         if not category_id:
@@ -544,6 +557,7 @@ def edit_product(request, pk):
     if request.method == 'POST':
         product_name = request.POST.get('product_name')
         price = request.POST.get('price')
+        quantity = request.POST.get('quantity')
         category_id = request.POST.get('category_id')
         images_to_delete = request.POST.getlist('images_to_delete')
         images = request.FILES.getlist('product_images[]')
@@ -562,6 +576,16 @@ def edit_product(request, pk):
             except InvalidOperation:
                 messages.error(request, 'Please enter a valid positive number for the price')
                 return render(request, 'admin/product/edit_product.html', context)
+        if not quantity:
+            messages.error(request, 'quantity is required')
+        else:
+            try:
+                quantity = Decimal(quantity)
+                if quantity < 0:
+                    raise InvalidOperation
+            except InvalidOperation:
+                messages.error(request, 'Please enter a valid positive number for the quantity')
+                return render(request, 'admin/product/edit_product.html', context)
         if not category_id:
             messages.error(request, 'Please Select Category')
             return render(request, 'admin/product/edit_product.html', context)
@@ -572,6 +596,7 @@ def edit_product(request, pk):
                 # import pdb;pdb.set_trace()
                 product.name = product_name
                 product.price = price
+                product.quantity = quantity
                 product.category_id = category_id
                 product.save()
 

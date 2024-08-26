@@ -45,6 +45,7 @@
                     <th>Sr No</th>
                     <th>Product Name</th>
                     <th>Price</th>
+                    <th>Quantity</th>
                     <th>Category</th>
                     <th>Images</th>
                     <th>Attributes</th>
@@ -58,6 +59,7 @@
                     <td>{{ forloop.counter0|add:start_number }}</td>
                     <td>{{ product.name }}</td>
                     <td>{{ product.price }}</td>
+                    <td>{{ product.quantity }}</td>
                     <td>{{ product.category.full_path }}</td>
                     <td>
                       {% for image in product.product.all %}

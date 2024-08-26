@@ -1,7 +1,7 @@
 from django import forms
 from .models import Banner,EmailTemplate
 from django.contrib.flatpages.models import FlatPage
-from project.product.models import Order
+from project.order.models import Order
 class BannerForm(forms.ModelForm):
     class Meta:
         model = Banner

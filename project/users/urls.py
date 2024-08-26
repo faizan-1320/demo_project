@@ -16,4 +16,5 @@ urlpatterns = [
     path('user/add/address',add_address,name='add-address'),
     path('user/edit/address/<int:pk>',edit_address,name='edit-address'),
     path('user/delete/address/<int:pk>',delete_address,name='delete-address'),
+    
 ]

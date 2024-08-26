@@ -16,10 +16,6 @@
 	<link href="{% static 'assets/css/animate.css' %}" rel="stylesheet">
 	<link href="{% static 'assets/css/main.css' %}" rel="stylesheet">
 	<link href="{% static 'assets/css/responsive.css' %}" rel="stylesheet">
-	<!--[if lt IE 9]>
-    <script src="js/html5shiv.js"></script>
-    <script src="js/respond.min.js"></script>
-    <![endif]-->
 	<link rel="shortcut icon" href="{% static 'assets/images/ico/favicon.ico' %}">
 	<link rel="apple-touch-icon-precomposed" sizes="144x144"
 		href="{% static 'assets/images/ico/apple-touch-icon-144-precomposed.png' %}">
@@ -29,6 +25,10 @@
 		href="{% static 'assets/images/ico/apple-touch-icon-72-precomposed.png' %}">
 	<link rel="apple-touch-icon-precomposed"
 		href="{% static 'assets/images/ico/apple-touch-icon-57-precomposed.png' %}">
+	<!-- SweetAlert CSS -->
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+	{% block css %}
 	<style>
 		.product-name {
 			font-size: 14px;
@@ -52,6 +52,7 @@
 			/* Ensures the image covers the box, cropping if necessary */
 		}
 	</style>
+	{% endblock %}
 </head><!--/head-->
 
 <body>
@@ -71,7 +72,6 @@
 
 								{% if user.is_authenticated %}
 								<li><a href="#"><i class="fa fa-star"></i> Wishlist</a></li>
-								<li><a href="cart.html"><i class="fa fa-shopping-cart"></i> Cart</a></li>
 								<li class="nav-item dropdown">
 									<a href="#" class="nav-link dropdown-toggle" id="userDropdown" role="button"
 										data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -90,6 +90,7 @@
 								{% else %}
 								<li><a href="{% url 'auth-view' %}"><i class="fa fa-lock"></i>Login/Register</a></li>
 								{% endif %}
+								<li><a href="{% url 'cart-detail' %}"><i class="fa fa-shopping-cart"></i> Cart</a></li>
 								<li><a href="{% url 'contact' %}"><i class="fa fa-envelope"></i>Contact</a></li>
 							</ul>
 						</div>
@@ -181,14 +182,24 @@
 							{% render_category_tree_tag %}
 						</div>
 
-						<div class="price-range"><!--price-range-->
-							<h2>Price Range</h2>
-							<div class="well text-center">
-								<input type="text" class="span2" value="" data-slider-min="0" data-slider-max="600"
-									data-slider-step="5" data-slider-value="[250,450]" id="sl2"><br />
-								<b class="pull-left">₹0</b> <b class="pull-right">₹600</b>
+						<form method="GET" action="{% url 'home' %}">
+							<div class="price-range">
+								<h2>Price Range</h2>
+								<div class="well text-center">
+									<input type="text" class="span2" value="" data-slider-min="{{ min_price }}"
+										data-slider-max="{{ max_price }}" data-slider-step="5"
+										data-slider-value="[{{ request.GET.min_price|default:min_price }},{{ request.GET.max_price|default:max_price }}]"
+										id="sl2">
+									<input type="hidden" id="min_price" name="min_price"
+										value="{{ request.GET.min_price|default:min_price }}">
+									<input type="hidden" id="max_price" name="max_price"
+										value="{{ request.GET.max_price|default:max_price }}"><br />
+									<b class="pull-left">₹<span id="min_price_display">{{request.GET.min_price|default:min_price }}</span></b>
+									<b class="pull-right">₹<span id="max_price_display">{{request.GET.max_price|default:max_price }}</span></b>
+								</div>
 							</div>
-						</div><!--/price-range-->
+							<button type="submit" class="btn btn-primary">Filter</button>
+						</form>
 
 					</div>
 				</div>
@@ -222,15 +233,19 @@
 										<a href="{% url 'product-detail' product.id %}">
 											<div class="productinfo text-center">
 												{% if product.product.all %}
-												<img src="{{ product.product.last.image.url }}"
-													alt="{{ product.name }}" class="fixed-size-image" />
+												<img src="{{ product.product.last.image.url }}" alt="{{ product.name }}"
+													class="fixed-size-image" />
 												{% else %}
 												<img src="images/home/default_product.jpg" alt="{{ product.name }}" />
 												{% endif %}
 												<h2>₹{{ product.price }}</h2>
 												<p class="product-name">{{ product.name }}</p>
-												<a href="#" class="btn btn-default add-to-cart"><i
+												<p class="product-quantity" style="color: red;">{% if product.quantity|is_out_of_stock %} Out of stock </p>{% else %}<p class="product-quantity" style="color: green;"> In Stock {% endif %}</p>
+												{% if product.quantity %}
+												<a href="{% url 'add-to-cart' product.id %}"
+													class="btn btn-default add-to-cart"><i
 														class="fa fa-shopping-cart"></i> Add to cart</a>
+												{% endif %}
 											</div>
 										</a>
 									</div>
@@ -354,6 +369,28 @@
 	<script src="{% static 'assets/js/price-range.js' %}"></script>
 	<script src="{% static 'assets/js/jquery.prettyPhoto.js' %}"></script>
 	<script src="{% static 'assets/js/main.js' %}"></script>
+	<!-- Include jQuery and Bootstrap Slider JS -->
+	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+	<!-- SweetAlert JavaScript -->
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+	<script>
+		$(document).ready(function () {
+			var slider = $('#sl2').slider();
+
+			slider.on('slide', function (event) {
+				var minPrice = event.value[0];
+				var maxPrice = event.value[1];
+
+				// Update hidden inputs
+				$('#min_price').val(minPrice);
+				$('#max_price').val(maxPrice);
+
+				// Update the displayed prices
+				$('#min_price_display').text(minPrice);
+				$('#max_price_display').text(maxPrice);
+			});
+		});
+	</script>
 </body>
 
 </html>

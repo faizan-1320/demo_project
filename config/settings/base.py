@@ -45,6 +45,7 @@ LOCAL_APPS = [
     'project.product',
     'project.customadmin',
     'project.coupon',
+    'project.order'
 ]
 
 SITE_ID = 1

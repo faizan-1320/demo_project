@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Product,ProductAttribute,ProductAttributeValue,ProductImage,Category,Order,ProductInOrder
+from .models import Product,ProductAttribute,ProductAttributeValue,ProductImage,Category
 
 class ProductAttributeAdmin(admin.StackedInline):
     model = ProductAttributeValue
@@ -15,5 +15,3 @@ admin.site.register(ProductAttribute)
 admin.site.register(ProductAttributeValue)
 admin.site.register(ProductImage)
 admin.site.register(Category)
-admin.site.register(Order)
-admin.site.register(ProductInOrder)

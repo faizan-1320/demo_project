@@ -7,6 +7,7 @@ from django.db import IntegrityError
 from .models import Address,User
 from project.customadmin.models import Banner
 from project.product.models import Product,Category
+from django.db.models import Min, Max
 
 def get_category_tree(categories, parent_id=None):
     """
@@ -21,26 +22,45 @@ def get_category_tree(categories, parent_id=None):
         })
     return tree
 
-
 # Create your views here.
 def home(request):
     banners = Banner.objects.filter(is_active=True, is_delete=False)
     categories = Category.objects.filter(is_active=True, is_delete=False)
     category_tree = get_category_tree(categories)
 
+    min_price_filter = request.GET.get('min_price', None)
+    max_price_filter = request.GET.get('max_price', None)
+
+    min_price = Product.objects.aggregate(min_price=Min('price'))['min_price'] or 0
+    max_price = Product.objects.aggregate(max_price=Max('price'))['max_price'] or 0
+
+    if min_price_filter and max_price_filter:
+        try:
+            min_price_filter = float(min_price_filter)
+            max_price_filter = float(max_price_filter)
+        except ValueError:
+            min_price_filter = min_price
+            max_price_filter = max_price
+    else:
+        min_price_filter = min_price
+        max_price_filter = max_price
+
     category_id = request.GET.get('category', None)
     
     if category_id:
-        selected_category = get_object_or_404(Category, id=category_id)
-        products = Product.objects.filter(category__id=category_id, is_active=True, is_delete=False).prefetch_related('product')
+        products = Product.objects.filter(category__id=category_id, is_active=True, is_delete=False, price__gte=min_price_filter, price__lte=max_price_filter).prefetch_related('product')
     else:
-        products = Product.objects.filter(is_active=True, is_delete=False).prefetch_related('product')
+        products = Product.objects.filter(is_active=True, is_delete=False, price__gte=min_price_filter, price__lte=max_price_filter).prefetch_related('product')
 
     context = {
         'banners': banners,
         'products': products,
         'categories': category_tree,
         'selected_category': category_id,
+        'min_price': min_price,
+        'max_price': max_price,
+        'min_price_filter': min_price_filter,
+        'max_price_filter': max_price_filter,
     }
     return render(request, 'front_end/index.html', context)
 
@@ -92,7 +112,10 @@ def auth_view(request):
     return render(request, 'front_end/authentication/auth_page.html', context)
 
 def logoutUser(request):
+    cart=request.session.get('cart',{})
+
     logout(request)
+    request.session['cart']=cart
     return redirect('home')
 
 def forgot_password(request):

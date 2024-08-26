@@ -55,3 +55,7 @@ def render_category_tree_tag(context):
     categories = Category.objects.filter(is_active=True, is_delete=False)
     selected_category_id = context.get('selected_category_id', None)
     return render_category_tree(categories, selected_category_id=selected_category_id)
+
+@register.filter
+def is_out_of_stock(quantity):
+    return quantity == 0
