@@ -5,7 +5,6 @@ from project.utils import base_model
 class Coupon(base_model.BaseModel):
     code = models.CharField(max_length=150,unique=True,help_text='Unique coupon code')
     discount_amount = models.DecimalField(max_digits=10,decimal_places=2,default=0.0,help_text='Fixed discount amount')
-    discount_percentage = models.DecimalField(max_digits=5,decimal_places=2,default=0.0,help_text='Percentage discount')
     start_date = models.DateField(help_text='Start date of the coupon validity')
     end_date = models.DateField(help_text='End date of the coupon validity')
     is_active = models.BooleanField(default=True,help_text='Whether the coupon is active or not')

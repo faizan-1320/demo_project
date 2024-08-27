@@ -1,0 +1,69 @@
+{% extends 'front_end/index.html' %}
+{% load static %}
+{% block css %}
+    <title>Order Confirmation</title>
+    <style>
+        .confirmation-container {
+            text-align: center;
+        }
+        .confirmation-container h1 {
+            color: #28a745;
+        }
+        .order-summary {
+            margin-top: 10px;
+        }
+        .order-summary table {
+            margin: 0 auto;
+            width: 80%;
+        }
+        .order-summary th, .order-summary td {
+            padding: 10px;
+            text-align: left;
+        }
+        .order-summary th {
+            background-color: #f8f9fa;
+        }
+        .order-summary td {
+            background-color: #ffffff;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+
+<div class="container confirmation-container">
+    <h1>Thank You for Your Order!</h1>
+    <p>Your order has been placed successfully.</p>
+    <p>Order ID: <strong>{{ order.order_id }}</strong></p>
+
+    <div class="order-summary">
+        <h3>Order Summary</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.productinorder_set.all %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>₹{{ item.price }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="order-details">
+        <p><strong>Total Amount:</strong> ₹{{ order.total_amount }}</p>
+        <p><strong>Payment Status:</strong> {{ order.get_payment_status_display }}</p>
+        <p><strong>Shipping Method:</strong> {{ order.get_shipping_method_display }}</p>
+        <p><strong>Delivery Address:</strong> {{ order.address }}</p>
+    </div>
+
+    <a href="{% url 'home' %}" class="btn btn-primary mt-4">Continue Shopping</a>
+</div>
+{% endblock content %}

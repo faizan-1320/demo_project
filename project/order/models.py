@@ -3,6 +3,8 @@ from django.db import models
 from django.utils import timezone
 from django.conf import settings
 from project.product.models import Product
+from project.users.models import Address
+from project.coupon.models import Coupon
 
 
 # Create your models here.
@@ -29,13 +31,15 @@ class Order(models.Model):
     )
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
     status = models.IntegerField(choices=status_choice,default=1)
-
-    total_amount = models.FloatField(default=0.0)
+    address = models.ForeignKey(Address,on_delete=models.CASCADE,related_name='order_address', null=True, blank=True)
+    total_amount = models.FloatField(null=True, blank=True)
     payment_status = models.IntegerField(choices=payment_status_choice,default=3)
     order_id = models.CharField(unique=True, max_length=100, null=True, blank=True)
     datetime_of_payment = models.DateTimeField(default=timezone.now)
     is_cash_on_delivery = models.BooleanField(default=False)
     shipping_method = models.IntegerField(choices=shipping_method_choice, default=1)
+    coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True)
+    discount_amount = models.FloatField(default=0)
 
     def save(self, *args, **kwargs):
         if self.payment_status == 6:

@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Coupon
 from .forms import CouponForm
+from django.utils import timezone
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import permission_required
 from project.utils import custom_required
@@ -12,6 +13,7 @@ def coupon(request):
     if not custom_required.check_login_admin(request.user):
         return redirect('admin-custom')
     try:
+        today = timezone.now().date()
         search_query = request.GET.get('search','')
         coupons = Coupon.objects.filter(is_delete=False,code__icontains=search_query)
         paginator = Paginator(coupons,10)
@@ -19,6 +21,7 @@ def coupon(request):
         page_obj = paginator.get_page(page_number)
         start_number = (page_obj.number - 1) * paginator.per_page + 1
         context = {
+            'today': today,
             'page_obj':page_obj,
             'start_number':start_number,
             'search_query':search_query

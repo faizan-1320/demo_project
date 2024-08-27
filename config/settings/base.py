@@ -147,4 +147,8 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'faizanmahammed.neosoftmail@gmail.com'
 EMAIL_HOST_PASSWORD = 'yxtrdprmhkssvxex'
 
-LOGIN_URL = '/login/'
+LOGIN_URL = '/auth-view/'
+
+PAYPAL_CLIENT_ID ='AQIomGzeKsnNgkKyf9kfWu27UOllP_MoMpEbeUH0qVEK3VLhQZr9rBj8Icn4CMsxf8AEQco6N0w7wdKt'
+PAYPAL_CLIENT_SECRET = 'EE6UMMHCzd5A_KXEb695XjLLVb-Uf_-1Zhy3fKM9PIh5dkZPS8e1pr99UHFTyMe56hhqa24kZUj3xq2r'
+PAYPAL_MODE = 'sandbox'

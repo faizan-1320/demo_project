@@ -52,7 +52,6 @@
                                         <th>Sr No</th>
                                         <th>Code</th>
                                         <th>Discount Amount</th>
-                                        <th>Discount Percentage</th>
                                         <th>Start Date</th>
                                         <th>End Date</th>
                                         <th>Active</th>
@@ -66,10 +65,17 @@
                                         <td>{{ forloop.counter0|add:start_number }}</td>
                                         <td>{{ coupon.code }}</td>
                                         <td>{{ coupon.discount_amount }}</td>
-                                        <td>{{ coupon.discount_percentage }}</td>
                                         <td>{{ coupon.start_date }}</td>
                                         <td>{{ coupon.end_date }}</td>
-                                        <td>{% if coupon.is_active %}Yes{% else %}No{% endif %}</td>
+                                        <td>{% with today|date:"Y-m-d" as current_date %}
+                                            {{current_date}}
+                                            {% if coupon.start_date == current_date and current_date >= coupon.end_date %}
+                                                Yes
+                                            {% else %}
+                                                No
+                                            {% endif %}
+                                        {% endwith %}
+                                        </td>
                                         <td>
                                             <a href="{% url 'edit-coupon' coupon.id %}"><i
                                                     class="fas fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;<a

@@ -1,0 +1,31 @@
+{% extends "front_end/index.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4">Your Orders</h2>
+    {% if orders %}
+        <div class="row">
+            {% for order in orders %}
+            <div class="col-12 col-md-6 mb-4">
+                <div class="card p-4 shadow-sm h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="mb-0">Order ID: <span class="text-primary">{{ order.order_id }}</span></h5>
+                            <small class="text-muted">Placed on {{ order.datetime_of_payment|date:"F d, Y" }}</small>
+                        </div>
+                        <div>
+                            <span class="badge bg-info">{{ order.get_payment_status_display }}</span>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <a href="{% url 'user-order' order.id %}" class="btn btn-primary">View Order Details</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No orders found. Start shopping now!</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -64,7 +64,6 @@ def home(request):
     }
     return render(request, 'front_end/index.html', context)
 
-
 def auth_view(request):
     if request.method == 'POST':
         # Handle login form submission
@@ -117,9 +116,6 @@ def logoutUser(request):
     logout(request)
     request.session['cart']=cart
     return redirect('home')
-
-def forgot_password(request):
-    return render(request,'front_end/authentication/forgot_password.html')
 
 def contact_us(request):
     if request.method == 'POST':
