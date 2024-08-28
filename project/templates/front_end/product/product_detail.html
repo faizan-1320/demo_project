@@ -1,5 +1,22 @@
 {% extends 'front_end/index.html' %}
 {% load static %}
+{% load category_tags %}
+{% block css %}
+	<style>
+		.product-name {
+			font-size: 14px;
+			/* Adjust the font size as needed */
+			white-space: nowrap;
+			/* Prevent text from wrapping to the next line */
+			overflow: hidden;
+			/* Hide the overflowed text */
+			text-overflow: ellipsis;
+			/* Add ellipsis (...) at the end of the truncated text */
+			display: block;
+			/* Make sure the text block takes up the full width available */
+		}
+    </style>
+{% endblock %}
 {% block content %}
 <section>
     <div class="container">
@@ -31,12 +48,14 @@
                             <h2>{{ product.name }}</h2>
                             <span>
                                 <span>₹{{ product.price }}</span>
+                                {% if not product.quantity|is_out_of_stock %}
                                 <label>Quantity:</label>
-                                <input type="text" value="1" />
-                                <button type="button" class="btn btn-fefault cart">
+                                <input type="text" disabled value="{{product.quantity}}" />
+                                <a type="button" class="btn btn-fefault cart" href="{% url 'add-to-cart' product.id %}">
                                     <i class="fa fa-shopping-cart"></i>
                                     Add to cart
-                                </button>
+                                </a>
+                                {% endif %}
                             </span>
                             <h5>Product Details</h5>
                             {% for attribute_name, values in grouped_attributes.items %}
@@ -49,7 +68,7 @@
                 <div class="category-tab shop-details-tab"><!--category-tab-->
                     <div class="col-sm-12">
                         <ul class="nav nav-tabs">
-                            <li class="active"><a href="#reviews" data-toggle="tab">Reviews 1</a></li>
+                            <li class="active"><a href="#reviews" data-toggle="tab">Reviews</a></li>
                         </ul>
                     </div>
                     <div class="tab-content">
@@ -60,20 +79,17 @@
                                     <li><a href=""><i class="fa fa-clock-o"></i>created_at</a></li>
                                     <li><a href=""><i class="fa fa-calendar-o"></i>created_at</a></li>
                                 </ul>
-                                <p>10</p>
                                 <p><b>Write Your Review</b></p>
-                                <form action="#" method="POST">
+
+                                <form method="post">
                                     {% csrf_token %}
-                                    <span>
-                                        <input type="text" name="name" placeholder="Your Name" />
-                                        <input type="email" name="email" placeholder="Email Address" />
-                                    </span>
-                                    <textarea name="content" placeholder="Your Review"></textarea>
-                                    <b>Rating: </b>
-                                    <input type="number" name="rating" min="1" max="5" value="5" />
-                                    <button type="submit" class="btn btn-default pull-right">
-                                        Submit
-                                    </button>
+                                    <div>
+                                        {{ review_form.as_p }}
+                                    </div>
+                                    <div>
+                                        {{ rating_form.as_p }}
+                                    </div>
+                                    <button type="submit" class="btn btn-default pull-right">Submit</button>
                                 </form>
                             </div>
                         </div>

@@ -51,6 +51,41 @@
 			object-fit: cover;
 			/* Ensures the image covers the box, cropping if necessary */
 		}
+		.pagination {
+    display: flex;          /* Use flexbox to center the content */
+    justify-content: center; /* Center the content horizontally */
+    margin: 20px 0;          /* Add some margin for spacing */
+}
+
+.pagination .step-links {
+    display: flex;           /* Flexbox for inline elements */
+}
+
+.pagination .step-links a {
+    color: #007bff;          /* Set link color */
+    margin: 0 5px;           /* Add space between links */
+    text-decoration: none;   /* Remove underline */
+    padding: 8px 16px;       /* Add padding for a clickable area */
+    border: 1px solid #ddd;  /* Add a border */
+    border-radius: 4px;      /* Round the corners */
+}
+
+.pagination .step-links a:hover {
+    background-color: #f1f1f1; /* Add hover effect */
+    border-color: #007bff;     /* Change border color on hover */
+}
+
+.pagination .step-links .current {
+    padding: 8px 16px;       /* Match padding with links */
+    margin: 0 5px;           /* Space around the current page */
+    font-weight: bold;       /* Highlight the current page */
+    border: 1px solid #ddd;  /* Border for current page */
+    border-radius: 4px;      /* Rounded corners for current page */
+    background-color: #007bff; /* Background color for current page */
+    color: white;            /* Text color for current page */
+}
+
+
 	</style>
 	{% endblock %}
 </head><!--/head-->
@@ -156,26 +191,6 @@
 						<div class="panel-group category-products" id="accordian">
 							{% render_category_tree_tag %}
 						</div>
-
-						<form method="GET" action="{% url 'home' %}">
-							<div class="price-range">
-								<h2>Price Range</h2>
-								<div class="well text-center">
-									<input type="text" class="span2" value="" data-slider-min="{{ min_price }}"
-										data-slider-max="{{ max_price }}" data-slider-step="5"
-										data-slider-value="[{{ request.GET.min_price|default:min_price }},{{ request.GET.max_price|default:max_price }}]"
-										id="sl2">
-									<input type="hidden" id="min_price" name="min_price"
-										value="{{ request.GET.min_price|default:min_price }}">
-									<input type="hidden" id="max_price" name="max_price"
-										value="{{ request.GET.max_price|default:max_price }}"><br />
-									<b class="pull-left">₹<span id="min_price_display">{{request.GET.min_price|default:min_price }}</span></b>
-									<b class="pull-right">₹<span id="max_price_display">{{request.GET.max_price|default:max_price }}</span></b>
-								</div>
-							</div>
-							<button type="submit" class="btn btn-primary">Filter</button>
-						</form>
-
 					</div>
 				</div>
 
@@ -230,8 +245,27 @@
 							{% else %}
 							<p style="text-align: center; color: red; text-decoration: none;">No products available.</p>
 							{% endif %}
+							
 						</div>
 					</div>
+					<div class="pagination">
+						<span class="step-links">
+							{% if products.has_previous %}
+								<a href="?page=1{% if selected_category %}&category={{ selected_category }}{% endif %}{% if min_price_filter %}&min_price={{ min_price_filter }}{% endif %}{% if max_price_filter %}&max_price={{ max_price_filter }}{% endif %}">&laquo; first</a>
+								<a href="?page={{ products.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if min_price_filter %}&min_price={{ min_price_filter }}{% endif %}{% if max_price_filter %}&max_price={{ max_price_filter }}{% endif %}">previous</a>
+							{% endif %}
+							
+							<span class="current">
+								Page {{ products.number }} of {{ products.paginator.num_pages }}.
+							</span>
+							
+							{% if products.has_next %}
+								<a href="?page={{ products.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if min_price_filter %}&min_price={{ min_price_filter }}{% endif %}{% if max_price_filter %}&max_price={{ max_price_filter }}{% endif %}">next</a>
+								<a href="?page={{ products.paginator.num_pages }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if min_price_filter %}&min_price={{ min_price_filter }}{% endif %}{% if max_price_filter %}&max_price={{ max_price_filter }}{% endif %}">last &raquo;</a>
+							{% endif %}
+						</span>
+					</div>
+					
 				</div>
 			</div>
 		</div>
@@ -264,14 +298,7 @@
 				<div class="row">
 					<div class="col-sm-2">
 						<div class="single-widget">
-							<h2>Service</h2>
-							<ul class="nav nav-pills nav-stacked">
-								<li><a href="#">Online Help</a></li>
-								<li><a href="{% url 'contact' %}">Contact Us</a></li>
-								<li><a href="#">Order Status</a></li>
-								<li><a href="#">Change Location</a></li>
-								<li><a href="http://127.0.0.1:8000/pages/faq/">FAQ’s</a></li>
-							</ul>
+							
 						</div>
 					</div>
 					<div class="col-sm-2">
@@ -290,11 +317,11 @@
 						<div class="single-widget">
 							<h2>Policies</h2>
 							<ul class="nav nav-pills nav-stacked">
+								<li><a href="{% url 'contact' %}">Contact Us</a></li>
 								<li><a href="#">Terms of Use</a></li>
 								<li><a href="#">Privecy Policy</a></li>
 								<li><a href="#">Refund Policy</a></li>
-								<li><a href="#">Billing System</a></li>
-								<li><a href="#">Ticket System</a></li>
+								<li><a href="http://127.0.0.1:8000/pages/faq/">FAQ’s</a></li>
 							</ul>
 						</div>
 					</div>
@@ -350,22 +377,6 @@
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 	{% block js %}
 	<script>
-		$(document).ready(function () {
-			var slider = $('#sl2').slider();
-
-			slider.on('slide', function (event) {
-				var minPrice = event.value[0];
-				var maxPrice = event.value[1];
-
-				// Update hidden inputs
-				$('#min_price').val(minPrice);
-				$('#max_price').val(maxPrice);
-
-				// Update the displayed prices
-				$('#min_price_display').text(minPrice);
-				$('#max_price_display').text(maxPrice);
-			});
-		});
 		"{% if messages %}"
         "{% for message in messages %}"
             Swal.fire({

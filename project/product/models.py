@@ -98,26 +98,29 @@ class ProductImage(models.Model):
         verbose_name = 'ProductImage'
         verbose_name_plural = 'ProductImages'
 
-class Comment(models.Model):
-    name = models.CharField(max_length=100)
-    address = models.TextField()
-    number = models.IntegerField()
+class Review(models.Model):
+    title = models.CharField(max_length=255, null=True, blank=True)  # Optional title
+    name = models.CharField(max_length=100, null=True, blank=True)  # Allow anonymous reviews
+    email = models.EmailField(null=True, blank=True)  # Allow anonymous reviews
     message = models.TextField()
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete = models.CASCADE)   
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
     is_active = models.BooleanField(default=True)
     is_delete = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
-        verbose_name = 'Comment'
-        verbose_name_plural = 'Comments'
+        verbose_name = 'Review'
+        verbose_name_plural = 'Reviews'
+
+    def __str__(self):
+        return f"Review for {self.product.name} by {self.name or 'Anonymous'}"
 
 class Rating(models.Model):
     rating = models.FloatField()
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete = models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
     is_active = models.BooleanField(default=True)
     is_delete = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
@@ -126,3 +129,11 @@ class Rating(models.Model):
     class Meta:
         verbose_name = 'Rating'
         verbose_name_plural = 'Ratings'
+
+    def __str__(self):
+        return f"{self.rating} stars for {self.product.name} by {self.user.username}"
+
+    def save(self, *args, **kwargs):
+        if self.rating < 1 or self.rating > 5:
+            raise ValueError("Rating must be between 1 and 5")
+        super().save(*args, **kwargs)

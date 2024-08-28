@@ -236,6 +236,10 @@ def checkout(request):
             
                 # Save each product in the order
                 for item in cart_items:
+                    product = item['product']
+                    product = Product.objects.get(id=product.id)
+                    product.quantity = product.quantity - item['quantity']
+                    product.save()
                     ProductInOrder.objects.create(
                         order=order,
                         product=item['product'],
@@ -310,10 +314,11 @@ def paypal_execute_payment(request):
                     coupon=coupon,
                     discount_amount=discount_amount,
                 )
-
                 cart = get_cart(request)
                 for product_id, quantity in cart.items():
                     product = Product.objects.get(id=product_id)
+                    product.quantity = product.quantity - quantity
+                    product.save()
                     ProductInOrder.objects.create(
                         order=order,
                         product=product,
