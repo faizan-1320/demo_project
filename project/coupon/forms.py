@@ -19,8 +19,8 @@ class CouponForm(forms.ModelForm):
         start_date = cleaned_data.get('start_date')
         end_date = cleaned_data.get('end_date')
 
-        if discount_amount > 0 :
-            raise forms.ValidationError('You can only set either a fixed discount amount or a percentage discount, not both.')
+        if discount_amount < 0 :
+            raise forms.ValidationError('Discount amount is required')
         
         if start_date and start_date < date.today():
             raise forms.ValidationError('Start date cannot be in the past.')

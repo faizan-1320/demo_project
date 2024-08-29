@@ -1,6 +1,5 @@
 {% load static %}
 {% load group_filters %}
-
 <!-- Sidebar -->
 <div class="sidebar">
     <!-- Sidebar user panel (optional) -->
@@ -70,27 +69,10 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="#" class="nav-link">
+          <a href="{% url 'categories' %}" class="nav-link">
             <i class="nav-icon  fas fa-tags"></i>
-            <p>
-              Category
-              <i class="right fas fa-angle-left"></i>
-            </p>
+            <p>Category</p>
           </a>
-          <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="{% url 'categories' %}" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Category</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="{% url 'add-sub-category' %}" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Add Sub Category</p>
-              </a>
-            </li>
-          </ul>
         </li>
         <li class="nav-item">
           <a href="#" class="nav-link">
@@ -113,12 +95,6 @@
                 <p>Product Attributes</p>
               </a>
             </li>
-            <li class="nav-item">
-              <a href="{% url 'add-product-attribute-value' %}" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Product Attributes Values</p>
-              </a>
-            </li>
           </ul>
         </li>
         <li class="nav-header">CMS</li>
@@ -134,39 +110,14 @@
             <p>CMS</p>
           </a>
         </li>
-        
-        
         {% endif %}
         {% if user|has_group:"inventory manager" %}
         <!-- Inventory Manager Links -->
         <li class="nav-item">
-          <a href="#" class="nav-link">
+          <a href="{% url 'categories' %}" class="nav-link">
             <i class="nav-icon  fas fa-tags"></i>
-            <p>
-              Category
-              <i class="right fas fa-angle-left"></i>
-            </p>
+            <p>Category</p>
           </a>
-          <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="{% url 'categories' %}" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Category</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="{% url 'add-category' %}" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Add Category</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="{% url 'add-sub-category' %}" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Add Sub Category</p>
-              </a>
-            </li>
-          </ul>
         </li>
         <li class="nav-item">
           <a href="#" class="nav-link">
@@ -193,12 +144,6 @@
               <a href="{% url 'add-product-attribute' %}" class="nav-link">
                 <i class="far fa-circle nav-icon"></i>
                 <p>Product Attributes</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="{% url 'add-product-attribute-value' %}" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Product Attributes Values</p>
               </a>
             </li>
           </ul>

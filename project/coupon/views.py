@@ -16,12 +16,16 @@ def coupon(request):
         today = timezone.now().date()
         search_query = request.GET.get('search','')
         coupons = Coupon.objects.filter(is_delete=False,code__icontains=search_query)
+        for coupon in coupons:
+            if coupon.is_active and coupon.start_date <= today <= coupon.end_date:
+                coupon.currently_active = True
+            else:
+                coupon.currently_active = False
         paginator = Paginator(coupons,10)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
         start_number = (page_obj.number - 1) * paginator.per_page + 1
         context = {
-            'today': today,
             'page_obj':page_obj,
             'start_number':start_number,
             'search_query':search_query

@@ -9,6 +9,7 @@ from .models import Product,ProductInOrder,Order
 from project.users.models import Address
 from project.coupon.models import Coupon
 from decimal import Decimal
+from django.utils import timezone
 
 # Configure PayPal SDK
 paypalrestsdk.configure({
@@ -143,6 +144,17 @@ def checkout(request):
     coupon_code = request.POST.get('coupon_code')
     discount_amount = Decimal(request.POST.get('discount_amount', 0))
 
+    # Get the current date
+    today = timezone.now().date()
+
+    # Filter active coupons
+    active_coupons = Coupon.objects.filter(
+        is_delete=False,
+        is_active=True,
+        start_date__lte=today,
+        end_date__gte=today
+    )
+
     for product_id, quantity in cart.items():
         product = Product.objects.get(id=product_id)
         cart_items.append({
@@ -178,8 +190,6 @@ def checkout(request):
         shipping_method = int(request.POST.get('shipping_method', 1))
 
         if payment_method:
-            print('coupon: ', coupon)
-            print('discount_amount: ', discount_amount)
 
             if payment_method == 'paypal':
                 request.session['order_data'] = {
@@ -269,7 +279,7 @@ def checkout(request):
         'shipping_cost': shipping_cost,
         'total': total,
         'primary_address': primary_address,
-        'coupons': Coupon.objects.all(),
+        'coupons': active_coupons,
         'applied_coupon': coupon,
         'discount_amount': discount_amount
     }
@@ -358,7 +368,6 @@ def order_confirmation(request,pk):
 
 @login_required
 def order_list(request):
-    # Retrieve orders for the logged-in user
     orders = Order.objects.filter(user=request.user).order_by('-datetime_of_payment')
 
     context = {
@@ -368,10 +377,8 @@ def order_list(request):
 
 @login_required
 def order_detail(request, pk):
-    # Retrieve the specific order by its primary key (pk)
     order = get_object_or_404(Order, id=pk)
 
-    # Calculate total price for each order item
     order_items = [
         {
             'product': item.product,
@@ -382,7 +389,6 @@ def order_detail(request, pk):
         for item in order.productinorder_set.all()
     ]
 
-    # Context to pass to the template
     context = {
         'order': order,
         'order_items': order_items,

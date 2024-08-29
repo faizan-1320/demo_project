@@ -63,6 +63,29 @@
                                     <label for="price">Quantity</label>
                                     <input type="text" class="form-control" id="quantity" name="quantity"
                                         placeholder="Enter quantity">
+                                    <!-- Dynamic Attribute Section -->
+                                    <div id="attribute-container">
+                                        <div class="row attribute-row">
+                                            <div class="col-sm-6">
+                                                <label>Product Attribute</label>
+                                                <select class="form-control select2" name="product_attribute_id" style="width: 100%;">
+                                                    <option value="" selected disabled>Select Product Attribute</option>
+                                                    {% for i in product_attribute %}
+                                                    <option value="{{ i.id }}">{{ i.name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <label for="product_attribute_value">Product Attribute Value</label>
+                                                <input type="text" class="form-control" name="product_attribute_value" placeholder="Enter Product Attribute Value">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Add Attribute Button -->
+                                    <button type="button" id="addAttributeButton" class="btn btn-success mt-3">
+                                        Add Attribute
+                                    </button><br>
                                     <label for="product_images">Product Images</label>
                                     <input type="file" class="form-control" id="product_images" name="product_images[]"
                                         multiple>
@@ -88,6 +111,14 @@
         $('#cancelButton').on('click', function () {
       window.history.back();
     });
-    })
+
+     // Add new attribute row
+     $('#addAttributeButton').on('click', function () {
+            var newAttributeRow = $('.attribute-row:first').clone(); // Clone the first attribute row
+            newAttributeRow.find('input').val(''); // Clear the cloned input fields
+            newAttributeRow.find('select').prop('selectedIndex', 0); // Reset the cloned select field
+            $('#attribute-container').append(newAttributeRow); // Append the cloned row to the container
+        });
+    });
 </script>
 {% endblock content %}

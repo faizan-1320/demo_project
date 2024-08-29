@@ -4,11 +4,8 @@ from .models import Review, Rating
 class ReviewForm(forms.ModelForm):
     class Meta:
         model = Review
-        fields = ['title', 'name', 'email', 'message']
+        fields = ['message']
         widgets = {
-            'title':forms.TextInput(attrs={'class': 'form-control'}),
-            'name':forms.TextInput(attrs={'class': 'form-control'}),
-            'email':forms.EmailInput(attrs={'class': 'form-control'}),
             'message':forms.Textarea(attrs={'class': 'form-control'})
         }
 

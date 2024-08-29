@@ -103,7 +103,7 @@
 					</div>
 					<div class="col-sm-8">
 						<div class="shop-menu pull-right">
-							<ul class="nav navbar-nav collapse navbar-collapse">
+							<ul class="nav navbar-nav">
 
 								{% if user.is_authenticated %}
 								<li class="nav-item dropdown">
@@ -156,10 +156,9 @@
 							<div class="item {% if forloop.first %}active{% endif %}">
 								<div class="col-sm-6">
 									<h1><span>E</span>-SHOPPER</h1>
-									<h2>Free E-Commerce Template</h2>
+									<h2>Shop Only</h2>
 									<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
 										incididunt ut labore et dolore magna aliqua.</p>
-									<button type="button" class="btn btn-default get">Get it now</button>
 								</div>
 								<div class="col-sm-6">
 									<img src="{{ banner.image.url }}" class="girl img-responsive" alt="Banner Image" />

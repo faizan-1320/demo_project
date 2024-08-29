@@ -46,22 +46,15 @@
                   <tr>
                     <th>Sr No</th>
                     <th>Category Name</th>
-                    <th>Sub Category</th>
                     <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {% if page_obj.object_list %}
                   {% for i in page_obj %}
-                  {% if not i.parent %}
                   <tr data-widget="expandable-table" aria-expanded="false">
                     <td>{{ forloop.counter0|add:start_number }}</td>
-                    <td>{{ i.category_name }}</td>
-                    <td>
-                      {% for sub_category in i.category_set.all %}
-                      {{ sub_category.category_name }}{% if not forloop.last %},{% endif %}
-                      {% endfor %}
-                    </td>
+                    <td>{{ i.full_path }}</td>
                     <td>
                       <button type="button" class="btn btn-default" data-toggle="modal" data-target="#modal-default"
                         onclick="openEditModal('{{ i.id }}', '{{ i.category_name }}')">
@@ -73,7 +66,6 @@
                       </a>
                     </td>
                   </tr>
-                  {% endif %}
                   {% endfor %}
                   {% else %}
                     <tr>

@@ -99,9 +99,6 @@ class ProductImage(models.Model):
         verbose_name_plural = 'ProductImages'
 
 class Review(models.Model):
-    title = models.CharField(max_length=255, null=True, blank=True)  # Optional title
-    name = models.CharField(max_length=100, null=True, blank=True)  # Allow anonymous reviews
-    email = models.EmailField(null=True, blank=True)  # Allow anonymous reviews
     message = models.TextField()
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -115,7 +112,7 @@ class Review(models.Model):
         verbose_name_plural = 'Reviews'
 
     def __str__(self):
-        return f"Review for {self.product.name} by {self.name or 'Anonymous'}"
+        return f"Review for {self.product.name}"
 
 class Rating(models.Model):
     rating = models.FloatField()

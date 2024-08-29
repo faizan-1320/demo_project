@@ -327,36 +327,6 @@ def category(request):
         context['not_found_message'] = 'No Categorys found'
     return render(request,'admin/category/category.html',context)
 
-@permission_required('product.add_category', raise_exception=True)
-def add_category(request):
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
-    if request.method == 'POST':
-
-        category_name = request.POST.get('category_name')
-
-        if not category_name:
-            messages.error(request, 'Category name is required.')
-            return render(request, 'admin/category/add_category.html')
-        
-        # Additional validation can go here (e.g., checking if the category already exists)
-        if Category.objects.filter(category_name=category_name).exists():
-            messages.error(request, 'Category already exists.')
-            return render(request, 'admin/category/add_category.html')
-        
-        category = Category(
-            category_name=category_name
-        )
-        try:
-            category.save()
-            messages.success(request, 'Category added successfully!')
-            return render(request, 'admin/category/add_category.html')  
-        except Exception as e:
-            messages.error(request, f'Error saving category: {e}')
-    
-    return render(request, 'admin/category/add_category.html')
-
 @permission_required('product.change_category', raise_exception=True)
 def edit_category(request,pk):
     # Check if the user is an admin
@@ -393,7 +363,7 @@ def delete_category(request,pk):
     return redirect('categories')
 
 @permission_required('product.delete_category', raise_exception=True)
-def add_sub_category(request):
+def add_category(request):
     # Check if the user is an admin
     if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
@@ -402,22 +372,18 @@ def add_sub_category(request):
     'category':category
     }
     if request.method == 'POST':
-        sub_category_name = request.POST.get('sub_category_name')
+        category_name = request.POST.get('category_name')
         parent_id = request.POST.get('parent_id')
 
-        if not sub_category_name:
-            messages.error(request, 'Sub Category Name Required')
-            return render(request, 'admin/category/add_sub_category.html', context)
+        if not category_name:
+            messages.error(request, 'Category Name Required')
+            return render(request, 'admin/category/add_category.html', context)
         
-        if not parent_id:
-            messages.error(request, 'Please select a category')
-            return render(request, 'admin/category/add_sub_category.html', context)
-        
-        Category.objects.create(category_name=sub_category_name, parent_id=parent_id)
+        Category.objects.create(category_name=category_name, parent_id=parent_id)
         messages.success(request, 'Sub Category added successfully')
-        return render(request, 'admin/category/add_sub_category.html', context)
+        return render(request, 'admin/category/add_category.html', context)
 
-    return render(request, 'admin/category/add_sub_category.html',context)
+    return render(request, 'admin/category/add_category.html',context)
 
 ######################
 # Product Management #
@@ -461,7 +427,9 @@ def add_products(request):
         return redirect('adminlogin')
     
     category = Category.objects.all()
-    context = {'category': category}
+    product_attribute = ProductAttribute.objects.all()
+    context = {'category': category,
+               'product_attribute':product_attribute}
 
     if request.method == 'POST':
         name = request.POST.get('product_name')
@@ -469,6 +437,8 @@ def add_products(request):
         quantity = request.POST.get('quantity')
         category_id = request.POST.get('category_id')
         images = request.FILES.getlist('product_images[]')
+        product_attribute_ids = request.POST.getlist('product_attribute_id')
+        product_attribute_values = request.POST.getlist('product_attribute_value')
 
         # Validate the inputs
         if not name:
@@ -499,9 +469,19 @@ def add_products(request):
             messages.error(request, 'Please Select Category')
             return render(request, 'admin/product/add_product.html', context)
 
+        for attribute_value in product_attribute_values:
+            if not attribute_value.strip():
+                messages.error(request, 'Each attribute must have a corresponding value')
+                return render(request, 'admin/product/add_product.html', context)
+        if not product_attribute_ids or not product_attribute_values:
+            messages.error(request, 'Product attributes and values are required')
+            return render(request, 'admin/product/add_product.html', context)
+        
         if not messages.get_messages(request):  # Proceed if there are no error messages
             try:
-                product = Product.objects.create(name=name, price=price, category_id=category_id)
+                product = Product.objects.create(name=name, price=price,quantity=quantity ,category_id=category_id)
+                for attribute_id, attribute_value in zip(product_attribute_ids, product_attribute_values):
+                    ProductAttributeValue.objects.create(value=attribute_value, product_attribute_id=attribute_id, product=product)
                 for image in images:
                     fs = FileSystemStorage(location='media/product_images')
                     filename = fs.save(image.name, image)
@@ -661,37 +641,6 @@ def add_product_attribute(request):
 
         return render(request,'admin/product/add_product_attribute.html')
     return render(request,'admin/product/add_product_attribute.html')
-
-@permission_required('product.add_productattributevalue', raise_exception=True)
-def add_product_attribute_value(request):
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
-    product_attribute = ProductAttribute.objects.all()
-    product = Product.objects.all()
-    
-    context ={
-        'product_attribute':product_attribute,
-        'product':product
-    }   
-    if request.method == 'POST':
-        product_attribute_value = request.POST.get('product_attribute_value')
-        product_id = request.POST.get('product_id')
-        product_attribute_id = request.POST.get('product_attribute_id')
-
-        if not product_attribute_value:
-            messages.error(request,'Product attribute value is required')
-            return render(request,'admin/product/add_product_attribute_value.html',context)
-        if not product_attribute_id:
-            messages.error(request,'Please Select Product Attribute')
-            return render(request,'admin/product/add_product_attribute_value.html',context)
-        try:
-            ProductAttributeValue.objects.create(value=product_attribute_value,product_attribute_id=product_attribute_id,product_id=product_id)
-            messages.success(request,'Product Attribute added successfully')
-        except IntegrityError:
-            messages.error(request,'Attribute value already exists in Product')
-            return render(request,'admin/product/add_product_attribute_value.html',context)
-    return render(request,'admin/product/add_product_attribute_value.html',context)
 
 #####################
 # Banner Management #
@@ -986,4 +935,3 @@ def order_detail(request, pk):
     }
 
     return render(request, 'admin/orders/order_detail.html', context)
-    

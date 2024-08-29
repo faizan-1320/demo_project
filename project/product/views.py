@@ -4,6 +4,7 @@ from collections import defaultdict
 from .models import Product, Review, Rating
 from .forms import ReviewForm, RatingForm
 from django.contrib.auth.decorators import login_required
+from django.db.models import Avg
 
 # Create your views here.
 def product_detail(request,pk):
@@ -11,13 +12,35 @@ def product_detail(request,pk):
     attributes = ProductAttributeValue.objects.filter(product=product)
     reviews = Review.objects.filter(product=product, is_active=True, is_delete=False)
     ratings = Rating.objects.filter(product=product, is_active=True, is_delete=False)
-    # Calculate average rating
-    # average_rating = ratings.aggregate(avg_rating=Avg('rating'))['avg_rating']
+
+    average_rating = ratings.aggregate(Avg('rating'))['rating__avg'] or 0
+
     grouped_attributes = defaultdict(list)
     for attribute in attributes:
         grouped_attributes[attribute.product_attribute.name].append(attribute.value)
     grouped_attributes = dict(grouped_attributes)
 
+    reviews_with_ratings = []
+    for review in reviews:
+        rating = ratings.filter(user=review.user, product=review.product).first()
+        reviews_with_ratings.append({
+            'review': review,
+            'rating': rating.rating if rating else None
+        })
+
+    context = {
+        'product': product,
+        'images': product.product.all(),
+        'grouped_attributes': grouped_attributes,
+        'ratings': reviews_with_ratings,
+        'reviews': reviews,
+        'average_rating':average_rating
+    }
+    return render(request,'front_end/product/product_detail.html',context)
+
+@login_required
+def product_review_and_rating(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
     review_form = ReviewForm(request.POST or None)
     rating_form = RatingForm(request.POST or None)
 
@@ -32,31 +55,12 @@ def product_detail(request,pk):
             rating.user = request.user
             rating.product = product
             rating.save()
-            context = {
-        'product': product,
-        'images': product.product.all(),
-        'grouped_attributes': grouped_attributes,
-        'review_form': review_form,
-        'rating_form': rating_form,
-        'ratings': ratings,
-        # 'average_rating': average_rating,
-    }
 
-            return render(request,'front_end/product/product_detail.html',context)  # Adjust redirect as needed
+            return redirect('product-detail', product.id)
 
     context = {
         'product': product,
-        'images': product.product.all(),
-        'grouped_attributes': grouped_attributes,
         'review_form': review_form,
         'rating_form': rating_form,
-        'ratings': ratings,
-        # 'average_rating': average_rating,
     }
-    return render(request,'front_end/product/product_detail.html',context)
-
-@login_required
-def product_review_and_rating(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
-    
-    return render(request, 'product/review_and_rating.html')
+    return render(request, 'front_end/product/review_and_rating.html', context)
