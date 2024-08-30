@@ -7,8 +7,8 @@ from django.db import IntegrityError
 from .models import Address,User
 from project.customadmin.models import Banner
 from project.product.models import Product,Category
-from django.db.models import Min, Max
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.conf import settings
 
 
 def get_category_tree(categories, parent_id=None):
@@ -56,8 +56,9 @@ def home(request):
     return render(request, 'front_end/index.html', context)
 
 def auth_view(request):
+    next_url = request.GET.get("next", settings.LOGIN_REDIRECT_URL)
+
     if request.method == 'POST':
-        # Handle login form submission
         if 'login' in request.POST:
             login_form = LoginForm(request.POST)
             register_form = CustomUserCreationForm()
@@ -69,11 +70,10 @@ def auth_view(request):
                 
                 if user is not None:
                     login(request, user)
-                    return redirect('home')
+                    return redirect(next_url)
                 else:
                     messages.error(request, 'Email or Password does not exist')
         
-        # Handle registration form submission
         elif 'register' in request.POST:
             register_form = CustomUserCreationForm(request.POST)
             login_form = LoginForm()
@@ -84,7 +84,7 @@ def auth_view(request):
                     user.email = user.email.lower()
                     user.save()
                     login(request, user)
-                    return redirect('home')
+                    return redirect('auth-view')
                 except IntegrityError:
                     messages.error(request, 'A user with that email already exists.')
             else:
@@ -102,10 +102,9 @@ def auth_view(request):
     return render(request, 'front_end/authentication/auth_page.html', context)
 
 def logoutUser(request):
-    cart=request.session.get('cart',{})
-
+    cart = request.session.get('cart', {})
     logout(request)
-    request.session['cart']=cart
+    request.session['cart'] = cart
     return redirect('home')
 
 def contact_us(request):

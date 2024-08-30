@@ -2,6 +2,7 @@ from django import forms
 from .models import Banner,EmailTemplate
 from django.contrib.flatpages.models import FlatPage
 from project.order.models import Order
+from django.core.exceptions import ValidationError
 class BannerForm(forms.ModelForm):
     class Meta:
         model = Banner
@@ -75,3 +76,12 @@ class OrderStatusForm(forms.ModelForm):
         widgets = {
             'status': forms.Select(choices=Order.status_choice,attrs={'class':'form-control'})
         }
+    
+    def clean_status(self):
+        new_status = self.cleaned_data['status']
+        current_status = self.instance.status
+
+        if new_status < current_status:
+            raise ValidationError('You can not move the status to an earlier stage.')
+        
+        return new_status

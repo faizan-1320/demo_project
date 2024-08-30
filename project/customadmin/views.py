@@ -20,6 +20,8 @@ from decimal import Decimal, InvalidOperation
 from django.contrib.flatpages.models import FlatPage
 import re   
 from project.order.models import Order,ProductInOrder
+from .tasks import celery_mail
+import json
 
 ####################
 # Admin Management #
@@ -68,6 +70,7 @@ def dashboard(request):
     coupon_count = Coupon.objects.filter(is_active=True,is_delete=False).count()
     banner_count = Banner.objects.filter(is_active=True,is_delete=False).count()
     contact = ContactUs.objects.all().count()
+    order = Order.objects.all().count()
     context = {
         'product_count':product_count,
         'user_count':user_count,
@@ -76,6 +79,7 @@ def dashboard(request):
         'coupon_count':coupon_count,
         'banner_count':banner_count,
         'contact_count':contact,
+        'order_count':order,
     }
     return render(request,'admin/dashboard.html',context)
 
@@ -186,7 +190,7 @@ def add_users(request):
                 email=email,
                 phone_number=phone_number
             )
-
+            
             # Set the password using set_password method
             new_user.set_password(password)
             new_user.save()
@@ -195,12 +199,18 @@ def add_users(request):
             for id in groupids:
                 group = Group.objects.get(id=int(id))
                 new_user.groups.add(group)
-            context_email={
+            mail_context = {
                 'first_name':first_name,
-                'email':email
+                'last_name':last_name,
+                'email':email,
+                'password':password,
+                'phone_number':phone_number
             }
-            custom_eamil.send_custom_mail(to_email=email,context=context_email,template_name='register')
-
+            celery_mail.delay(
+                    to_email=email,
+                    context=mail_context,
+                    template_name='admin-register'
+                )
             return JsonResponse({'success': True, 'message': 'User created successfully!'})
         except Exception as e:
             return JsonResponse({'success':False,'errors': {'server':str(e)}})
@@ -699,7 +709,6 @@ def edit_banner(request, pk):
     if request.method == 'POST':
         # import pdb;pdb.set_trace()
         form = BannerForm(request.POST, request.FILES, instance=banner)
-        print('form: ', form)
         if form.is_valid():
             form.save()
             messages.success(request, 'Banner updated successfully')
@@ -899,23 +908,48 @@ def order_detail(request, pk):
         form = OrderStatusForm(request.POST, instance=order)
         if form.is_valid():
             new_status = form.cleaned_data['status']
-            
-            context_email = {
-                    'order_id': order.order_id,
-                    'datetime_of_payment':order.datetime_of_payment,
-                    'shipping_method':order.shipping_method,
-                    'payment_status':order.payment_status,
-                    'total_amount':order.total_amount,
-                    'first_name': order.user.first_name,
-                    'order_status': dict(Order.status_choice).get(new_status, 'Unknown'),
-                    'products': products_in_order,
-                    'customer_address': customer_address,
-                    'is_cash_on_delivery':order.is_cash_on_delivery
+            order_data = {
+                'order_id': order.order_id,
+                'datetime_of_payment': order.datetime_of_payment.isoformat() if order.datetime_of_payment else None,
+                'shipping_method': order.shipping_method,
+                'payment_status': order.payment_status,
+                'total_amount': order.total_amount,
+                'first_name': order.user.first_name,
+                'order_status': dict(Order.status_choice).get(new_status, 'Unknown'),
+                'is_cash_on_delivery': order.is_cash_on_delivery,
+            }
+            products_data = [
+                {
+                    'product_name': product_in_order.product.name,
+                    'quantity': product_in_order.quantity,
+                    'price': product_in_order.price,
                 }
+                for product_in_order in products_in_order
+            ]
+            customer_address_data = {
+                'address': customer_address.address,
+                'city': customer_address.city,
+                'country': customer_address.country,
+                'district': customer_address.district,
+                'postcode': customer_address.postcode,
+            } if customer_address else None
+            context_email = {
+                'order_id': order_data['order_id'],
+                'datetime_of_payment': order_data['datetime_of_payment'],
+                'shipping_method': order_data['shipping_method'],
+                'payment_status': order_data['payment_status'],
+                'total_amount': order_data['total_amount'],
+                'first_name': order_data['first_name'],
+                'order_status': order_data['order_status'],
+                'products': products_data,
+                'customer_address': customer_address_data,
+                'is_cash_on_delivery': order_data['is_cash_on_delivery']
+            }
+            json_context_email = json.dumps(context_email)
             try:
-                custom_eamil.send_custom_mail(
+                celery_mail.delay(
                     to_email=order.user.email,
-                    context=context_email,
+                    context=json_context_email,  # Pass the dictionary directly
                     template_name='order_status'
                 )
             except Exception as e:

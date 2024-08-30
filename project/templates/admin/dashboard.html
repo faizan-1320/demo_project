@@ -197,6 +197,18 @@
                 <a href="{% url 'contact-us' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
               </div>
             </div>
+            <div class="col-lg-3 col-6">
+              <div class="small-box bg-primary">
+                <div class="inner">
+                  <h3>{{order_count}}</h3>
+                  <p>Orders</p>
+                </div>
+                <div class="icon">
+                  <i class="fas fa-copy"></i>
+                </div>
+                <a href="{% url 'orders' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+              </div>
+            </div>
             {% endif %}
             {% if user|has_group:"inventory manager" %}
             <div class="row">
@@ -320,6 +332,7 @@
   <script src="{% static 'admin/plugins/sweetalert2/sweetalert2.min.js' %}"></script>
   <!-- Toastr -->
   <script src="{% static 'admin/plugins/toastr/toastr.min.js' %}"></script>
+  {% block js %}
   <script>
     $(document).ready(function () {
 
@@ -352,7 +365,21 @@
 
       })
     })
+    "{% if messages %}"
+        "{% for message in messages %}"
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: '{% if message.tags == "error" %}error{% else %}{{ message.tags }}{% endif %}',
+                title: '{{ message }}',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+            });
+        "{% endfor %}"
+    "{% endif %}"
   </script>
+  {% endblock %}
 </body>
 
 </html>

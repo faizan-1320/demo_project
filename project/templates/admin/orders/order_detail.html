@@ -83,15 +83,6 @@
 
                     <!-- Update Status Form -->
                     <h5 class="mt-2">Update Order Status</h5>
-                    {% if messages %}
-                    <div class="card-body">
-                        <div class="alert-container">
-                            {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
                     <form method="post">
                         {% csrf_token %}
                         {{ form.as_p }}
