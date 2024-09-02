@@ -32,15 +32,10 @@
 	<style>
 		.product-name {
 			font-size: 14px;
-			/* Adjust the font size as needed */
 			white-space: nowrap;
-			/* Prevent text from wrapping to the next line */
 			overflow: hidden;
-			/* Hide the overflowed text */
 			text-overflow: ellipsis;
-			/* Add ellipsis (...) at the end of the truncated text */
 			display: block;
-			/* Make sure the text block takes up the full width available */
 		}
 
 		.fixed-size-image {
@@ -52,37 +47,37 @@
 			/* Ensures the image covers the box, cropping if necessary */
 		}
 		.pagination {
-    display: flex;          /* Use flexbox to center the content */
-    justify-content: center; /* Center the content horizontally */
-    margin: 20px 0;          /* Add some margin for spacing */
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
 }
 
 .pagination .step-links {
-    display: flex;           /* Flexbox for inline elements */
+    display: flex;
 }
 
 .pagination .step-links a {
-    color: #007bff;          /* Set link color */
-    margin: 0 5px;           /* Add space between links */
-    text-decoration: none;   /* Remove underline */
-    padding: 8px 16px;       /* Add padding for a clickable area */
-    border: 1px solid #ddd;  /* Add a border */
-    border-radius: 4px;      /* Round the corners */
+    color: #007bff;
+    margin: 0 5px;
+    text-decoration: none;
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
 }
 
 .pagination .step-links a:hover {
-    background-color: #f1f1f1; /* Add hover effect */
-    border-color: #007bff;     /* Change border color on hover */
+    background-color: #f1f1f1;
+    border-color: #007bff;
 }
 
 .pagination .step-links .current {
-    padding: 8px 16px;       /* Match padding with links */
-    margin: 0 5px;           /* Space around the current page */
-    font-weight: bold;       /* Highlight the current page */
-    border: 1px solid #ddd;  /* Border for current page */
-    border-radius: 4px;      /* Rounded corners for current page */
-    background-color: #007bff; /* Background color for current page */
-    color: white;            /* Text color for current page */
+    padding: 8px 16px;
+    margin: 0 5px;
+    font-weight: bold;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
 }
 
 
@@ -103,8 +98,9 @@
 					</div>
 					<div class="col-sm-8">
 						<div class="shop-menu pull-right">
-							<ul class="nav navbar-nav">
-
+							<ul class="nav navbar-nav">								
+								<li><a href="{% url 'cart-detail' %}"><i class="fa fa-shopping-cart"></i> Cart</a></li>
+								<li><a href="{% url 'contact' %}"><i class="fa fa-envelope"></i>Contact</a></li>
 								{% if user.is_authenticated %}
 								<li class="nav-item dropdown">
 									<a href="#" class="nav-link dropdown-toggle" id="userDropdown" role="button"
@@ -128,8 +124,6 @@
 								{% else %}
 								<li><a href="{% url 'auth-view' %}"><i class="fa fa-lock"></i>Login/Register</a></li>
 								{% endif %}
-								<li><a href="{% url 'cart-detail' %}"><i class="fa fa-shopping-cart"></i> Cart</a></li>
-								<li><a href="{% url 'contact' %}"><i class="fa fa-envelope"></i>Contact</a></li>
 							</ul>
 						</div>
 					</div>
@@ -295,48 +289,19 @@
 		<div class="footer-widget">
 			<div class="container">
 				<div class="row">
-					<div class="col-sm-2">
-						<div class="single-widget">
-							
-						</div>
-					</div>
-					<div class="col-sm-2">
-						<div class="single-widget">
-							<h2>Quock Shop</h2>
-							<ul class="nav nav-pills nav-stacked">
-								<li><a href="#">T-Shirt</a></li>
-								<li><a href="#">Mens</a></li>
-								<li><a href="#">Womens</a></li>
-								<li><a href="#">Gift Cards</a></li>
-								<li><a href="#">Shoes</a></li>
-							</ul>
-						</div>
-					</div>
-					<div class="col-sm-2">
+					<div class="col-sm-9">
 						<div class="single-widget">
 							<h2>Policies</h2>
 							<ul class="nav nav-pills nav-stacked">
 								<li><a href="{% url 'contact' %}">Contact Us</a></li>
-								<li><a href="#">Terms of Use</a></li>
-								<li><a href="#">Privecy Policy</a></li>
-								<li><a href="#">Refund Policy</a></li>
+								<li><a href="http://localhost:8000/pages/terms-and-conditions/">Terms and Conditions</a></li>
+								<li><a href="http://localhost:8000/pages/privacy-policy/">Privecy Policy</a></li>
+								<li><a href="http://localhost:8000/pages/refund-policy/">Refund Policy</a></li>
 								<li><a href="http://127.0.0.1:8000/pages/faq/">FAQ’s</a></li>
 							</ul>
 						</div>
 					</div>
-					<div class="col-sm-2">
-						<div class="single-widget">
-							<h2>About Shopper</h2>
-							<ul class="nav nav-pills nav-stacked">
-								<li><a href="#">Company Information</a></li>
-								<li><a href="#">Careers</a></li>
-								<li><a href="#">Store Location</a></li>
-								<li><a href="#">Affillate Program</a></li>
-								<li><a href="#">Copyright</a></li>
-							</ul>
-						</div>
-					</div>
-					<div class="col-sm-3 col-sm-offset-1">
+					<div class="col-sm-3">
 						<div class="single-widget">
 							<h2>About Shopper</h2>
 							<form action="#" class="searchform">
@@ -347,7 +312,6 @@
 							</form>
 						</div>
 					</div>
-
 				</div>
 			</div>
 		</div>

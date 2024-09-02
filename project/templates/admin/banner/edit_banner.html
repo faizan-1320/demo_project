@@ -37,15 +37,6 @@
                         <!-- Form -->
                         <form id="myForm" method="post" enctype="multipart/form-data">
                             <!-- Display messages -->
-                        {% if messages %}
-                        <div class="card-body">
-                            <div class="alert-container">
-                                {% for message in messages %}
-                                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endif %}
                             {% csrf_token %}
                             <div class="card-body">
                                 <!-- Display current image -->

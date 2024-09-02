@@ -70,14 +70,21 @@ def add_to_cart(request, pk):
     product = get_object_or_404(Product, id=pk)
     cart = get_cart(request)
     
-    if str(pk) in cart:
-        cart[str(pk)] += 1
-        messages.success(request, f"Added another {product.name} to your cart.")
-    else:
-        cart[str(pk)] = 1
-        messages.success(request, f"Added {product.name} to your cart.")
+    # Check the current quantity in the cart
+    current_quantity_in_cart = cart.get(str(pk), 0)
     
+    # Check if the requested quantity is available in the database
+    if current_quantity_in_cart < product.quantity:  # Assuming 'quantity' is the field in your Product model representing available quantity
+        # Add the product to the cart or increase the quantity
+        cart[str(pk)] = current_quantity_in_cart + 1
+        messages.success(request, f"Added {product.name} to your cart.")
+    else:
+        # If the requested quantity exceeds available quantity, show an error message
+        messages.error(request, f"Sorry, {product.name} is out of stock.")
+    
+    # Save the cart state
     set_cart(request, cart)
+    
     return redirect('home')
 
 def remove_from_cart(request, pk):
@@ -103,7 +110,7 @@ def update_cart_quantity(request, pk):
         if requested_quantity > product.quantity:
             return JsonResponse({
                 'status': 'error',
-                'message': 'Not enough stock available.',
+                'message': f"Sorry, {product.name} is out of stock.",
                 'quantity': cart.get(str(pk), 0),
             })
         elif requested_quantity > 0:

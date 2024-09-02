@@ -21,9 +21,15 @@ class BannerForm(forms.ModelForm):
             raise forms.ValidationError(f"Unsupported file type: {image.name}. Please upload a PNG, JPEG, or JPG image.")
         
         # Validate unique priority
-        if Banner.objects.filter(priority=priority,is_active=True,is_delete=False).exists():
-            raise forms.ValidationError(f"Priority {priority} already exists. Please choose a different priority.")
-        
+        if priority is not None:
+            if self.instance.pk:
+                existing_banners = Banner.objects.filter(priority=priority,is_active=True,is_delete=False).exclude(pk=self.instance.pk)
+            else:
+                existing_banners = Banner.objects.filter(priority=priority,is_active=True,is_delete=False)
+
+            if existing_banners.exists():
+                raise forms.ValidationError(f"Priority {priority} already exists. Please choose a different priority.")
+ 
         return cleaned_data
     
 class CustomFlatPageForm(forms.ModelForm):

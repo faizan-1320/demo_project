@@ -30,13 +30,6 @@
                         <form method="post" enctype="multipart/form-data">
                             {% csrf_token %}
                             <div class="card-body">
-                                {% if messages %}
-                                    <div class="alert-container">
-                                        {% for message in messages %}
-                                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
                                 <div class="form-group">
                                     <label for="product_name">Product Name</label>
                                     <input type="text" class="form-control" id="product_name" name="product_name"

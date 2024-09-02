@@ -2,13 +2,13 @@
 
 from django import template
 from django.utils.safestring import mark_safe
-from project.product.models import Category, Product
+from project.product.models import Category
 
 register = template.Library()
 
 def render_category_tree(categories, parent_id=None, selected_category_id=None):
     html = ''
-    for category in categories.filter(parent_id=parent_id):
+    for category in categories.filter(parent_id=parent_id,is_active=True,is_delete=False):
         has_subcategories = category.subcategories.exists()
         is_active = selected_category_id == category.id
 

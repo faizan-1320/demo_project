@@ -34,15 +34,6 @@
             <!-- /.card-header -->
             <!-- form start -->
             <form id="myForm" method="post">
-                {% if messages %}
-                        <div class="card-body">
-                            <div class="alert-container">
-                                {% for message in messages %}
-                                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endif %}
               {% csrf_token %}
               <div class="card-body">
                     {% csrf_token %}

@@ -94,10 +94,14 @@
         data: $(this).serialize(),
         success: function (res) {
           if (res.success) {
-
             Swal.fire({
+              toast: true,
+              position: 'top-end',
               icon: 'success',
-              title: res.message
+              title: res.message,
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true,
             }).then(()=>{
               window.location.href = "{% url 'users' %}";
             })

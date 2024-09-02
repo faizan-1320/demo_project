@@ -11,6 +11,7 @@ def send_custom_mail(to_email=None, template_name="", context={}):
 
         template = Template(email_template.body)
         context = Context(context)
+        print('context: ', context)
         email_body = template.render(context)
 
         email = EmailMessage(

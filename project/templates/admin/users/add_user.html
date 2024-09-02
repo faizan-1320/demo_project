@@ -103,13 +103,18 @@
 
     $.ajax({
       type: 'POST',
-      url: $(this).attr('action'), // Ensure this is correct
+      url: $(this).attr('action'),
       data: $(this).serialize(),
       success: function (res) {
         if (res.success) {
           Swal.fire({
+            toast: true,
+            position: 'top-end',
             icon: 'success',
-            title: res.message
+            title: res.message,
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
           }).then(() => {
             $('#myForm')[0].reset();
             $('.error').text('');

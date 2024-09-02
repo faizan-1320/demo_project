@@ -137,18 +137,28 @@
                     window.location.reload();
                 } else {
                     Swal.fire({
+                        toast: true,
+                        position: 'top-end',
                         icon: 'error',
                         title: 'Oops...',
                         text: response.message,
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
                     });
 
                 }
             },
             error: function() {
                 Swal.fire({
+                    toast: true,
+                    position: 'top-end',
                     icon: 'error',
                     title: 'Error',
                     text: 'Something went wrong. Please try again later.',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
                 });
             }
         });

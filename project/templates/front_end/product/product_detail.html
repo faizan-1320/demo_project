@@ -64,7 +64,7 @@
                             </span>
                             <h5>Product Details</h5>
                             {% for attribute_name, values in grouped_attributes.items %}
-                            <p><b>{{ attribute_name }}:</b> {{ values|join:", " }}</p>
+                            <p><b>{{ attribute_name }}:</b> <button class="btn btn-default">{{ values|join:" | " }}</button> </p>
                             {% endfor %}
                         </div><!--/product-information-->
                     </div>

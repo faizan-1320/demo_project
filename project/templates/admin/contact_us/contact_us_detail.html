@@ -84,11 +84,35 @@
 </div>
 <!-- /.content-wrapper -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
- <script>
-   $(document).ready(function(){
+<script src="{% static 'admin/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'admin/plugins/summernote/summernote-bs4.min.js' %}"></script>
+<script>
+    $(document).ready(function() {
+        $('#admin_reply').summernote({
+            height: 300,  // set editor height
+            minHeight: null,  // set minimum height of editor
+            maxHeight: null,  // set maximum height of editor
+            focus: true,  // set focus to editable area after initializing summernote
+            toolbar: [
+                // customize your toolbar
+                ['style', ['style']],
+                ['font', ['bold', 'italic', 'underline', 'clear']],
+                ['fontname', ['fontname']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['table', ['table']],
+                ['insert', ['link', 'picture', 'video']],
+                ['view', ['fullscreen', 'codeview', 'help']]
+            ]
+        });
+        $('#cancelButton').on('click', function () {
+      window.history.back();
+    });
+    });
+    $(document).ready(function(){
         $('#cancelButton').on('click', function () {
       window.history.back();
     });
     })
- </script>
+</script>
 {% endblock content %}

@@ -92,13 +92,6 @@
                       <input type="hidden" id="category_id" name="category_id">
                       <div class="card-body">
                         <div class="form-group">
-                          {% if messages %}
-                          <div class="alert-container">
-                            {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-                            {% endfor %}
-                          </div>
-                          {% endif %}
                           <label for="category_name">Category Name</label>
                           <input type="text" class="form-control" id="category_name" name="category_name"
                             placeholder="Enter category name">
@@ -188,6 +181,19 @@
     .then(response => response.json())
     .then(data => {
       if (data.success) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: data.message,
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+        }).then(() => {
+          // Page reload after Swal alert is closed
+          $('#modal-default').modal('hide');
+          location.reload();
+        });
         $('#modal-default').modal('hide');
         location.reload();
       } else {

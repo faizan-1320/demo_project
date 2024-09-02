@@ -6,7 +6,7 @@ from .forms import BannerForm,CustomFlatPageForm,EmailTemplateForm,OrderStatusFo
 from project.coupon.models import Coupon
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
-from project.utils import custom_required,custom_eamil
+from project.utils import custom_required
 from django.contrib.auth.models import Group
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
@@ -20,8 +20,11 @@ from decimal import Decimal, InvalidOperation
 from django.contrib.flatpages.models import FlatPage
 import re   
 from project.order.models import Order,ProductInOrder
-from .tasks import celery_mail
+from .tasks import celery_mail,send_contact_email
 import json
+from django.core.mail import EmailMultiAlternatives
+from django.utils.html import strip_tags
+from django.conf import settings
 
 ####################
 # Admin Management #
@@ -347,8 +350,7 @@ def edit_category(request,pk):
         category = Category.objects.get(pk=pk)
         category.category_name = category_name
         category.save()
-        messages.success(request, 'Category edited successfully')
-        return JsonResponse({'success': True, 'message': 'Category edited successfully'})
+        return JsonResponse({'success': True, 'message': 'Category updated successfully'})
     return render(request, 'admin/category/edit_category.html')
 
 @permission_required('product.delete_category', raise_exception=True)
@@ -358,16 +360,14 @@ def delete_category(request,pk):
         return redirect('adminlogin')
     if request.method == 'POST':
         category = Category.objects.get(id=pk)
-        # Mark this category and all its sub-categories as deleted
-        def mark_as_deleted(cat):
-            cat.is_active = False
-            cat.is_delete = True
-            cat.save()
-            # Recursively mark sub-categories
-            for sub_cat in cat.category_set.all():
-                mark_as_deleted(sub_cat)
+        def hard_delete(cat):
+            # First, delete all sub-categories
+            for sub_cat in cat.subcategories.all():
+                hard_delete(sub_cat)
+            # Then, delete the category itself
+            cat.delete()
         
-        mark_as_deleted(category)
+        hard_delete(category)
         messages.success(request, 'Category Deleted Successfully!')
         return redirect('categories')
     return redirect('categories')
@@ -436,7 +436,7 @@ def add_products(request):
     if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
     
-    category = Category.objects.all()
+    category = Category.objects.filter(is_active=True,is_delete=False)
     product_attribute = ProductAttribute.objects.all()
     context = {'category': category,
                'product_attribute':product_attribute}
@@ -698,6 +698,7 @@ def delete_banner(request,pk):
         banner.is_active = False
         banner.is_delete = True
         banner.save()
+        messages.success(request,'Banner deleted succssfully')
         return redirect('banners')
     return render(request,'admin/banner/banner.html')
 
@@ -753,9 +754,24 @@ def contact_us_detail(request, pk):
     if request.method == 'POST':
         reply = request.POST.get('admin_reply')
         if reply and not contact.is_replied:
-            contact.admin_reply = reply
-            contact.is_replied = True
-            contact.save()
+            try:
+                plain_text_body = strip_tags(reply)
+                html_body = reply
+
+                send_contact_email.delay(
+                    subject=f"Re: {contact.subject}",
+                    plain_text_body=plain_text_body,
+                    html_body=html_body,
+                    recipient_email=contact.email
+                )
+                contact.admin_reply = plain_text_body
+                contact.is_replied = True
+                contact.save()
+                messages.success(request,'Mail send successfully')
+            except Exception as e:
+                print(f"Error sending email: {e}")
+                messages.error(request, 'Something went wrong, please contact the admin.')
+
             return redirect('contact-us')
     return render(request, 'admin/contact_us/contact_us_detail.html', {'contact': contact})
 
@@ -780,6 +796,7 @@ def add_flatpage(request):
         form = CustomFlatPageForm(request.POST)
         if form.is_valid():
             flatpage = form.save()
+            messages.success(request,'Cms Added successfully')
             return redirect('cms')
     else:
         form = CustomFlatPageForm()
@@ -795,6 +812,7 @@ def edit_flatpage(request,pk):
         form = CustomFlatPageForm(request.POST,instance=flatpage)
         if form.is_valid():
             form.save()
+            messages.success(request,'Cms updated successfully')
             return redirect('cms')
     else:
         form = CustomFlatPageForm(instance=flatpage)
@@ -837,6 +855,7 @@ def add_template(request):
         form = EmailTemplateForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request,'Email Template Created successfully')
             return redirect('emails')
     else:
         form = EmailTemplateForm()
@@ -852,6 +871,7 @@ def edit_email_template(request, pk):
         form = EmailTemplateForm(request.POST, instance=template)
         if form.is_valid():
             form.save()
+            messages.success(request,'Email template update successfully')
             return redirect('emails')
     else:
         form = EmailTemplateForm(instance=template)
@@ -865,6 +885,7 @@ def delete_email_template(request, pk):
     template = get_object_or_404(EmailTemplate, pk=pk)
     if request.method == 'POST':
         template.delete()
+        messages.success(request,'Email template delete successfully')
         return redirect('emails')
     return render(request, 'admin/email_template/email_template.html', {'template': template})
 
@@ -949,7 +970,7 @@ def order_detail(request, pk):
             try:
                 celery_mail.delay(
                     to_email=order.user.email,
-                    context=json_context_email,  # Pass the dictionary directly
+                    context=json_context_email,
                     template_name='order_status'
                 )
             except Exception as e:

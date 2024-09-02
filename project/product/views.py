@@ -31,6 +31,7 @@ def product_detail(request,pk):
     context = {
         'product': product,
         'images': product.product.all(),
+        'attributes':attributes,
         'grouped_attributes': grouped_attributes,
         'ratings': reviews_with_ratings,
         'reviews': reviews,
