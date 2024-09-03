@@ -47,9 +47,11 @@ def add_coupon(request):
             form.save()
             messages.success(request, 'Coupon created successfully!')
             return redirect('coupons')
+        else:
+            errors = form.errors.as_json()
     else:
         form = CouponForm()
-    return render(request, 'admin/coupon/add_coupon.html', {'form': form})
+    return render(request, 'admin/coupon/add_coupon.html', {'form': form, 'errors': errors})
 
 @permission_required('coupon.change_coupon',raise_exception=True)
 def edit_coupon(request, pk):

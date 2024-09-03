@@ -313,6 +313,7 @@ def paypal_execute_payment(request):
         if response.status_code == 200:
             # Payment executed successfully
             payment = response.json()
+            print('payment: ', payment)
             order_data = request.session.get('order_data')
             if order_data:
                 user = request.user

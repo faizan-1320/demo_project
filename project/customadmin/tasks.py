@@ -2,7 +2,6 @@ from celery import shared_task
 from project.utils import custom_eamil
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
-from django.utils.html import strip_tags
 
 @shared_task
 def celery_mail(to_email=None,context={},template_name=''):

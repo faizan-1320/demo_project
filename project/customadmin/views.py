@@ -1,30 +1,27 @@
+import re
 from django.shortcuts import render,redirect
-from project.users.models import User,Address
-from project.product.models import Category,Product,ProductAttribute,ProductAttributeValue,ProductImage
-from .models import Banner,ContactUs,EmailTemplate
-from .forms import BannerForm,CustomFlatPageForm,EmailTemplateForm,OrderStatusForm
-from project.coupon.models import Coupon
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
-from project.utils import custom_required
 from django.contrib.auth.models import Group
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.core.files.storage import FileSystemStorage
-from collections import defaultdict
 from django.db.utils import IntegrityError
 from django.contrib.auth.decorators import permission_required
-from decimal import Decimal, InvalidOperation
 from django.contrib.flatpages.models import FlatPage
-import re   
-from project.order.models import Order,ProductInOrder
-from .tasks import celery_mail,send_contact_email
-import json
-from django.core.mail import EmailMultiAlternatives
 from django.utils.html import strip_tags
-from django.conf import settings
+from .models import Banner,ContactUs,EmailTemplate
+from .forms import BannerForm,CustomFlatPageForm,EmailTemplateForm,OrderStatusForm
+from decimal import Decimal, InvalidOperation
+from collections import defaultdict
+from project.users.models import User,Address
+from project.product.models import Category,Product,ProductAttribute,ProductAttributeValue,ProductImage
+from project.order.models import Order,ProductInOrder
+from project.coupon.models import Coupon
+from project.utils import custom_required
+from .tasks import celery_mail,send_contact_email
 
 ####################
 # Admin Management #
@@ -626,9 +623,9 @@ def edit_product(request, pk):
                 messages.error(request, 'Product with this name already exists in the selected category') 
 
             messages.success(request, 'Product Updated Successfully')
-                 
+
         return redirect('products')
-    
+
     return render(request, 'admin/product/edit_product.html', context)
 
 @permission_required('product.add_productattribure', raise_exception=True)
@@ -966,11 +963,10 @@ def order_detail(request, pk):
                 'customer_address': customer_address_data,
                 'is_cash_on_delivery': order_data['is_cash_on_delivery']
             }
-            json_context_email = json.dumps(context_email)
             try:
                 celery_mail.delay(
                     to_email=order.user.email,
-                    context=json_context_email,
+                    context=context_email,
                     template_name='order_status'
                 )
             except Exception as e:

@@ -83,7 +83,7 @@ def auth_view(request):
                     user = register_form.save(commit=False)
                     user.email = user.email.lower()
                     user.save()
-                    login(request, user)
+                    messages.success(request,'Register Successfully')
                     return redirect('auth-view')
                 except IntegrityError:
                     messages.error(request, 'A user with that email already exists.')

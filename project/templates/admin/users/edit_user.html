@@ -39,31 +39,31 @@
                 <div class="form-group">
                   <label for="exampleInputEmail1">First Name</label>
                   <input type="text" class="form-control" id="first_name" name="first_name"
-                    placeholder="Enter first name" value="{{user.first_name}}">
+                    placeholder="Enter first name" value="{{user.first_name}}" required>
                   <span class="error" id="error-first_name"></span><br>
                 </div>
                 <div class="form-group">
                   <label for="exampleInputEmail1">Last Name</label>
                   <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Enter last name"
-                    value="{{user.last_name}}">
+                    value="{{user.last_name}}" required>
                   <span class="error" id="error-last_name"></span><br>
                 </div>
                 <div class="form-group">
                   <label for="exampleInputEmail1">Email address</label>
                   <input type="email" class="form-control" id="email" name="email" placeholder="Enter email"
-                    value="{{user.email}}">
+                    value="{{user.email}}" required>
                   <span class="error" id="error-email"></span><br>
                 </div>
                 <div class="form-group">
                   <label for="exampleInputEmail1">Phone Number</label>
                   <input type="text" class="form-control" id="phone_number" name="phone_number"
-                    placeholder="Enter phone  number" value="{{user.phone_number}}">
+                    placeholder="Enter phone  number" value="{{user.phone_number}}" required>
                   <span class="error" id="error-phone_number"></span><br>
                 </div>
                 <div class="form-group">
                   <label>Select Groups</label>
                   <select class="select2bs4" multiple="multiple" name="groups[]" data-placeholder="Select a State"
-                    style="width: 100%;">
+                    style="width: 100%;" required>
                     {% for i in groups %}
                     <option value="{{i.id}}" {% if i.id in user_group_ids %}selected{% endif %}>{{i.name}}</option>
                     {% endfor %}
