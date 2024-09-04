@@ -1,8 +1,8 @@
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django import forms
 from .models import User,Address
-from project.customadmin.models import ContactUs
-
+from project.customadmin.models import ContactUs,NewsletterSubscriber
+from django.contrib import messages
 class CustomUserCreationForm(UserCreationForm):
 
     class Meta:
@@ -51,3 +51,20 @@ class ContactForm(forms.ModelForm):
             'email':forms.EmailInput(attrs={'class':'form-control'}),
             'message':forms.Textarea(attrs={'class':'form-control'}),
         }
+
+class NewsletterForm(forms.ModelForm):
+    class Meta:
+        model =NewsletterSubscriber
+        fields = ['email']
+        widgets ={'email':forms.EmailInput(attrs={'class':'form-control'})}
+
+    def save(self, request, commit=True):
+        email = self.cleaned_data['email']
+        subscriber, created = NewsletterSubscriber.objects.get_or_create(email=email)
+
+        if created:
+            messages.success(request, 'You have successfully subscribed to our newsletter!')
+        else:
+            messages.info(request, 'You are already subscribed.')
+
+        return subscriber

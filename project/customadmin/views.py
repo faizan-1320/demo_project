@@ -12,8 +12,8 @@ from django.db.utils import IntegrityError
 from django.contrib.auth.decorators import permission_required
 from django.contrib.flatpages.models import FlatPage
 from django.utils.html import strip_tags
-from .models import Banner,ContactUs,EmailTemplate
-from .forms import BannerForm,CustomFlatPageForm,EmailTemplateForm,OrderStatusForm
+from .models import Banner,ContactUs,EmailTemplate,NewsletterSubscriber
+from .forms import BannerForm,CustomFlatPageForm,EmailTemplateForm,OrderStatusForm,ProductAttributeForm
 from decimal import Decimal, InvalidOperation
 from collections import defaultdict
 from project.users.models import User,Address
@@ -628,7 +628,27 @@ def edit_product(request, pk):
 
     return render(request, 'admin/product/edit_product.html', context)
 
-@permission_required('product.add_productattribure', raise_exception=True)
+@permission_required('product.view_productattribute',raise_exception=True)
+def product_attribute(request): 
+    # Check if the user is an admin
+    if not custom_required.check_login_admin(request.user):
+        return redirect('adminlogin')
+    product_attribute_data = ProductAttribute.objects.filter(is_active=True,is_delete=False)
+    search_query = request.GET.get('search_query','')
+    if search_query:
+        product_attribute_data = ProductAttribute.objects.filter(is_active=True,is_delete=False,name__icontains=search_query)
+    paginator = Paginator(product_attribute_data,10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    start_number = (page_obj.number - 1) * paginator.per_page + 1
+    context = {
+        'page_obj':page_obj,
+        'start_number':start_number,
+        'search_query':search_query,
+    }
+    return render(request,'admin/product/prduct_attribute.html',context)
+
+@permission_required('product.add_productattribute', raise_exception=True)
 def add_product_attribute(request):
     # Check if the user is an admin
     if not custom_required.check_login_admin(request.user):
@@ -648,6 +668,34 @@ def add_product_attribute(request):
 
         return render(request,'admin/product/add_product_attribute.html')
     return render(request,'admin/product/add_product_attribute.html')
+
+@permission_required('product.change_productattribute',raise_exception=True)
+def edit_product_attribute(request,pk):
+    attribute = ProductAttribute.objects.get(id=pk)
+    if request.method == 'POST':
+        form = ProductAttributeForm(request.POST,instance=attribute)
+        if form.is_valid():
+            form.save()
+            messages.success(request,'Attribute Update successfully')
+            return redirect('product-attribute')
+        else:
+            messages.error(request,'Somthing went wrong')
+    else:
+        form = ProductAttributeForm(instance=attribute)
+    return render(request,'admin/product/edit_product_attribute.html',{'form':form})
+
+@permission_required('product.delete_productattribute',raise_exception=True)
+def delete_product_attribute(request,pk):
+    if not custom_required.check_login_admin(request.user):
+        return redirect('adminlogin')
+    if request.method == 'POST':
+        delete_attribute = ProductAttribute.objects.get(id=pk)
+        delete_attribute.is_active = False
+        delete_attribute.is_delete = True
+        delete_attribute.save()
+        messages.success(request,'Attribute delete successfully')
+        return redirect('product-attribute')
+    return render(request,'admin/product/product_attribute.html')
 
 #####################
 # Banner Management #
@@ -705,7 +753,6 @@ def edit_banner(request, pk):
         return redirect('adminlogin')
     banner = get_object_or_404(Banner, id=pk)
     if request.method == 'POST':
-        # import pdb;pdb.set_trace()
         form = BannerForm(request.POST, request.FILES, instance=banner)
         if form.is_valid():
             form.save()
@@ -986,3 +1033,25 @@ def order_detail(request, pk):
     }
 
     return render(request, 'admin/orders/order_detail.html', context)
+
+##########################
+# News Letter Management #
+##########################
+
+def news_letter(request):
+    if not custom_required.check_login_admin(request.user):
+        return redirect('adminlogin')
+    news_letter_data = NewsletterSubscriber.objects.all()
+    search_query = request.GET.get('search','')
+    if search_query:
+        news_letter_data = NewsletterSubscriber.objects.filter(email__icontains=search_query)
+    paginator = Paginator(news_letter_data,10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    start_number = (page_obj.number - 1) * paginator.per_page + 1
+    context = {
+        'page_obj':page_obj,
+        'start_number':start_number,
+        'search_query':search_query
+    }
+    return render(request,'admin/newsletter/news_letter.html',context)

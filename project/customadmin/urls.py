@@ -20,7 +20,10 @@ urlpatterns = [
     path('products/add/', add_products, name='add-product'),
     path('products/<int:pk>/edit/', edit_product, name='edit-product'),
     path('products/<int:pk>/delete/', delete_product, name='delete-product'),
+    path('products/attribute/',product_attribute,name='product-attribute'),
     path('products/add-attribute/', add_product_attribute, name='add-product-attribute'),
+    path('products/<int:pk>/edit-attribute/',edit_product_attribute,name='edit-attribute'),
+    path('products/<int:pk>/delete-attribute/',delete_product_attribute,name='delete-attribute'),
     # Banner URL
     path('banners/',banner,name='banners'),
     path('banners/add/',add_banner,name='add-banner'),
@@ -42,4 +45,6 @@ urlpatterns = [
     # Order URL
     path('orders/', order, name='orders'),
     path('orders/<int:pk>/detail', order_detail, name='order-detail'),
+    # News Letter
+    path('news/letter/',news_letter,name='news-letter'),
 ]

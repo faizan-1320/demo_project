@@ -1,0 +1,65 @@
+{% extends 'admin/dashboard.html' %}
+{% block title %}Edit Product Attribute{% endblock %}
+{% block content %}
+<div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1>Edit Product Attribute</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+              <li class="breadcrumb-item active">Edit Product Attribute</li>
+            </ol>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+  
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+          <!-- left column -->
+          <div class="col-md">
+            <!-- general form elements -->
+            <div class="card card-primary">
+              <div class="card-header">
+                <h3 class="card-title">Edit Product Attribute</h3>
+              </div>
+              <!-- /.card-header -->
+              <!-- form start -->
+              <!-- Display messages -->
+  
+              <!-- Form -->
+              <form id="myForm" method="post">
+                {% csrf_token %}
+                <div class="card-body">
+                    {{form.as_p}}
+                </div>
+                <div class="card-footer">
+                  <button type="submit" class="btn btn-primary">Submit</button>
+                  <button type="button" id="cancelButton" class="btn btn-secondary">Cancel</button>
+                </div>
+                <!-- /.card-body -->
+              </form>
+            </div>
+            <!-- /.card -->
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- /.content -->
+  </div>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function(){
+        $('#cancelButton').on('click', function () {
+      window.history.back();
+    });
+    })
+</script>
+{% endblock content %}

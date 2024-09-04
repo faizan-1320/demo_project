@@ -17,8 +17,6 @@ class Banner(models.Model):
 
     def __str__(self):
         return self.image
-    
-from django.db import models
 
 class ContactUs(BaseModel):
     name = models.CharField(max_length=255)
@@ -39,3 +37,10 @@ class EmailTemplate(BaseModel):
 
     def __str__(self):
         return self.template_name
+
+class NewsletterSubscriber(BaseModel):
+    email = models.EmailField(unique=True)
+    is_subscribed = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.email

@@ -6,12 +6,12 @@
     <div class="container-fluid">
       <div class="row mb-2">
         <div class="col-sm-6">
-          <h1>Products</h1>
+          <h1>Product Attributes</h1>
         </div>
         <div class="col-sm-6">
           <ol class="breadcrumb float-sm-right">
             <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
-            <li class="breadcrumb-item active">Products</li>
+            <li class="breadcrumb-item active">Product Attributes</li>
           </ol>
         </div>
       </div>
@@ -25,62 +25,43 @@
         <div class="col-12">
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title">Products Details</h3>
+              <h3 class="card-title">Products Attributes</h3>
             </div>
             <!-- /.card-header -->
             <div class="card-body">
-              <form method="get" action="{% url 'products' %}" class="mb-3">
+              <form method="get" action="{% url 'product-attribute' %}" class="mb-3">
                 <div class="input-group">
                   <input type="text" class="form-control" name="search" value="{{ search_query }}"
-                    placeholder="Search product...">
+                    placeholder="Search product attribute...">
                   <div class="input-group-append">
                     <button class="btn btn-primary" type="submit">Search</button>
                   </div>
                 </div>
               </form>
-              <h6> <a href="{% url 'add-product' %}">+ Add Product</a></h6>
+              <h6> <a href="{% url 'add-product-attribute' %}">+ Add Product Attribute</a></h6>
               <table class="table table-bordered table-hover">
                 <thead>
                   <tr>
                     <th>Sr No</th>
-                    <th>Product Name</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Category</th>
-                    <th>Images</th>
-                    <th>Attributes</th>
+                    <th>Attribute Name</th>
                     <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {% if page_obj.object_list %}
-                  {% for product in page_obj %}
+                  {% for attribute in page_obj %}
                   <tr data-widget="expandable-table" aria-expanded="false">
                     <td>{{ forloop.counter0|add:start_number }}</td>
-                    <td>{{ product.name }}</td>
-                    <td>{{ product.price }}</td>
-                    <td>{{ product.quantity }}</td>
-                    <td>{{ product.category.full_path }}</td>
+                    <td>{{ attribute.name }}</td>
                     <td>
-                      {% for image in product.product.all %}
-                      <img src="{{ image.image.url }}" alt="{{ product.name }}" width="50" height="50">
-                      {% endfor %}
-                    </td>
-                    <td>
-                      {% for attribute_value in product.products.all %}
-                      <strong>{{ attribute_value.product_attribute.name }}:</strong> {{ attribute_value.value }}<br>
-                      {% endfor %}
-                    </td>
-                    <td>
-                      <a href="{% url 'edit-product' product.id %}"><i
-                          class="fas fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;<a
-                        href="{% url 'delete-product' product.id %}" class="delete-btn"><i class="fas fa-trash"></i></a>
+                      <a href="{% url 'edit-attribute' attribute.id %}"><i class="fas fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;
+                      <a href="{% url 'delete-attribute' attribute.id %}" class="delete-btn"><i class="fas fa-trash"></i></a>
                     </td>
                   </tr>
                   {% endfor %}
                   {% else %}
                     <tr>
-                      <td colspan="7" class="text-center">No products found.</td>
+                      <td colspan="7" class="text-center">No product attributes found.</td>
                     </tr>
                   {% endif %}
                 </tbody>
@@ -152,7 +133,7 @@
 
       Swal.fire({
         title: "Are you sure?",
-        text: "You want to delete this product?",
+        text: "You want to delete this attribute?",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -170,7 +151,7 @@
             success: function (res) {
               Swal.fire({
                 title: "Deleted!",
-                text: "Product deleted successfully.",
+                text: "Attribute deleted successfully.",
                 icon: "success"
               }).then(() => {
                 if (row.length > 0) {

@@ -1,11 +1,11 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .forms import LoginForm,UserForm,CustomUserCreationForm,AdressForm,ContactForm
+from .forms import LoginForm,UserForm,CustomUserCreationForm,AdressForm,ContactForm,NewsletterForm
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from .models import Address,User
-from project.customadmin.models import Banner
+from project.customadmin.models import Banner,NewsletterSubscriber
 from project.product.models import Product,Category
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.conf import settings
@@ -47,11 +47,20 @@ def home(request):
     except EmptyPage:
         products_paginated = paginator.page(paginator.num_pages)
 
+    form = NewsletterForm()
+
+    if request.method == 'POST':
+        form = NewsletterForm(request.POST)
+        if form.is_valid():
+            form.save(request)
+            return redirect('home')
+
     context = {
         'banners': banners,
         'products': products_paginated,
         'categories': category_tree,
         'selected_category': category_id,
+        'form':form,
     }
     return render(request, 'front_end/index.html', context)
 

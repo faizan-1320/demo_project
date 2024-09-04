@@ -25,7 +25,7 @@ pillow==10.4.0
 platformdirs==4.2.2
 prompt_toolkit==3.0.47
 pycparser==2.22
-pylint==3.2.6
+pylint==3.2.7
 pyOpenSSL==24.2.1
 python-dateutil==2.9.0.post0
 redis==5.0.8

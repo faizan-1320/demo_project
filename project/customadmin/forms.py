@@ -3,6 +3,7 @@ from .models import Banner,EmailTemplate
 from django.contrib.flatpages.models import FlatPage
 from project.order.models import Order
 from django.core.exceptions import ValidationError
+from project.product.models import ProductAttribute
 class BannerForm(forms.ModelForm):
     class Meta:
         model = Banner
@@ -91,3 +92,11 @@ class OrderStatusForm(forms.ModelForm):
             raise ValidationError('You can not move the status to an earlier stage.')
         
         return new_status
+
+class ProductAttributeForm(forms.ModelForm):
+    class Meta:
+        model = ProductAttribute
+        fields = ['name']
+        widgets = {
+            'name':forms.TextInput(attrs={'class':'form-control'})
+        }
