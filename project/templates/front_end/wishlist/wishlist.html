@@ -1,0 +1,146 @@
+{% extends 'front_end/index.html' %}
+{% load static %}
+{% block css %}
+<style>
+    .product-name {
+        font-size: 14px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        max-width: 200px;
+    }
+    .product-thumbnail {
+    max-width: 50px; /* Adjust as needed for thumbnail size */
+    max-height: 50px; /* Adjust as needed for thumbnail size */
+    object-fit: cover; /* Ensures the image covers the thumbnail area without distortion */
+    border-radius: 10px; /* Optional: Rounds the corners of the image */
+    border: 1px solid #ddd; /* Optional: Adds a border around the thumbnail */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: Adds a subtle shadow */
+}
+
+/* Optional: Add some margin to separate the thumbnail from text */
+.product-thumbnail-container {
+    margin-right: 10px; /* Adjust space between image and text */
+}
+</style>
+{% endblock %}
+{% block content %}
+
+<section id="cart_items">
+    <div class="container">
+        <div class="breadcrumbs">
+            <ol class="breadcrumb">
+              <li><a href="{% url 'home' %}">Home</a></li>
+              <li class="active">Wishlist</li>
+            </ol>
+        </div>
+        <div class="table-responsive cart_info">
+            <table class="table table-condensed">
+                <thead>
+                    <tr class="cart_menu">
+                        <td class="image">Item</td>
+                        <td class="description">Product Name</td>
+                        <td class="price">Price</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in wishlist %}
+                    <tr>
+                        <td class="cart_product">
+                            <a href="{% url 'product-detail' item.product.id %}">
+                                <img src="{{ item.product.product.last.image.url }}" alt="{{ item.product.name }}" class="product-thumbnail">
+                            </a>
+                        </td>
+                        <td class="cart_description">
+                            <h4><a href="{% url 'product-detail' item.product.id %}" class="product-name" style="font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">{{ item.product.name }}</a></h4>
+                            <p>{{ item.product.description }}</p>
+                        </td>
+                        <td class="cart_price">
+                            <p>₹{{ item.product.price }}</p>
+                        </td>
+                        <td class="cart_price">
+                            <a href="{% url 'add-to-cart' item.product.id %}" class="add-to-cart">Add to cart</a>
+                        </td>
+                        <td class="cart_delete">
+                            <form action="{% url 'remove-from-wishlist' item.product.id  %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" style="border: none; background: none; cursor: pointer;">
+                                <i class="fa fa-times"></i>
+                            </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">Your wishlist is empty.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section> <!--/#cart_items-->
+
+{% block js %}
+	<script>
+	$(document).ready(function() {
+        $('.add-to-cart').click(function(e) {
+            e.preventDefault();
+            var url = $(this).attr('href');
+            var productId = $(this).data('product-id');
+            $.ajax({
+                url: url,
+                type: 'GET',
+                data: {
+                    'product-id': productId
+                },
+                success: function(res) {
+                    
+                    if (res.success) {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'success',
+                            title: res.message,
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true,
+                        }).then(()=>{
+              window.location.href = "{% url 'wishlist' %}";
+            })
+                        
+                        // Optionally update the cart count in the UI
+                        $('#cart-count').text(res.cart_count);
+                    } else {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'error',
+                            title: res.message,
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true,
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'error',
+                        title: 'Failed to add product to cart!',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                    });
+                }
+            });
+        });
+    });
+	</script>
+{% endblock %}
+
+{% endblock content %}

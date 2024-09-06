@@ -92,14 +92,6 @@
 							<td class="cart_total">
 								<p class="cart_total_price">₹{{ item.total_price }}</p>
 							</td>
-							<td class="cart_delete">
-								<form action="{% url 'remove-from-cart' item.product.id  %}" method="post">
-								{% csrf_token %}
-								<button type="submit" style="border: none; background: none; cursor: pointer;">
-									<i class="fa fa-times"></i>
-								</button>
-								</form>
-							</td>
 						</tr>
 						{% endfor %}
 						<tr>
@@ -113,14 +105,21 @@
 													<label>Use Coupon Code</label>
 												</li>	
 												<li>
+													<input type="hidden" name="applied_coupon" value="{{ applied_coupon }}">
+													
 													{% for coupon in coupons %}
-													<input type="radio" name="coupon_code" value="{{ coupon.code }}"> {{ coupon.code }} ({{ coupon.discount_amount }})
+														<label>
+															<input type="radio" name="coupon_code" value="{{ coupon.code }}" 
+																{% if applied_coupon and applied_coupon.code == coupon.code %}
+																	checked
+																{% endif %}>
+															{{ coupon.code }} ({{ coupon.discount_amount }})
+														</label>
 													{% endfor %}
 												</li>
 											</ul>
-											<button type="submit" class="btn btn-primary" href="">Apply</button>
-										</form>
-										
+											<button type="submit" class="btn btn-primary">Apply</button>
+										</form>										
 									</div>
 								</div>
 							</td>
@@ -153,7 +152,6 @@
 							</td>
 						</tr>
 					</tbody>
-					
 				</table>
 			</div>
 			<div class="payment-options">

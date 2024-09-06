@@ -12,19 +12,9 @@
 	<link href="{% static 'assets/css/bootstrap.min.css' %}" rel="stylesheet">
 	<link href="{% static 'assets/css/font-awesome.min.css' %}" rel="stylesheet">
 	<link href="{% static 'assets/css/prettyPhoto.css' %}" rel="stylesheet">
-	<link href="{% static 'assets/css/price-range.css' %}" rel="stylesheet">
 	<link href="{% static 'assets/css/animate.css' %}" rel="stylesheet">
 	<link href="{% static 'assets/css/main.css' %}" rel="stylesheet">
 	<link href="{% static 'assets/css/responsive.css' %}" rel="stylesheet">
-	<link rel="shortcut icon" href="{% static 'assets/images/ico/favicon.ico' %}">
-	<link rel="apple-touch-icon-precomposed" sizes="144x144"
-		href="{% static 'assets/images/ico/apple-touch-icon-144-precomposed.png' %}">
-	<link rel="apple-touch-icon-precomposed" sizes="114x114"
-		href="{% static 'assets/images/ico/apple-touch-icon-114-precomposed.png' %}">
-	<link rel="apple-touch-icon-precomposed" sizes="72x72"
-		href="{% static 'assets/images/ico/apple-touch-icon-72-precomposed.png' %}">
-	<link rel="apple-touch-icon-precomposed"
-		href="{% static 'assets/images/ico/apple-touch-icon-57-precomposed.png' %}">
 	<!-- SweetAlert CSS -->
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
@@ -102,6 +92,7 @@
 								<li><a href="{% url 'cart-detail' %}"><i class="fa fa-shopping-cart"></i> Cart</a></li>
 								<li><a href="{% url 'contact' %}"><i class="fa fa-envelope"></i>Contact</a></li>
 								{% if user.is_authenticated %}
+								<li><a href="{% url 'wishlist' %}"><i class="fa fa-star"></i> Wishlist</a></li>
 								<li class="nav-item dropdown">
 									<a href="#" class="nav-link dropdown-toggle" id="userDropdown" role="button"
 										data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -127,8 +118,6 @@
 							</ul>
 						</div>
 					</div>
-
-
 				</div>
 			</div>
 		</div><!--/header-middle-->
@@ -232,6 +221,13 @@
 											</div>
 										</a>
 									</div>
+									{% if product.quantity %}
+									<div class="choose">
+										<ul class="nav nav-pills nav-justified">
+											<li><a href="{% url 'add-to-wishlist' product.id %}"><i class="fa fa-plus-square"></i>Add to wishlist</a></li>
+										</ul>
+									</div>
+									{% endif %}
 								</div>
 							</div>
 							{% endfor %}
@@ -340,8 +336,6 @@
 	<script src="{% static 'assets/js/main.js' %}"></script>
 	<!-- SweetAlert JavaScript -->
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-	<!-- Include jQuery and Bootstrap Slider JS -->
-	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 	{% block js %}
 	<script>
 		"{% if messages %}"
@@ -363,7 +357,6 @@
             e.preventDefault();
             var url = $(this).attr('href');
             var productId = $(this).data('product-id');
-            console.log('productId ------------------> ', productId);
             $.ajax({
                 url: url,
                 type: 'GET',
@@ -371,7 +364,6 @@
                     'product-id': productId
                 },
                 success: function(res) {
-                    console.log('res------------------------------------> ', res);
                     
                     if (res.success) {
                         Swal.fire({

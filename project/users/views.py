@@ -4,8 +4,8 @@ from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
-from .models import Address,User
-from project.customadmin.models import Banner,NewsletterSubscriber
+from .models import Address,User,Wishlist
+from project.customadmin.models import Banner
 from project.product.models import Product,Category
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.conf import settings
@@ -33,11 +33,14 @@ def home(request):
     category_id = request.GET.get('category', None)
     
     if category_id:
-        products = Product.objects.filter(category__id=category_id, is_active=True, is_delete=False).prefetch_related('product')
+        selected_category = get_object_or_404(Category, id=category_id, is_active=True, is_delete=False)
+        subcategories = Category.objects.filter(parent=selected_category, is_active=True, is_delete=False)
+        categories_to_filter = [selected_category] + list(subcategories)
+        products = Product.objects.filter(category__in=categories_to_filter, is_active=True, is_delete=False)
     else:
         products = Product.objects.filter(is_active=True, is_delete=False).prefetch_related('product')
 
-    paginator = Paginator(products, 10)  # Show 10 products per page
+    paginator = Paginator(products, 12)
     page = request.GET.get('page', 1)
 
     try:
@@ -199,3 +202,41 @@ def delete_address(request, pk):
         return redirect('user')
 
     return render(request, 'front_end/user/confirm_delete_address.html', {'address': address})
+
+@login_required
+def add_to_wishlist(request,product_id):
+    product = get_object_or_404(Product,id=product_id)
+    wishlist_item, created = Wishlist.objects.get_or_create(user=request.user, product=product)
+
+    if not created:
+        if wishlist_item.is_delete:
+            wishlist_item.is_delete = False
+            wishlist_item.is_active = True
+            wishlist_item.save()
+            messages.success(request, 'Product added to your wishlist.')
+        else:
+            messages.error(request, 'This product is already in your wishlist.')
+    else:
+        messages.success(request, 'Product added to your wishlist.')
+    return redirect('home')
+
+@login_required
+def remove_from_wishlist(request, product_id):
+    if request.method == 'POST':
+        wishlist_item = get_object_or_404(Wishlist, user=request.user, product_id=product_id, is_active=True, is_delete=False)
+        wishlist_item.is_active = False
+        wishlist_item.is_delete = True
+        wishlist_item.save()
+        messages.success(request, 'Product removed from wishlist')
+        return redirect('wishlist')
+
+    messages.error(request, 'Invalid request')
+    return redirect('wishlist')
+
+@login_required
+def wish_list(request):
+    wishlist = Wishlist.objects.filter(user=request.user,is_active=True,is_delete=False)
+    context = {
+        'wishlist':wishlist
+    }
+    return render(request,'front_end/wishlist/wishlist.html',context)

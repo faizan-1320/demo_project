@@ -5,12 +5,13 @@ from django.contrib import messages
 from django.shortcuts import render, redirect,get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from .models import Product,ProductInOrder,Order
 from project.users.models import Address
 from project.coupon.models import Coupon
 from decimal import Decimal
 from django.utils import timezone
-
+from project.users.models import Wishlist
 # Configure PayPal SDK
 paypalrestsdk.configure({
     "mode": "sandbox",
@@ -74,6 +75,8 @@ def add_to_cart(request, pk):
     
     if current_quantity_in_cart < product.quantity:
         cart[str(pk)] = current_quantity_in_cart + 1
+        wishlist = get_object_or_404(Wishlist,product=product)
+        wishlist.delete()
         set_cart(request, cart)
         response_data = {
             'success': True,
@@ -149,13 +152,10 @@ def checkout(request):
     cart_items = []
     cart_sub_total = 0
     coupon = None
-    coupon_code = request.POST.get('coupon_code')
     discount_amount = Decimal(request.POST.get('discount_amount', 0))
 
-    # Get the current date
     today = timezone.now().date()
 
-    # Filter active coupons
     active_coupons = Coupon.objects.filter(
         is_delete=False,
         is_active=True,
@@ -173,6 +173,8 @@ def checkout(request):
         cart_sub_total += product.price * quantity
 
     if request.method == 'POST':
+        coupon_code = request.POST.get('coupon_code','').strip()
+
         if coupon_code:
             try:
                 coupon = Coupon.objects.get(code=coupon_code, is_active=True)
@@ -254,6 +256,7 @@ def checkout(request):
             
                 # Save each product in the order
                 for item in cart_items:
+                    print('item: ', item)
                     product = item['product']
                     product = Product.objects.get(id=product.id)
                     product.quantity = product.quantity - item['quantity']
@@ -262,7 +265,7 @@ def checkout(request):
                         order=order,
                         product=item['product'],
                         quantity=item['quantity'],
-                        price=item['total_price']
+                        price=product.price
                     )
                 messages.success(request, "Order placed successfully with Cash on Delivery!")
                 request.session['cart'] = {}
@@ -378,9 +381,11 @@ def order_confirmation(request,pk):
 @login_required
 def order_list(request):
     orders = Order.objects.filter(user=request.user).order_by('-datetime_of_payment')
-
+    paginator = Paginator(orders,10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
     context = {
-        'orders': orders,
+        'page_obj': page_obj,
     }
     return render(request, 'front_end/order/user/order_list.html', context)
 

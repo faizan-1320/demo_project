@@ -19,7 +19,7 @@
         <!-- Add icons to the links using the .nav-icon class
            with font-awesome or any other icon font library -->
         <li class="nav-item">
-          <a href="{% url 'dashboard' %}" class="nav-link {% if request|is_active:'/dashboard/' %}active{% endif %}">
+          <a href="{% url 'dashboard' %}" class="nav-link {% if request|is_active_common:'/dashboard/' %}active{% endif %}">
             <i class="nav-icon fas fa-tachometer-alt"></i>
             <p>Dashboard</p>
           </a>
@@ -28,43 +28,43 @@
         {% if request.user.is_superuser %}
         <!-- Admin Links -->
         <li class="nav-item">
-          <a href="{% url 'users' %}" class="nav-link {% if request|is_active:'/users/' %}active{% endif %}">
+          <a href="{% url 'users' %}" class="nav-link {% if request|is_active_common:'/users/' %}active{% endif %}">
             <i class="fas fa-users"></i>
             <p>Users</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="{% url 'banners' %}" class="nav-link {% if request|is_active:'/banners/' %}active{% endif %}">
+          <a href="{% url 'banners' %}" class="nav-link {% if request|is_active_common:'/banners/' %}active{% endif %}">
             <i class="fas fa-ad"></i>
             <p>Banner</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="{% url 'coupons' %}" class="nav-link {% if request|is_active:'/coupons/' %}active{% endif %}">
+          <a href="{% url 'coupons' %}" class="nav-link {% if request|is_active_common:'/coupons/' %}active{% endif %}">
             <i class="fas fa-ticket-alt"></i>
             <p>Coupon</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="{% url 'emails' %}" class="nav-link {% if request|is_active:'/emails/' %}active{% endif %}">
+          <a href="{% url 'emails' %}" class="nav-link {% if request|is_active_common:'/emails/' %}active{% endif %}">
             <i class="fas fa-envelope"></i>
             <p>Email Template</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="{% url 'orders' %}" class="nav-link {% if request|is_active:'/orders/' %}active{% endif %}">
+          <a href="{% url 'orders' %}" class="nav-link {% if request|is_active_common:'/orders/' %}active{% endif %}">
             <i class="nav-icon fas fa-copy"></i>
             <p>Orders</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="{% url 'categories' %}" class="nav-link {% if request|is_active:'/categories/' %}active{% endif %}">
+          <a href="{% url 'categories' %}" class="nav-link {% if request|is_active_common:'/categories/' %}active{% endif %}">
             <i class="nav-icon fas fa-tags"></i>
             <p>Category</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="{% url 'news-letter' %}" class="nav-link {% if request|is_active:'/news/letter/' %}active{% endif %}">
+          <a href="{% url 'news-letter' %}" class="nav-link {% if request|is_active_common:'/news/letter/' %}active{% endif %}">
             <i class="nav-icon fas fa-tags"></i>
             <p>News Letter</p>
           </a>
@@ -94,13 +94,13 @@
       </li>      
         <li class="nav-header">CMS</li>
         <li class="nav-item">
-          <a href="{% url 'contact-us' %}" class="nav-link {% if request|is_active:'/contact-us/' %}active{% endif %}">
+          <a href="{% url 'contact-us' %}" class="nav-link {% if request|is_active_common:'/contact-us/' %}active{% endif %}">
             <i class="nav-icon fas fa-envelope"></i>
             <p>Contact Us</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="{% url 'cms' %}" class="nav-link {% if request|is_active:'/cms/' %}active{% endif %}">
+          <a href="{% url 'cms' %}" class="nav-link {% if request|is_active_common:'/cms/' %}active{% endif %}">
             <i class="nav-icon fas fa-file-contract"></i>
             <p>CMS</p>
           </a>
@@ -109,45 +109,39 @@
         {% if user|has_group:"inventory manager" %}
         <!-- Inventory Manager Links -->
         <li class="nav-item">
-          <a href="{% url 'categories' %}" class="nav-link {% if request|is_active:'/categories/' %}active{% endif %}">
+          <a href="{% url 'categories' %}" class="nav-link {% if request|is_active_common:'/categories/' %}active{% endif %}">
             <i class="nav-icon fas fa-tags"></i>
             <p>Category</p>
           </a>
         </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link {% if request|is_active:'/products/' %}active{% endif %}">
-            <i class="nav-icon fas fa-box"></i>
-            <p>
-              Products
-              <i class="right fas fa-angle-left"></i>
-            </p>
+        <li class="nav-item {% if request|is_active:'/admin-custom/products/' or request|is_active:'/admin-custom/products/attribute/' %}menu-open{% endif %}">
+          <a href="#" class="nav-link {% if request|is_active:'/admin-custom/products/' %}active{% endif %}">
+              <i class="nav-icon fas fa-box"></i>
+              <p>
+                  Products
+                  <i class="right fas fa-angle-left"></i>
+              </p>
           </a>
           <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="{% url 'products' %}" class="nav-link {% if request|is_active:'/products/' %}active{% endif %}">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Product</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="{% url 'add-product' %}" class="nav-link {% if request|is_active:'/add-product/' %}active{% endif %}">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Add Product</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="{% url 'product-attribute' %}" class="nav-link {% if request|is_active:'/add-product-attribute/' %}active{% endif %}">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Product Attributes</p>
-              </a>
-            </li>
+              <li class="nav-item">
+                  <a href="{% url 'products' %}" class="nav-link {% if request|is_active:'/admin-custom/products/' and not request|is_active:'/admin-custom/products/attribute/' %}active{% endif %}">
+                      <i class="far fa-circle nav-icon"></i>
+                      <p>Product</p>
+                  </a>
+              </li>
+              <li class="nav-item">
+                  <a href="{% url 'product-attribute' %}" class="nav-link {% if request|is_active:'/admin-custom/products/attribute/' %}active{% endif %}">
+                      <i class="far fa-circle nav-icon"></i>
+                      <p>Product Attributes</p>
+                  </a>
+              </li>
           </ul>
         </li>
         {% endif %}
         {% if user|has_group:"order manager" %}
         <!-- Order Manager Links -->
         <li class="nav-item">
-          <a href="{% url 'orders' %}" class="nav-link {% if request|is_active:'/orders/' %}active{% endif %}">
+          <a href="{% url 'orders' %}" class="nav-link {% if request|is_active_common:'/orders/' %}active{% endif %}">
             <i class="nav-icon fas fa-copy"></i>
             <p>Orders</p>
           </a>

@@ -3,7 +3,8 @@ from django.contrib.auth.models import AbstractBaseUser,PermissionsMixin
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from .managers import CustomManager
-
+from project.utils import base_model
+from project.product.models import Product
 # Create your models here.
 class User(AbstractBaseUser,PermissionsMixin):
 
@@ -61,3 +62,9 @@ class Address(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.address[:20]}{' (Primary)' if self.is_primary else ''}"
+    
+class Wishlist(base_model.BaseModel):
+    user = models.ForeignKey(User,on_delete=models.CASCADE,related_name='wishlist')
+    product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name='items')
+    is_active = models.BooleanField(default=True)
+    is_delete = models.BooleanField(default=False)

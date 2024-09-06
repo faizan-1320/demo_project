@@ -127,7 +127,6 @@
                     class="fas fa-arrow-circle-right"></i></a>
               </div>
             </div>
-            <!-- ./col -->
             <div class="col-lg-3 col-6">
               <!-- small box -->
               <div class="small-box bg-warning">
@@ -142,24 +141,22 @@
                 <a href="{% url 'products' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
               </div>
             </div>
-            <!-- ./col -->
-            <!-- <div class="col-lg-3 col-6">
-              <div class="small-box bg-info">
-                <div class="inner">
-                  <h3>0</h3>
-
-                  <p>Orders</p>
-                </div>
-                <div class="icon">
-                  <i class="ion ion-bag"></i>
-                </div>
-                <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-              </div>
-            </div> -->
-            <!-- ./col -->
             <div class="col-lg-3 col-6">
               <!-- small box -->
-              <div class="small-box bg-dark">
+              <div class="small-box bg-primary">
+                <div class="inner">
+                  <h3>{{category_count }}</h3>
+                  <p>Categories</p>
+                </div>
+                <div class="icon">
+                  <i class="ion ion-pricetags"></i>
+                </div>
+                <a href="{% url 'categories' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+              </div>
+            </div>
+            <div class="col-lg-3 col-6">
+              <!-- small box -->
+              <div class="small-box bg-danger">
                 <div class="inner">
                   <h3>{{coupon_count}}</h3>
 
@@ -171,10 +168,9 @@
                 <a href="{% url 'coupons' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
               </div>
             </div>
-            <!-- ./col -->
             <div class="col-lg-3 col-6">
               <!-- small box -->
-              <div class="small-box bg-danger">
+              <div class="small-box bg-success">
                 <div class="inner">
                   <h3>{{banner_count}}</h3>
                   <p>Banners</p>
@@ -259,17 +255,15 @@
             {% if user|has_group:'order manager' %}
             <div class="row">
               <div class="col-lg-3 col-6">
-                <!-- small box -->
-                <div class="small-box bg-info">
+                <div class="small-box bg-primary">
                   <div class="inner">
-                    <h3>0</h3>
-  
+                    <h3>{{order_count}}</h3>
                     <p>Orders</p>
                   </div>
                   <div class="icon">
-                    <i class="ion ion-bag"></i>
+                    <i class="fas fa-copy"></i>
                   </div>
-                  <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                  <a href="{% url 'orders' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
                 </div>
               </div>
             </div>

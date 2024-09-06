@@ -20,5 +20,9 @@ urlpatterns = [
     path('user/add/address',add_address,name='add-address'),
     path('user/edit/address/<int:pk>',edit_address,name='edit-address'),
     path('user/delete/address/<int:pk>',delete_address,name='delete-address'),
+    # WishList URL
+    path('wishlist/',wish_list,name='wishlist'),
+    path('wishlist/add/<int:product_id>/',add_to_wishlist,name='add-to-wishlist'),
+    path('wishlist/remove/<int:product_id>/',remove_from_wishlist,name='remove-from-wishlist'),
     
 ]

@@ -56,7 +56,7 @@
                                 {% if not product.quantity|is_out_of_stock %}
                                 <label>Quantity:</label>
                                 <input type="text" disabled value="{{product.quantity}}" />
-                                <a type="button" class="btn btn-fefault cart" href="{% url 'add-to-cart' product.id %}">
+                                <a type="button" class="btn btn-fefault cart add-to-cart" href="{% url 'add-to-cart' product.id %}">
                                     <i class="fa fa-shopping-cart"></i>
                                     Add to cart
                                 </a>
@@ -101,4 +101,61 @@
         </div>
     </div>
 </section>
+{% block js %}
+	<script>
+	
+	$(document).ready(function() {
+        $('.add-to-cart').click(function(e) {
+            e.preventDefault();
+            var url = $(this).attr('href');
+            var productId = $(this).data('product-id');
+            $.ajax({
+                url: url,
+                type: 'GET',
+                data: {
+                    'product-id': productId
+                },
+                success: function(res) {
+                    
+                    if (res.success) {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'success',
+                            title: res.message,
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true,
+                        });
+                        
+                        // Optionally update the cart count in the UI
+                        $('#cart-count').text(res.cart_count);
+                    } else {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'error',
+                            title: res.message,
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true,
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'error',
+                        title: 'Failed to add product to cart!',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                    });
+                }
+            });
+        });
+    });
+	</script>
+	{% endblock %}
 {% endblock %}
