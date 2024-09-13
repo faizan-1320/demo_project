@@ -1,3 +1,9 @@
+"""
+Unit tests for the Coupon application.
+"""
 from django.test import TestCase
 
-# Create your tests here.
+class CouponModelTests(TestCase):
+    """
+    Tests for the Coupon model.
+    """

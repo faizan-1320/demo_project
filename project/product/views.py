@@ -1,17 +1,24 @@
-from django.shortcuts import render,get_object_or_404,redirect
-from .models import Product,ProductAttributeValue
+"""
+Views for the product application.
+
+This module contains views for listing, creating, editing, and deleting product.
+"""
 from collections import defaultdict
-from .models import Product, Review, Rating
-from .forms import ReviewForm, RatingForm
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import render,get_object_or_404,redirect
 from django.db.models import Avg
+from django.contrib.auth.decorators import login_required
+from .models import Product,ProductAttributeValue,Review, Rating
+from .forms import ReviewForm, RatingForm
 
 # Create your views here.
 def product_detail(request,pk):
-    product = get_object_or_404(Product.objects.prefetch_related('product'), id=pk)
-    attributes = ProductAttributeValue.objects.filter(product=product)
-    reviews = Review.objects.filter(product=product, is_active=True, is_delete=False)
-    ratings = Rating.objects.filter(product=product, is_active=True, is_delete=False)
+    """
+    Product Listing View
+    """
+    product = get_object_or_404(Product.objects.prefetch_related('product'), id=pk) # pylint: disable=E1101
+    attributes = ProductAttributeValue.objects.filter(product=product) # pylint: disable=E1101
+    reviews = Review.objects.filter(product=product, is_active=True, is_delete=False) # pylint: disable=E1101
+    ratings = Rating.objects.filter(product=product, is_active=True, is_delete=False) # pylint: disable=E1101
 
     average_rating = ratings.aggregate(Avg('rating'))['rating__avg'] or 0
 
@@ -41,6 +48,9 @@ def product_detail(request,pk):
 
 @login_required
 def product_review_and_rating(request, product_id):
+    """
+    Product Detail Listing View
+    """
     product = get_object_or_404(Product, id=product_id)
     review_form = ReviewForm(request.POST or None)
     rating_form = RatingForm(request.POST or None)

@@ -1,9 +1,12 @@
+# pylint: disable=E0401,W0102,W0718
+'''Comman Email send function'''
 from django.core.mail import EmailMessage
 from django.template import Template, Context
-from project.customadmin.models import EmailTemplate
 from django.conf import settings
+from project.customadmin.models import EmailTemplate
 
 def send_custom_mail(to_email=None, template_name="", context={}):
+    """Email Function For Admin"""
     try:
         email_template = EmailTemplate.objects.filter(template_name=template_name).first()
         if not email_template:
@@ -22,7 +25,7 @@ def send_custom_mail(to_email=None, template_name="", context={}):
         email.content_subtype = "html"
 
         email.send(fail_silently=False)
-        
+
         return True
 
     except EmailTemplate.DoesNotExist:

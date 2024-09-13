@@ -50,9 +50,24 @@ LOCAL_APPS = [
 
 SITE_ID = 1
 
-THIRD_PARTY_APPS = []
+THIRD_PARTY_APPS = [
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+]
 
 INSTALLED_APPS = DEAFULT_APPS + LOCAL_APPS + THIRD_PARTY_APPS
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google':{
+        'SCOPE':[
+            'profile',
+            'email'
+        ],
+        'AUTH_PARAMS':{'access_type':'online'}
+    }
+}
 
 AUTH_USER_MODEL = 'users.User'
 
@@ -64,6 +79,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -157,3 +173,17 @@ LOGIN_REDIRECT_URL = 'home'
 
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_TIMEZONE = 'UTC'
+
+# Google
+
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+
+AUTHENTICATION_BACKENDS = (
+    'project.users.backends.EmailBackend',
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)

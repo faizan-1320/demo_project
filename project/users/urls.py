@@ -1,16 +1,25 @@
+"""
+URL configurations for the custom admin panel. 
+Includes routes for managing product_detail,product_review_and_rating,product.
+"""
 from django.urls import path
-from .views import *
 from django.contrib.auth import views as auth_views
+from .views import (home,auth_view,logout_user,contact_us,user_detail_edit,
+        user_detail,add_address,edit_address,delete_address,wish_list,
+        remove_from_wishlist,add_to_wishlist)
 urlpatterns = [
     # Home Page
     path('',home,name='home'),
     # Auth URL
     path('auth-view/',auth_view,name='auth-view'),
-    path('logout/',logoutUser,name='logout'),
+    path('logout/',logout_user,name='logout'),
     path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
-    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
-    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
-    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
+    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(),
+        name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(),
+         name='password_reset_confirm'),
+    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(),
+         name='password_reset_complete'),
     # Contact US URL
     path('contact-us/',contact_us,name='contact'),
     # User Detail URL
@@ -24,5 +33,5 @@ urlpatterns = [
     path('wishlist/',wish_list,name='wishlist'),
     path('wishlist/add/<int:product_id>/',add_to_wishlist,name='add-to-wishlist'),
     path('wishlist/remove/<int:product_id>/',remove_from_wishlist,name='remove-from-wishlist'),
-    
+
 ]

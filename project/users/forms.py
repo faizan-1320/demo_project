@@ -1,22 +1,44 @@
+"""
+Forms for the user application.
+
+This module contains forms for managing user create,
+user change,login,contact,address,newsletter.
+"""
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django import forms
-from .models import User,Address
-from project.customadmin.models import ContactUs,NewsletterSubscriber
 from django.contrib import messages
-class CustomUserCreationForm(UserCreationForm):
-
-    class Meta:
+from project.customadmin.models import ContactUs,NewsletterSubscriber # pylint: disable=E0401
+from .models import User,Address
+class CustomUserCreationForm(UserCreationForm): # pylint: disable=R0901
+    """
+    Form for CustomUserCreationForm.
+    """
+    class Meta: # pylint: disable=R0903
+        """
+        Meta Class.
+        """
         model = User
         fields = ("email",)
 
 class CustomUserChangeForm(UserChangeForm):
-
-    class Meta:
+    """
+    Form for CustomUserChangeForm.
+    """
+    class Meta: # pylint: disable=R0903
+        """
+        Meta Class.
+        """
         model = User
         fields = ("email",)
 
 class UserForm(forms.ModelForm):
-    class Meta:
+    """
+    Form for UserForm.
+    """
+    class Meta: # pylint: disable=R0903
+        """
+        Meta Class.
+        """
         model = User
         fields = ['first_name', 'last_name','phone_number']
         widgets = {
@@ -26,11 +48,20 @@ class UserForm(forms.ModelForm):
         }
 
 class LoginForm(forms.Form):
+    """
+    Form for LoginForm.
+    """
     email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
     password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
 
 class AdressForm(forms.ModelForm):
-    class Meta:
+    """
+    Form for AdressForm.
+    """
+    class Meta: # pylint: disable=R0903
+        """
+        Meta Class.
+        """
         model = Address
         fields =['address','city','country','district','postcode','is_primary']
         widgets = {
@@ -42,7 +73,13 @@ class AdressForm(forms.ModelForm):
         }
 
 class ContactForm(forms.ModelForm):
-    class Meta:
+    """
+    Form for ContactForm.
+    """
+    class Meta: # pylint: disable=R0903
+        """
+        Meta Class.
+        """
         model = ContactUs
         fields = ['name','subject','email','message']
         widgets = {
@@ -53,12 +90,21 @@ class ContactForm(forms.ModelForm):
         }
 
 class NewsletterForm(forms.ModelForm):
-    class Meta:
+    """
+    Form for NewsletterForm.
+    """
+    class Meta: # pylint: disable=R0903
+        """
+        Meta Class.
+        """
         model =NewsletterSubscriber
         fields = ['email']
         widgets ={'email':forms.EmailInput(attrs={'class':'form-control'})}
 
-    def save(self, request, commit=True):
+    def save(self, request, commit=True): # pylint: disable=W0237
+        """
+        Function to save.
+        """
         email = self.cleaned_data['email']
         subscriber, created = NewsletterSubscriber.objects.get_or_create(email=email)
 

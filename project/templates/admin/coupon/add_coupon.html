@@ -36,13 +36,24 @@
             <form id="myForm" method="post">
               {% csrf_token %}
               <div class="card-body">
+                <!-- Display non-field errors -->
+                {% if form.non_field_errors %}
+                  <div class="alert alert-danger p-0">
+                    {% for error in form.non_field_errors %}
+                      <p>{{ error }}</p>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+                
                 {% for field in form %}
                   <div class="form-group">
                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                     {{ field }}
                     {% if field.errors %}
-                      <div class="alert alert-danger mt-2">
-                        {{ field.errors|striptags }}
+                      <div class="text-danger mt-2">
+                        {% for error in field.errors %}
+                          <p>{{ error }}</p>
+                        {% endfor %}
                       </div>
                     {% endif %}
                   </div>
@@ -68,6 +79,6 @@
     $('#cancelButton').on('click', function () {
       window.history.back();
     });
-  })
+  });
 </script>
 {% endblock content %}

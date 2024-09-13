@@ -1,27 +1,37 @@
-import paypalrestsdk
+"""
+Views for the order application.
+
+This module contains views for listing, creating, editing, and deleting order.
+"""
+from decimal import Decimal
 import requests
+import paypalrestsdk
 from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import render, redirect,get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from .models import Product,ProductInOrder,Order
-from project.users.models import Address
-from project.coupon.models import Coupon
-from decimal import Decimal
 from django.utils import timezone
-from project.users.models import Wishlist
+from project.users.models import Address # pylint: disable=E0401
+from project.coupon.models import Coupon # pylint: disable=E0401
+from project.users.models import Wishlist # pylint: disable=E0401
+from .models import Product,ProductInOrder,Order
 # Configure PayPal SDK
 paypalrestsdk.configure({
     "mode": "sandbox",
-    "client_id": 'AQIomGzeKsnNgkKyf9kfWu27UOllP_MoMpEbeUH0qVEK3VLhQZr9rBj8Icn4CMsxf8AEQco6N0w7wdKt',
-    "client_secret": 'EE6UMMHCzd5A_KXEb695XjLLVb-Uf_-1Zhy3fKM9PIh5dkZPS8e1pr99UHFTyMe56hhqa24kZUj3xq2r',
+    "client_id": 
+    'AQIomGzeKsnNgkKyf9kfWu27UOllP_MoMpEbeUH0qVEK3VLhQZr9rBj8Icn4CMsxf8AEQco6N0w7wdKt',
+    "client_secret": 
+    'EE6UMMHCzd5A_KXEb695XjLLVb-Uf_-1Zhy3fKM9PIh5dkZPS8e1pr99UHFTyMe56hhqa24kZUj3xq2r',
     "log_level": "DEBUG"
 })
 
 def get_paypal_access_token():
-    url = "https://api.sandbox.paypal.com/v1/oauth2/token"  # Use "https://api.paypal.com/v1/oauth2/token" for live
+    """
+    Get Paypal access token
+    """
+    url = "https://api.sandbox.paypal.com/v1/oauth2/token"
     headers = {
         "Accept": "application/json",
         "Accept-Language": "en_US"
@@ -30,21 +40,30 @@ def get_paypal_access_token():
     data = {
         "grant_type": "client_credentials"
     }
-    response = requests.post(url, headers=headers, auth=auth, data=data)
-    response.raise_for_status()  # Raises an HTTPError for bad responses
+    response = requests.post(url, headers=headers, auth=auth, data=data, timeout=50)
+    response.raise_for_status()
     return response.json()["access_token"]
 
 def get_cart(request):
+    """
+    Get Cart
+    """
     return request.session.get('cart', {})
 
 def set_cart(request, cart):
+    """
+    Set Cart
+    """
     request.session['cart'] = cart
 
 def cart_detail(request):
+    """
+    Cart Detail View
+    """
     cart = get_cart(request)
     cart_items = []
     cart_sub_total = 0
-    
+
     for product_id, quantity in cart.items():
         product = Product.objects.get(id=product_id)
         cart_items.append({
@@ -68,15 +87,19 @@ def cart_detail(request):
     return render(request, 'front_end/order/cart.html', context)
 
 def add_to_cart(request, pk):
+    """
+    Add to cart view
+    """
     product = get_object_or_404(Product, id=pk)
     cart = get_cart(request)
-    
     current_quantity_in_cart = cart.get(str(pk), 0)
-    
+
     if current_quantity_in_cart < product.quantity:
         cart[str(pk)] = current_quantity_in_cart + 1
-        wishlist = get_object_or_404(Wishlist,product=product)
-        wishlist.delete()
+        wishlist_exists = Wishlist.objects.filter(product=product).exists()
+        if wishlist_exists:
+            Wishlist.objects.filter(product=product).delete()
+
         set_cart(request, cart)
         response_data = {
             'success': True,
@@ -92,26 +115,32 @@ def add_to_cart(request, pk):
     return JsonResponse(response_data)
 
 def remove_from_cart(request, pk):
+    """
+    Remove from cart view
+    """
     product = get_object_or_404(Product, id=pk)
-    
+
     if request.method == 'POST':
         cart = get_cart(request)
-        
+
         if str(pk) in cart:
             del cart[str(pk)]
             messages.success(request, f"Removed {product.name} from your cart.")
-        
+
         set_cart(request, cart)
-    
+
     return redirect('cart-detail')
 
 def update_cart_quantity(request, pk):
+    """
+    Update cart quantity view
+    """
     if request.method == 'POST':
         product = get_object_or_404(Product, id=pk)
         requested_quantity = int(request.POST.get('quantity', 1))
         cart = request.session.get('cart', {})
 
-        if requested_quantity > product.quantity:
+        if requested_quantity > product.quantity: # pylint: disable=R1705
             return JsonResponse({
                 'status': 'error',
                 'message': f"Sorry, {product.name} is out of stock.",
@@ -139,6 +168,9 @@ def update_cart_quantity(request, pk):
     return JsonResponse({'status': 'error', 'message': 'Invalid request.'})
 
 def calculate_cart_subtotal(cart):
+    """
+    Calcuate cart subtotal function
+    """
     subtotal = 0
     for product_id, quantity in cart.items():
         product = get_object_or_404(Product, id=product_id)
@@ -146,7 +178,10 @@ def calculate_cart_subtotal(cart):
     return subtotal
 
 @login_required
-def checkout(request):
+def checkout(request): # pylint: disable=R0914,R0912,R0915
+    """
+    Checkout view
+    """
     user = request.user
     cart = get_cart(request)
     cart_items = []
@@ -172,7 +207,7 @@ def checkout(request):
         })
         cart_sub_total += product.price * quantity
 
-    if request.method == 'POST':
+    if request.method == 'POST': # pylint: disable=R1702
         coupon_code = request.POST.get('coupon_code','').strip()
 
         if coupon_code:
@@ -191,7 +226,7 @@ def checkout(request):
         total = cart_sub_total + eco_tax + shipping_cost - discount_amount
         try:
             primary_address = get_object_or_404(Address, user=user, is_primary=True)
-        except:
+        except: # pylint: disable=W0702
             primary_address = None
             messages.error(request, "You need to set a primary address before checking out.")
             return redirect('add-address')
@@ -224,13 +259,13 @@ def checkout(request):
                             "items": [{
                                 "name": "Order",
                                 "sku": "item",
-                                "price": "{:.2f}".format(total),
+                                "price": f"{total:.2f}",
                                 "currency": "USD",
                                 "quantity": 1
                             }]
                         },
                         "amount": {
-                            "total": "{:.2f}".format(total),
+                            "total": f"{total:.2f}",
                             "currency": "USD"
                         },
                         "description": "This is the payment transaction description."
@@ -241,10 +276,12 @@ def checkout(request):
                         if link.rel == "approval_url":
                             return redirect(link.href)
                 else:
-                    messages.error(request, f"An error occurred while processing your payment: {payment.error}")
+                    messages.error(request,
+                    f"""An error occurred while processing your payment:
+                    {payment.error}""")
 
             elif payment_method == 'cash_on_delivery':
-                order = Order.objects.create(
+                order = Order.objects.create( # pylint: disable=E1101
                 user=user,
                 total_amount=total,
                 payment_status=3,
@@ -253,7 +290,7 @@ def checkout(request):
                 coupon=coupon,
                 discount_amount=discount_amount,
                 )
-            
+
                 # Save each product in the order
                 for item in cart_items:
                     print('item: ', item)
@@ -261,7 +298,7 @@ def checkout(request):
                     product = Product.objects.get(id=product.id)
                     product.quantity = product.quantity - item['quantity']
                     product.save()
-                    ProductInOrder.objects.create(
+                    ProductInOrder.objects.create( # pylint: disable=E1101
                         order=order,
                         product=item['product'],
                         quantity=item['quantity'],
@@ -278,10 +315,10 @@ def checkout(request):
         total = cart_sub_total + eco_tax + shipping_cost - discount_amount
         try:
             primary_address = get_object_or_404(Address, user=user, is_primary=True)
-        except:
+        except: #pylint: disable=W0702
             primary_address = None
             messages.error(request, "You need to set a primary address before checking out.")
-            return redirect('add-address')  
+            return redirect('add-address')
 
     context = {
         'cart_items': cart_items,
@@ -294,11 +331,14 @@ def checkout(request):
         'applied_coupon': coupon,
         'discount_amount': discount_amount
     }
-    
+
     return render(request, 'front_end/order/checkout.html', context)
 
 @login_required
-def paypal_execute_payment(request):
+def paypal_execute_payment(request): #pylint: disable=R0914
+    """
+    Paypal execute view
+    """
     payment_id = request.GET.get('paymentId')
     payer_id = request.GET.get('PayerID')
 
@@ -312,22 +352,23 @@ def paypal_execute_payment(request):
         data = {
             "payer_id": payer_id
         }
-        response = requests.post(url, headers=headers, json=data)
+        response = requests.post(url, headers=headers, json=data, timeout=50)
 
         if response.status_code == 200:
             # Payment executed successfully
             payment = response.json()
             print('payment: ', payment)
             order_data = request.session.get('order_data')
-            if order_data:
+            if order_data: # pylint: disable=R1705
                 user = request.user
                 address = Address.objects.get(id=order_data['address_id'])
-                coupon = Coupon.objects.get(id=order_data['coupon_id']) if order_data['coupon_id'] else None
+                coupon = Coupon.objects.get(
+                id=order_data['coupon_id']) if order_data['coupon_id'] else None
                 discount_amount = Decimal(order_data['discount_amount'])
                 total_amount = Decimal(order_data['total_amount'])
                 shipping_method = order_data['shipping_method']
 
-                order = Order.objects.create(
+                order = Order.objects.create( #pylint: disable=E1101
                     user=user,
                     total_amount=total_amount,
                     payment_status=1,
@@ -341,7 +382,7 @@ def paypal_execute_payment(request):
                     product = Product.objects.get(id=product_id)
                     product.quantity = product.quantity - quantity
                     product.save()
-                    ProductInOrder.objects.create(
+                    ProductInOrder.objects.create( #pylint: disable=E1101
                         order=order,
                         product=product,
                         quantity=quantity,
@@ -363,14 +404,20 @@ def paypal_execute_payment(request):
 
 @login_required
 def paypal_cancel_payment(request):
+    """
+    Paypal cancel view
+    """
     messages.warning(request, "Payment cancelled by the user.")
     return redirect('checkout')
 
 @login_required
 def order_confirmation(request,pk):
+    """
+    Order confirmation view
+    """
     # Fetch the order based on the provided order ID
     order = get_object_or_404(Order, id=pk, user=request.user)
-    
+
     # Render the order confirmation page
     return render(request, 'front_end/order/order_confirmation.html',{'order':order})
 
@@ -380,7 +427,10 @@ def order_confirmation(request,pk):
 
 @login_required
 def order_list(request):
-    orders = Order.objects.filter(user=request.user).order_by('-datetime_of_payment')
+    """
+    Order list view
+    """
+    orders = Order.objects.filter(user=request.user).order_by('-datetime_of_payment') #pylint: disable=E1101
     paginator = Paginator(orders,10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -390,7 +440,10 @@ def order_list(request):
     return render(request, 'front_end/order/user/order_list.html', context)
 
 @login_required
-def order_detail(request, pk):
+def order_detail_user(request, pk):
+    """
+    Order detail view for user
+    """
     order = get_object_or_404(Order, id=pk)
 
     order_items = [
@@ -407,5 +460,5 @@ def order_detail(request, pk):
         'order': order,
         'order_items': order_items,
     }
-    
+
     return render(request, 'front_end/order/user/order_detail_user.html', context)

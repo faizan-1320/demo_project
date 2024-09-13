@@ -1,15 +1,21 @@
-from django.shortcuts import render,redirect,get_object_or_404
-from .forms import LoginForm,UserForm,CustomUserCreationForm,AdressForm,ContactForm,NewsletterForm
+# pylint: disable=E0401,R1705,C0206,E1101
+"""
+Views for the product application.
+
+This module contains views for listing, creating, editing, and deleting User.
+"""
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.contrib.auth import authenticate,login,logout
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
-from .models import Address,User,Wishlist
-from project.customadmin.models import Banner
-from project.product.models import Product,Category
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.conf import settings
-
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from project.customadmin.models import Banner
+from project.product.models import Product, Category
+from .models import Address, User, Wishlist
+from .forms import (LoginForm, UserForm,
+    CustomUserCreationForm, AdressForm, ContactForm, NewsletterForm)
 
 def get_category_tree(categories, parent_id=None):
     """
@@ -24,22 +30,33 @@ def get_category_tree(categories, parent_id=None):
         })
     return tree
 
-# Create your views here.
 def home(request):
+    """
+    View for the homepage. Displays banners, categories, and products.
+    Handles filtering products based on selected category and pagination.
+    """
     banners = Banner.objects.filter(is_active=True, is_delete=False)
     categories = Category.objects.filter(is_active=True, is_delete=False)
     category_tree = get_category_tree(categories)
 
+    # Get selected category from query parameters
     category_id = request.GET.get('category', None)
-    
-    if category_id:
-        selected_category = get_object_or_404(Category, id=category_id, is_active=True, is_delete=False)
-        subcategories = Category.objects.filter(parent=selected_category, is_active=True, is_delete=False)
-        categories_to_filter = [selected_category] + list(subcategories)
-        products = Product.objects.filter(category__in=categories_to_filter, is_active=True, is_delete=False)
-    else:
-        products = Product.objects.filter(is_active=True, is_delete=False).prefetch_related('product')
 
+    if category_id:
+        # If a category is selected, filter products by that category and its subcategories
+        selected_category = get_object_or_404(
+        Category, id=category_id, is_active=True, is_delete=False)
+        subcategories = Category.objects.filter(
+        parent=selected_category, is_active=True, is_delete=False)
+        categories_to_filter = [selected_category] + list(subcategories)
+        products = Product.objects.filter(
+        category__in=categories_to_filter, is_active=True, is_delete=False)
+    else:
+        # If no category is selected, display all active products
+        products = Product.objects.filter(
+        is_active=True, is_delete=False).prefetch_related('product')
+
+    # Paginate products
     paginator = Paginator(products, 12)
     page = request.GET.get('page', 1)
 
@@ -52,6 +69,7 @@ def home(request):
 
     form = NewsletterForm()
 
+    # Handle newsletter subscription form submission
     if request.method == 'POST':
         form = NewsletterForm(request.POST)
         if form.is_valid():
@@ -63,84 +81,101 @@ def home(request):
         'products': products_paginated,
         'categories': category_tree,
         'selected_category': category_id,
-        'form':form,
+        'form': form,
     }
     return render(request, 'front_end/index.html', context)
 
 def auth_view(request):
+    """
+    View for user authentication: login and registration.
+    Handles form submissions for both login and registration.
+    """
     next_url = request.GET.get("next", settings.LOGIN_REDIRECT_URL)
 
     if request.method == 'POST':
         if 'login' in request.POST:
             login_form = LoginForm(request.POST)
             register_form = CustomUserCreationForm()
-            
+
             if login_form.is_valid():
                 email = login_form.cleaned_data['email']
                 password = login_form.cleaned_data['password']
                 user = authenticate(request, username=email, password=password)
-                
+
                 if user is not None:
                     login(request, user)
                     return redirect(next_url)
                 else:
                     messages.error(request, 'Email or Password does not exist')
-        
+
         elif 'register' in request.POST:
             register_form = CustomUserCreationForm(request.POST)
             login_form = LoginForm()
-            
+
             if register_form.is_valid():
                 try:
                     user = register_form.save(commit=False)
                     user.email = user.email.lower()
                     user.save()
-                    messages.success(request,'Register Successfully')
+                    messages.success(request, 'Register Successfully')
                     return redirect('auth-view')
                 except IntegrityError:
                     messages.error(request, 'A user with that email already exists.')
             else:
                 for msg in register_form.error_messages:
                     messages.error(request, f'{msg}: {register_form.error_messages[msg]}')
-    
+
     else:
         login_form = LoginForm()
         register_form = CustomUserCreationForm()
-    
+
     context = {
         'login_form': login_form,
         'register_form': register_form
     }
     return render(request, 'front_end/authentication/auth_page.html', context)
 
-def logoutUser(request):
+def logout_user(request):
+    """
+    Log out the current user and preserve the cart session.
+    """
     cart = request.session.get('cart', {})
     logout(request)
     request.session['cart'] = cart
     return redirect('home')
 
 def contact_us(request):
+    """
+    View for the 'Contact Us' page. Handles form submission for contacting the site admin.
+    """
     if request.method == 'POST':
         form = ContactForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request,'Mail send successfully!')
+            messages.success(request, 'Mail sent successfully!')
             return redirect('contact')
     else:
         form = ContactForm()
-    return render(request,'front_end/contact.html',{'form':form})
+    return render(request, 'front_end/contact.html', {'form': form})
 
 @login_required
 def user_detail(request):
+    """
+    View to display the logged-in user's details and addresses.
+    """
     user = request.user
-    user_detail = User.objects.get(id=user.id)
-
+    user_detail_data = User.objects.get(id=user.id)
     addresses = Address.objects.filter(user=user)
 
-    return render(request, 'front_end/user/user_detail.html', {'user_detail': user_detail,'addresses': addresses})
+    return render(request,
+            'front_end/user/user_detail.html', 
+    {'user_detail': user_detail_data, 'addresses': addresses})
 
 @login_required
 def user_detail_edit(request):
+    """
+    View for editing the logged-in user's details.
+    """
     user = request.user
 
     if request.method == 'POST':
@@ -158,6 +193,9 @@ def user_detail_edit(request):
 
 @login_required
 def add_address(request):
+    """
+    View for adding a new address for the logged-in user.
+    """
     user = request.user
     if request.method == 'POST':
         address_form = AdressForm(request.POST)
@@ -171,13 +209,16 @@ def add_address(request):
             messages.error(request, 'Please correct the errors below.')
     else:
         address_form = AdressForm()
-    return render(request,'front_end/user/add_address.html',{'address_form':address_form})
+    return render(request, 'front_end/user/add_address.html', {'address_form': address_form})
 
 @login_required
 def edit_address(request, pk):
+    """
+    View for editing an existing address of the logged-in user.
+    """
     user = request.user
     address = get_object_or_404(Address, id=pk, user=user)
-    
+
     if request.method == 'POST':
         address_form = AdressForm(request.POST, instance=address)
         if address_form.is_valid():
@@ -188,11 +229,14 @@ def edit_address(request, pk):
             messages.error(request, 'Please correct the errors below.')
     else:
         address_form = AdressForm(instance=address)
-    
+
     return render(request, 'front_end/user/edit_address.html', {'address_form': address_form})
 
 @login_required
 def delete_address(request, pk):
+    """
+    View for deleting an address of the logged-in user.
+    """
     user = request.user
     address = get_object_or_404(Address, id=pk, user=user)
 
@@ -204,8 +248,11 @@ def delete_address(request, pk):
     return render(request, 'front_end/user/confirm_delete_address.html', {'address': address})
 
 @login_required
-def add_to_wishlist(request,product_id):
-    product = get_object_or_404(Product,id=product_id)
+def add_to_wishlist(request, product_id):
+    """
+    Add a product to the logged-in user's wishlist.
+    """
+    product = get_object_or_404(Product, id=product_id)
     wishlist_item, created = Wishlist.objects.get_or_create(user=request.user, product=product)
 
     if not created:
@@ -222,8 +269,13 @@ def add_to_wishlist(request,product_id):
 
 @login_required
 def remove_from_wishlist(request, product_id):
+    """
+    Remove a product from the logged-in user's wishlist.
+    """
     if request.method == 'POST':
-        wishlist_item = get_object_or_404(Wishlist, user=request.user, product_id=product_id, is_active=True, is_delete=False)
+        wishlist_item = get_object_or_404(
+        Wishlist, user=request.user,
+        product_id=product_id, is_active=True, is_delete=False)
         wishlist_item.is_active = False
         wishlist_item.is_delete = True
         wishlist_item.save()
@@ -235,8 +287,11 @@ def remove_from_wishlist(request, product_id):
 
 @login_required
 def wish_list(request):
-    wishlist = Wishlist.objects.filter(user=request.user,is_active=True,is_delete=False)
+    """
+    View to display the logged-in user's wishlist.
+    """
+    wishlist = Wishlist.objects.filter(user=request.user, is_active=True, is_delete=False)
     context = {
-        'wishlist':wishlist
+        'wishlist': wishlist
     }
-    return render(request,'front_end/wishlist/wishlist.html',context)
+    return render(request, 'front_end/wishlist/wishlist.html', context)

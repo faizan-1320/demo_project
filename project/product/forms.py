@@ -1,8 +1,19 @@
+"""
+Forms for the prduct application.
+
+This module contains forms for managing product review,rating.
+"""
 from django import forms
-from .models import Review, Rating
+from .models import Review, Rating,ProductAttribute
 
 class ReviewForm(forms.ModelForm):
-    class Meta:
+    """
+    Form for Review.
+    """
+    class Meta: # pylint: disable=R0903
+        """
+        Meta options for ReviewForm.
+        """
         model = Review
         fields = ['message']
         widgets = {
@@ -10,9 +21,29 @@ class ReviewForm(forms.ModelForm):
         }
 
 class RatingForm(forms.ModelForm):
-    class Meta:
+    """
+    Form for Rating.
+    """
+    class Meta: # pylint: disable=R0903
+        """
+        Meta options for RatingForm.
+        """
         model = Rating
         fields = ['rating']
         widgets = {
             'rating':forms.TextInput(attrs={'class': 'form-control'})
+        }
+
+class ProductAttributeForm(forms.ModelForm):
+    """
+    Form for creating and editing product attributes.
+    """
+    class Meta: # pylint: disable=R0903
+        """
+        Meta options for ProductAttributeForm.
+        """
+        model = ProductAttribute
+        fields = ['name']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'})
         }

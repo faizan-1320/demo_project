@@ -1,5 +1,15 @@
+"""
+URL configurations for the custom admin panel. 
+Includes routes for managing cart,order,payment.
+"""
 from django.urls import path
-from .views import *
+from .views import (
+    cart_detail,add_to_cart,remove_from_cart,
+    update_cart_quantity,checkout,paypal_cancel_payment
+    ,paypal_execute_payment,order_confirmation,
+    order_detail_user,order_list
+)
+from .admin_view import order, order_detail
 
 urlpatterns = [
     path('cart/', cart_detail, name='cart-detail'),
@@ -11,5 +21,8 @@ urlpatterns = [
     path('payment/paypal/cancel/', paypal_cancel_payment, name='paypal_cancel'),
     path('order-confirmation/<int:pk>', order_confirmation, name='order-confirmation'),
     path('user/orders/', order_list, name='order-user'),
-    path('user/order/<int:pk>/', order_detail, name='user-order'),
+    path('user/order/<int:pk>/', order_detail_user, name='user-order'),
+    # Admin Order URL
+    path('orders/', order, name='orders'),
+    path('orders/<int:pk>/detail', order_detail, name='order-detail'),
 ]

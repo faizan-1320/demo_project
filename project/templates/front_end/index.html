@@ -215,7 +215,7 @@
 												<p class="product-quantity" style="color: red;">{% if product.quantity|is_out_of_stock %} Out of stock </p>{% else %}<p class="product-quantity" style="color: green;"> In Stock {% endif %}</p>
 												{% if product.quantity %}
 												<a href="{% url 'add-to-cart' product.id %}"
-													class="btn btn-default add-to-cart" data-product-id="{{ product.id }}"><i
+													class="btn btn-default add-to-cart"	><i
 														class="fa fa-shopping-cart"></i> Add to cart</a>
 												{% endif %}
 											</div>
@@ -353,57 +353,54 @@
     "{% endif %}"
 	
 	$(document).ready(function() {
-        $('.add-to-cart').click(function(e) {
-            e.preventDefault();
-            var url = $(this).attr('href');
-            var productId = $(this).data('product-id');
-            $.ajax({
-                url: url,
-                type: 'GET',
-                data: {
-                    'product-id': productId
-                },
-                success: function(res) {
-                    
-                    if (res.success) {
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            icon: 'success',
-                            title: res.message,
-                            showConfirmButton: false,
-                            timer: 3000,
-                            timerProgressBar: true,
-                        });
-                        
-                        // Optionally update the cart count in the UI
-                        $('#cart-count').text(res.cart_count);
-                    } else {
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            icon: 'error',
-                            title: res.message,
-                            showConfirmButton: false,
-                            timer: 3000,
-                            timerProgressBar: true,
-                        });
-                    }
-                },
-                error: function(xhr, status, error) {
+    $('.add-to-cart').click(function(e) {
+        e.preventDefault();
+
+        var url = $(this).attr('href');
+        $.ajax({
+            url: url,
+            type: 'GET',
+            success: function(res) {
+                if (res.success) {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: res.message,
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                    })
+
+                    // Update the cart count in the UI
+                    $('#cart-count').text(res.cart_count);
+                } else {
                     Swal.fire({
                         toast: true,
                         position: 'top-end',
                         icon: 'error',
-                        title: 'Failed to add product to cart!',
+                        title: res.message,
                         showConfirmButton: false,
                         timer: 3000,
                         timerProgressBar: true,
                     });
                 }
-            });
+            },
+            error: function(xhr, status, error) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'error',
+                    title: 'Failed to add product to cart!',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                });
+            }
         });
     });
+});
+
 	</script>
 	{% endblock %}
 </body>

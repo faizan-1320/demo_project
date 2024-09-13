@@ -31,7 +31,7 @@
             <div class="card-body">
               <form method="get" action="{% url 'products' %}" class="mb-3">
                 <div class="input-group">
-                  <input type="text" class="form-control" name="search" value="{{ search_query }}"
+                  <input type="text" class="form-control" name="q" value="{{ search_query }}"
                     placeholder="Search product...">
                   <div class="input-group-append">
                     <button class="btn btn-primary" type="submit">Search</button>
