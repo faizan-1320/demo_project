@@ -23,6 +23,6 @@ urlpatterns = [
     path('user/orders/', order_list, name='order-user'),
     path('user/order/<int:pk>/', order_detail_user, name='user-order'),
     # Admin Order URL
-    path('orders/', order, name='orders'),
-    path('orders/<int:pk>/detail', order_detail, name='order-detail'),
+    path('admin-custom/orders/', order, name='orders'),
+    path('admin-custom/orders/<int:pk>/detail', order_detail, name='order-detail'),
 ]
