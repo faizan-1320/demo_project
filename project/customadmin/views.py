@@ -128,7 +128,7 @@ def users(request):
         Q(first_name__icontains=search_query) |
         Q(last_name__icontains=search_query) |
         Q(email__icontains=search_query)
-    ).prefetch_related('address')
+    ).prefetch_related('address').order_by('-id')
 
     paginator = Paginator(users,10)
     page_number = request.GET.get('page')

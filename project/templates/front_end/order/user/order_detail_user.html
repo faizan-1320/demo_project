@@ -44,10 +44,10 @@
                     <div>
                         <h6 class="mb-0">{{ item.product.name }}</h6>
                         <small class="text-muted">Quantity: {{ item.quantity }}</small>
-                        <p class="mb-0 text-muted">Price: ₹{{ item.price }}</p>
+                        <p class="mb-0 text-muted">Price: ₹{{ item.product.price }}</p>
                     </div>
                 </div>
-                <span class="badge bg-secondary">₹{{ item.total_price }}</span>
+                <span class="badge bg-secondary">₹{{ item.price }}</span>
             </div>
             {% endfor %}
         </div>

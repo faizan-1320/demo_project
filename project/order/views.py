@@ -319,7 +319,7 @@ def checkout(request): # pylint: disable=R0914,R0912,R0915
             primary_address = None
             messages.error(request, "You need to set a primary address before checking out.")
             return redirect('add-address')
-
+        
     context = {
         'cart_items': cart_items,
         'cart_sub_total': cart_sub_total,

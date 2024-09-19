@@ -27,7 +27,7 @@ def order(request):
     if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
     search_query = request.GET.get('search','')
-    orders = Order.objects.filter(order_id__icontains=search_query) # pylint: disable=E1101
+    orders = Order.objects.filter(order_id__icontains=search_query).order_by('-id') # pylint: disable=E1101
     paginator = Paginator(orders,10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)

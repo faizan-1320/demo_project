@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import permission_required
+from django.db.models import BooleanField, Case, Value, When
 from project.utils import custom_required # pylint: disable=E0401
 from .models import Coupon
 from .forms import CouponForm
@@ -24,7 +25,14 @@ def coupon_list(request):
 
     today = timezone.now().date()
     search_query = request.GET.get('search', '')
-    coupons = Coupon.objects.filter(is_delete=False, code__icontains=search_query)
+    # coupons = Coupon.objects.filter(is_delete=False, code__icontains=search_query)
+    coupons = Coupon.objects.filter(
+    is_delete=False,
+    code__icontains=search_query
+    ).annotate(
+    is_coupon_active=Case(
+        When(start_date__lte=today, end_date__gte=today, then=Value(True)))
+    ).order_by('-is_coupon_active', '-start_date')
 
     for coupon in coupons:
         coupon.currently_active = coupon.is_active and coupon.start_date <= today <= coupon.end_date
