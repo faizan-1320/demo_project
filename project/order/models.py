@@ -10,10 +10,11 @@ from django.conf import settings
 from project.product.models import Product # pylint: disable=E0401
 from project.users.models import Address # pylint: disable=E0401
 from project.coupon.models import Coupon # pylint: disable=E0401
+from project.utils.base_model import BaseModel # pylint: disable=E0401
 
 
 # Create your models here.
-class Order(models.Model):
+class Order(BaseModel):
     """
     Model representing a Order for display.
     """
@@ -51,6 +52,7 @@ class Order(models.Model):
     shipping_method = models.IntegerField(choices=shipping_method_choice, default=1)
     coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True)
     discount_amount = models.FloatField(default=0)
+    paypal_payment_id = models.CharField(max_length=255,null=True,blank=True)
 
     def save(self, *args, **kwargs):
         if self.payment_status == 6:
@@ -75,7 +77,7 @@ class ProductInOrder(models.Model):
         Meta options for ProductInOrder.
         """
         unique_together = (('order', 'product'),)
-    order = models.ForeignKey(Order, on_delete = models.CASCADE)
+    order = models.ForeignKey(Order, on_delete = models.CASCADE, related_name='order_items')
     product = models.ForeignKey(Product, on_delete = models.CASCADE)
     quantity = models.PositiveIntegerField()
     price = models.FloatField()

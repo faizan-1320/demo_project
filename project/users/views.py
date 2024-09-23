@@ -104,6 +104,7 @@ def auth_view(request):
 
                 if user is not None:
                     login(request, user)
+                    messages.success(request, 'Login Successfully')
                     return redirect(next_url)
                 else:
                     messages.error(request, 'Email or Password does not exist')
@@ -124,7 +125,6 @@ def auth_view(request):
             else:
                 for msg in register_form.error_messages:
                     messages.error(request, f'{msg}: {register_form.error_messages[msg]}')
-
     else:
         login_form = LoginForm()
         register_form = CustomUserCreationForm()

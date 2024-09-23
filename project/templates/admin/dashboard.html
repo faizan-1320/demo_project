@@ -64,7 +64,7 @@
       <!-- Right navbar links -->
       <ul class="navbar-nav ml-auto">
         <!-- Navbar Search -->
-        
+
 
         <li class="nav-item">
           <a class="nav-link" data-widget="fullscreen" href="#" role="button">
@@ -79,11 +79,11 @@
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
       <!-- Brand Logo -->
       <a href="{% url 'dashboard' %}" class="brand-link">
-        
+
         <span class="brand-text font-weight-light">Admin Panel</span>
       </a>
 
-     {% include 'admin/side_bar.html' %}
+      {% include 'admin/side_bar.html' %}
     </aside>
     {% block content %}
     <!-- Content Wrapper. Contains page content -->
@@ -110,7 +110,7 @@
       <section class="content">
         <div class="container-fluid">
           <!-- Small boxes (Stat box) -->
-           {% if request.user.is_superuser %}
+          {% if request.user.is_superuser %}
           <div class="row">
             <div class="col-lg-3 col-6">
               <!-- small box -->
@@ -138,7 +138,8 @@
                 <div class="icon">
                   <i class="ion ion-stats-bars"></i>
                 </div>
-                <a href="{% url 'products' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                <a href="{% url 'products' %}" class="small-box-footer">More info <i
+                    class="fas fa-arrow-circle-right"></i></a>
               </div>
             </div>
             <div class="col-lg-3 col-6">
@@ -151,7 +152,8 @@
                 <div class="icon">
                   <i class="ion ion-pricetags"></i>
                 </div>
-                <a href="{% url 'categories' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                <a href="{% url 'categories' %}" class="small-box-footer">More info <i
+                    class="fas fa-arrow-circle-right"></i></a>
               </div>
             </div>
             <div class="col-lg-3 col-6">
@@ -165,7 +167,8 @@
                 <div class="icon">
                   <i class="fas fa-ticket-alt"></i>
                 </div>
-                <a href="{% url 'coupons' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                <a href="{% url 'coupons' %}" class="small-box-footer">More info <i
+                    class="fas fa-arrow-circle-right"></i></a>
               </div>
             </div>
             <div class="col-lg-3 col-6">
@@ -178,7 +181,8 @@
                 <div class="icon">
                   <i class="fas fa-ad"></i>
                 </div>
-                <a href="{% url 'banners' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                <a href="{% url 'banners' %}" class="small-box-footer">More info <i
+                    class="fas fa-arrow-circle-right"></i></a>
               </div>
             </div>
             <div class="col-lg-3 col-6">
@@ -190,7 +194,8 @@
                 <div class="icon">
                   <i class="fas fa-envelope"></i>
                 </div>
-                <a href="{% url 'contact-us' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                <a href="{% url 'contact-us' %}" class="small-box-footer">More info <i
+                    class="fas fa-arrow-circle-right"></i></a>
               </div>
             </div>
             <div class="col-lg-3 col-6">
@@ -202,90 +207,173 @@
                 <div class="icon">
                   <i class="fas fa-copy"></i>
                 </div>
-                <a href="{% url 'orders' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                <a href="{% url 'orders' %}" class="small-box-footer">More info <i
+                    class="fas fa-arrow-circle-right"></i></a>
               </div>
             </div>
-            {% endif %}
-            {% if user|has_group:"inventory manager" %}
-            <div class="row">
-              <div class="col-lg-3 col-6">
-                <!-- small box -->
-                <div class="small-box bg-warning">
-                  <div class="inner">
-                    <h3>{{product_count }}</h3>
-  
-                    <p>Products</p>
+            <div class="col-lg-6">
+              <div class="card">
+                <div class="card-header border-0">
+                  <div class="d-flex justify-content-between">
+                    <h3 class="card-title">Sales</h3>
+                    <a href="{% url 'export_sales_report_csv' %}">View Report</a>
                   </div>
-                  <div class="icon">
-                    <i class="ion ion-stats-bars"></i>
-                  </div>
-                  <a href="{% url 'products' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
                 </div>
-              </div>
-              <div class="col-lg-3 col-6">
-                <!-- small box -->
-                <div class="small-box bg-primary">
-                  <div class="inner">
-                    <h3>{{category_count }}</h3>
-                    <p>Categories</p>
+                <div class="card-body">
+                  <div class="d-flex">
+                    <p class="d-flex flex-column">
+                      <span class="text-bold text-lg">₹{{ total_sales }}</span>
+                      <span>Sales Over Time</span>
+                    </p>
+                    <p class="ml-auto d-flex flex-column text-right">
+                      {% if percentage_change <= 30 %} <span class="text-red">
+                        <i class="fas fa-arrow-down"></i> {{ percentage_change|floatformat:2 }}%
+                        </span>
+                        {% else %}
+                        <span class="text-success">
+                          <i class="fas fa-arrow-up"></i> {{ percentage_change|floatformat:2 }}%
+                        </span>
+                        {% endif %}
+                        <span class="text-muted">This month</span>
+                    </p>
                   </div>
-                  <div class="icon">
-                    <i class="ion ion-pricetags"></i>
-                  </div>
-                  <a href="{% url 'categories' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-                </div>
-              </div>
-              <div class="col-lg-3 col-6">
-                <!-- small box -->
-                <div class="small-box bg-success">
-                  <div class="inner">
-                    <h3>{{sub_category_count }}</h3>
-  
-                    <p>Sub Categories</p>
-                  </div>
-                  <div class="icon">
-                    <i class="ion ion-pricetag"></i>
-                  </div>
-                  <a href="{% url 'categories' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-                </div>
-              </div>
-            </div>
+                  <!-- /.d-flex -->
 
-            {% endif %}
-            {% if user|has_group:'order manager' %}
-            <div class="row">
-              <div class="col-lg-3 col-6">
-                <div class="small-box bg-primary">
-                  <div class="inner">
-                    <h3>{{order_count}}</h3>
-                    <p>Orders</p>
+                  <div class="position-relative mb-4">
+                    <canvas id="sales-chart" height="200"></canvas>
                   </div>
-                  <div class="icon">
-                    <i class="fas fa-copy"></i>
+
+                  <div class="d-flex flex-row justify-content-end">
+                    <span class="mr-2">
+                      <i class="fas fa-square text-primary"></i> This year
+                    </span>
+
+                    <span>
+                      <i class="fas fa-square text-gray"></i> Last year
+                    </span>
                   </div>
-                  <a href="{% url 'orders' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
                 </div>
               </div>
+              <!-- /.card -->
             </div>
-            {% endif %}
+            <div class="col-lg-6">
+              <div class="card">
+                <div class="card-header border-0">
+                  <div class="d-flex justify-content-between">
+                    <h3 class="card-title">Registered</h3>
+                    <a href="{% url 'customer_registration_report' %}">View Report</a>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="position-relative mb-4">
+                    <canvas id="registration-chart" height="200"></canvas>
+                  </div>
+                </div>
+              </div>
+              <!-- /.card -->
+            </div>
+            <div class="col-lg-6">
+              <div class="card">
+                <div class="card-header border-0">
+                  <div class="d-flex justify-content-between">
+                    <h3 class="card-title">Coupon Used</h3>
+                    <a href="{% url 'coupons_used_report' %}">View Report</a>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="position-relative mb-4">
+                    <canvas id="couponsUsedChart" height="200"></canvas>
+                  </div>
+                </div>
+              </div>
+              <!-- /.card -->
+            </div>
           </div>
-          <!-- /.row -->
-        </div><!-- /.container-fluid -->
-      </section>
-      <!-- /.content -->
-    </div>
-    <!-- /.content-wrapper -->
-    {% endblock content %}
-    <footer class="main-footer">
-      <strong>Copyright &copy; 2024 <a href="#">Faizan Diwan</a>.</strong>
-      All rights reserved.
-    </footer>
+          {% endif %}
+          {% if user|has_group:"inventory manager" %}
+          <div class="row">
+            <div class="col-lg-3 col-6">
+              <!-- small box -->
+              <div class="small-box bg-warning">
+                <div class="inner">
+                  <h3>{{product_count }}</h3>
 
-    <!-- Control Sidebar -->
-    <aside class="control-sidebar control-sidebar-dark">
-      <!-- Control sidebar content goes here -->
-    </aside>
-    <!-- /.control-sidebar -->
+                  <p>Products</p>
+                </div>
+                <div class="icon">
+                  <i class="ion ion-stats-bars"></i>
+                </div>
+                <a href="{% url 'products' %}" class="small-box-footer">More info <i
+                    class="fas fa-arrow-circle-right"></i></a>
+              </div>
+            </div>
+            <div class="col-lg-3 col-6">
+              <!-- small box -->
+              <div class="small-box bg-primary">
+                <div class="inner">
+                  <h3>{{category_count }}</h3>
+                  <p>Categories</p>
+                </div>
+                <div class="icon">
+                  <i class="ion ion-pricetags"></i>
+                </div>
+                <a href="{% url 'categories' %}" class="small-box-footer">More info <i
+                    class="fas fa-arrow-circle-right"></i></a>
+              </div>
+            </div>
+            <div class="col-lg-3 col-6">
+              <!-- small box -->
+              <div class="small-box bg-success">
+                <div class="inner">
+                  <h3>{{sub_category_count }}</h3>
+
+                  <p>Sub Categories</p>
+                </div>
+                <div class="icon">
+                  <i class="ion ion-pricetag"></i>
+                </div>
+                <a href="{% url 'categories' %}" class="small-box-footer">More info <i
+                    class="fas fa-arrow-circle-right"></i></a>
+              </div>
+            </div>
+          </div>
+
+          {% endif %}
+          {% if user|has_group:'order manager' %}
+          <div class="row">
+            <div class="col-lg-3 col-6">
+              <div class="small-box bg-primary">
+                <div class="inner">
+                  <h3>{{order_count}}</h3>
+                  <p>Orders</p>
+                </div>
+                <div class="icon">
+                  <i class="fas fa-copy"></i>
+                </div>
+                <a href="{% url 'orders' %}" class="small-box-footer">More info <i
+                    class="fas fa-arrow-circle-right"></i></a>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+        <!-- /.row -->
+    </div><!-- /.container-fluid -->
+    </section>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+  {% endblock content %}
+  <footer class="main-footer">
+    <strong>Copyright &copy; 2024 <a href="#">Faizan Diwan</a>.</strong>
+    All rights reserved.
+  </footer>
+
+  <!-- Control Sidebar -->
+  <aside class="control-sidebar control-sidebar-dark">
+    <!-- Control sidebar content goes here -->
+  </aside>
+  <!-- /.control-sidebar -->
   </div>
   <!-- ./wrapper -->
 
@@ -322,12 +410,137 @@
   <script src="{% static 'admin/dist/js/demo.js' %}"></script>
   <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
   <script src="{% static 'admin/dist/js/pages/dashboard.js' %}"></script>
+  <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
+  <!-- <script src="{% static 'admin/dist/js/pages/dashboard3.js' %}"></script> -->
   <!-- SweetAlert2 -->
   <script src="{% static 'admin/plugins/sweetalert2/sweetalert2.min.js' %}"></script>
   <!-- Toastr -->
   <script src="{% static 'admin/plugins/toastr/toastr.min.js' %}"></script>
   {% block js %}
   <script>
+    console.log("script is calll");
+
+    // Data from Django view
+    const labels = {{ labels| safe }};
+    const currentYearData = {{ current_year_data| safe }};
+    const lastYearData = {{ last_year_data| safe }};
+
+    // Creating the chart
+    const ctx = document.getElementById('sales-chart').getContext('2d');
+    const salesChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'This year',
+            backgroundColor: 'rgba(60,141,188,0.9)',
+            borderColor: 'rgba(60,141,188,0.8)',
+            pointRadius: false,
+            pointColor: '#3b8bba',
+            pointStrokeColor: 'rgba(60,141,188,1)',
+            pointHighlightFill: '#fff',
+            pointHighlightStroke: 'rgba(60,141,188,1)',
+            data: currentYearData
+          },
+          {
+            label: 'Last year',
+            backgroundColor: 'rgba(210, 214, 222, 1)',
+            borderColor: 'rgba(210, 214, 222, 1)',
+            pointRadius: false,
+            pointColor: 'rgba(210, 214, 222, 1)',
+            pointStrokeColor: '#c1c7d1',
+            pointHighlightFill: '#fff',
+            pointHighlightStroke: 'rgba(220,220,220,1)',
+            data: lastYearData
+          }
+        ]
+      },
+      options: {
+        maintainAspectRatio: false,
+        responsive: true,
+        legend: {
+          display: false
+        },
+        scales: {
+          xAxes: [{
+            gridLines: {
+              display: false
+            }
+          }],
+          
+          yAxes: [{
+            gridLines: {
+              display: false
+            }
+          }]
+        }
+      }
+    });
+    // Get the data passed from the view
+    var dates = {{ dates|safe }};
+    var counts = {{ counts|safe }};
+
+    // Chart.js setup
+    var ctx_register = document.getElementById('registration-chart').getContext('2d');
+    var registrationChart = new Chart(ctx_register, {
+        type: 'line',  // You can change it to 'bar' or any other type
+        data: {
+            labels: dates,  // Dates as labels
+            datasets: [{
+                label: 'Registrations per Day',
+                data: counts,  // Registration counts
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            scales: {
+                x: {
+                    type: 'time',  // Time-based X-axis
+                    time: {
+                        unit: 'day'
+                    }
+                },
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    // Get the data passed from the view
+    var coupon_labels = {{ coupon_labels|safe }};
+    var data_points = {{ data_points|safe }};
+
+    // Chart.js setup
+    var ctx_coupon = document.getElementById('couponsUsedChart').getContext('2d');
+    var registrationChart = new Chart(ctx_coupon, {
+        type: 'line',  // You can change it to 'bar' or any other type
+        data: {
+            labels: coupon_labels,  // Dates as labels
+            datasets: [{
+                label: 'Coupon per Day',
+                data: data_points,  // Registration counts
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            scales: {
+                x: {
+                    type: 'time',  // Time-based X-axis
+                    time: {
+                        unit: 'day'
+                    }
+                },
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
     $(document).ready(function () {
 
       $('#logout').on('click', function (e) {
@@ -360,17 +573,17 @@
       })
     })
     "{% if messages %}"
-        "{% for message in messages %}"
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: '{% if message.tags == "error" %}error{% else %}{{ message.tags }}{% endif %}',
-                title: '{{ message }}',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-            });
-        "{% endfor %}"
+    "{% for message in messages %}"
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: '{% if message.tags == "error" %}error{% else %}{{ message.tags }}{% endif %}',
+      title: '{{ message }}',
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+    });
+    "{% endfor %}"
     "{% endif %}"
   </script>
   {% endblock %}

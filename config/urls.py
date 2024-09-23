@@ -40,7 +40,4 @@ urlpatterns = [
     path('admin-custom/',include('project.customadmin.urls')),
     path('admin-custom/',include('project.coupon.urls')),
     path("pages/", include("django.contrib.flatpages.urls")),
-]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

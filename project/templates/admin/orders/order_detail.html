@@ -49,6 +49,7 @@
                             <p><strong>Order ID:</strong> {{ order.order_id }}</p>
                             <p><strong>Status:</strong> {{ order.get_status_display }}</p>
                             <p><strong>Payment Status:</strong> {{ order.get_payment_status_display }}</p>
+                            <p><strong>Payment ID:</strong> {% if order.paypal_payment_id  %}{{ order.paypal_payment_id }}{% else %}-{% endif %}</p>
                             <p><strong>Total Amount:</strong> ₹{{ order.total_amount }}</p>
                             <p><strong>Payment Date:</strong> {{ order.datetime_of_payment }}</p>
                             <p><strong>Shipping Method:</strong> {{ order.get_shipping_method_display }}</p>

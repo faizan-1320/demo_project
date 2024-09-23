@@ -5,16 +5,23 @@ Views for the CustomAdmin application.
 This module contains views for listing, creating, editing, and deleting CustomAdmin.
 """
 import re
+import csv
+import calendar
+import zoneinfo
+from collections import defaultdict
+from datetime import datetime
 from django.shortcuts import render,redirect,get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
 from django.contrib.auth.models import Group
-from django.http import JsonResponse
+from django.http import JsonResponse,HttpResponse
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.contrib.auth.decorators import permission_required
 from django.contrib.flatpages.models import FlatPage
 from django.utils.html import strip_tags
+from django.db.models import Sum,Count
+from django.db.models.functions import TruncMonth,TruncDate
 
 from project.users.models import User # pylint: disable=E0401
 from project.product.models import Category,Product # pylint: disable=E0401
@@ -94,6 +101,100 @@ def dashboard(request):
     banner_count = Banner.objects.filter(is_active=True,is_delete=False).count() # pylint: disable=E1101
     contact = ContactUs.objects.all().count()
     order_count = Order.objects.all().count()
+    current_year = datetime.now().year
+    last_year = current_year - 1
+    total_sales = Order.objects.aggregate(total_amount_sum=Sum('total_amount'))
+    # Get month-wise sales for the current and last year
+    current_year_sales = (
+        Order.objects.filter(created_at__year=current_year)
+        .annotate(month=TruncMonth('created_at'))
+        .values('month')
+        .annotate(total_sales=Sum('total_amount'))
+        .order_by('month')
+    )
+    
+    last_year_sales = (
+        Order.objects.filter(created_at__year=last_year)
+        .annotate(month=TruncMonth('created_at'))
+        .values('month')
+        .annotate(total_sales=Sum('total_amount'))
+        .order_by('month')
+    )
+
+    # Initialize the dictionary with default values for each month
+    monthly_sales_comparison = defaultdict(lambda: {'current_year_sales': 0, 'last_year_sales': 0})
+
+    # Populate the dictionary with current year sales
+    for sales in current_year_sales:
+        month = sales['month'].month  # Extract the month number from the datetime object
+        monthly_sales_comparison[month]['current_year_sales'] = sales['total_sales'] or 0
+
+    # Populate the dictionary with last year sales
+    for sales in last_year_sales:
+        month = sales['month'].month  # Extract the month number from the datetime object
+        monthly_sales_comparison[month]['last_year_sales'] = sales['total_sales'] or 0
+
+    # Prepare lists for chart
+    labels = [calendar.month_name[i] for i in range(1, 13)]  # Fixed labels from January to December
+    current_year_data = [0] * 12  # Initialize with 0s for each month
+    last_year_data = [0] * 12  # Initialize with 0s for each month
+
+    # Fill in the data for each month
+    for month, sales in monthly_sales_comparison.items():
+        month_index = month - 1  # Get the 0-based index for the month
+        current_year_data[month_index] = sales['current_year_sales']
+        last_year_data[month_index] = sales['last_year_sales']
+
+    # Calculate percentage change between current month and last month
+    def calculate_percentage_change(current, previous):
+        if previous == 0:  # Avoid division by zero
+            return 100 if current > 0 else 0
+        return ((current - previous) / previous) * 100
+
+    # Get today's date and current month
+    today = datetime.now(tz=zoneinfo.ZoneInfo(key='UTC'))
+    current_month = today.month
+
+    # Get sales for the current and previous month
+    current_month_sales = monthly_sales_comparison[current_month]['current_year_sales']
+
+    if current_month > 1:
+        # Previous month is just one month before the current
+        previous_month_sales = monthly_sales_comparison[current_month - 1]['current_year_sales']
+    else:
+        # If current month is January, previous month should be December of the last year
+        previous_month_sales = monthly_sales_comparison[12]['last_year_sales']
+
+    # Calculate the percentage change
+    percentage_change = calculate_percentage_change(current_month_sales, previous_month_sales)
+
+    # Aggregate registrations by date
+    registration_data = (
+        User.objects.annotate(date=TruncDate('date_joined'))
+        .values('date')
+        .annotate(count=Count('id'))
+        .order_by('date')
+    )
+
+    # Prepare data for the chart
+    dates = [data['date'].strftime('%Y-%m-%d') for data in registration_data]  # Format the date
+    counts = [data['count'] for data in registration_data]
+
+    # Aggregate coupons used per day
+    orders_with_coupons = Order.objects.filter(coupon__isnull=False)
+    coupon_usage = (
+        orders_with_coupons
+        .values('created_at__date')  # Group by date
+        .annotate(coupon_count=Count('id'))  # Count the number of orders with coupons
+        .order_by('created_at__date')
+    )
+
+    # Prepare data for chart (labels and data points)
+    coupon_labels = [str(entry['created_at__date']) for entry in coupon_usage]
+    data_points = [entry['coupon_count'] for entry in coupon_usage]
+    print('coupon_labels: ', coupon_labels)
+    print('data_points: ', data_points)
+
     context = {
         'product_count':product_count,
         'user_count':user_count,
@@ -103,8 +204,110 @@ def dashboard(request):
         'banner_count':banner_count,
         'contact_count':contact,
         'order_count':order_count,
+        'total_sales':total_sales['total_amount_sum'],
+        'percentage_change': percentage_change,
+        'labels': labels,
+        'current_year_data': current_year_data,
+        'last_year_data': last_year_data,
+        'dates': dates,
+        'counts': counts,
+        'coupon_labels': coupon_labels,
+        'data_points': data_points
     }
     return render(request,'admin/dashboard.html',context)
+
+def export_sales_report_csv(request):
+    """Sales Report Csv Generate"""
+    # Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="sales_report.csv"'
+
+    # Create a CSV writer object
+    writer = csv.writer(response)
+
+    # Write the header row
+    writer.writerow(['Product Name', 'Total Sold Quantity', 'Current Stock', 'Price'])
+
+    # Initialize a dictionary to store product data (aggregate by product name)
+    product_sales = {}
+
+    # Fetch order data (modify this query to fit your Order/OrderItem model structure)
+    orders = Order.objects.all().prefetch_related('order_items__product')
+
+    # Loop through orders and extract product info
+    for order in orders:
+        for item in order.order_items.all():  # Assuming `order_items` is the related name for items in Order
+            product = item.product
+
+            # If product is already in the dictionary, update the quantity
+            if product.name in product_sales:
+                product_sales[product.name]['total_sold_quantity'] += item.quantity
+            else:
+                # If product is not in the dictionary, add it
+                product_sales[product.name] = {
+                    'total_sold_quantity': item.quantity,
+                    'price': product.price,
+                    'current_stock': product.quantity
+                }
+
+    # Write the aggregated data to the CSV file
+    for product_name, data in product_sales.items():
+        writer.writerow([product_name, data['total_sold_quantity'], 
+                        data['current_stock'], data['price']])
+
+    return response
+
+def customer_registration_report(request):
+    # Fetch all users and their necessary details
+    users = User.objects.values('email', 'date_joined', 'last_login', 'phone_number')
+
+    # Create the CSV response
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="customer_registration_report.csv"'
+
+    # Write to CSV
+    writer = csv.writer(response)
+    # Header row
+    writer.writerow(['Email', 'Join Date', 'Last Login', 'Phone Number'])
+
+    # Write each user's data
+    for user in users:
+        writer.writerow([
+            user['email'],  # User email
+            user['date_joined'].strftime('%Y-%m-%d %H:%M:%S') if user['date_joined'] else '',  # Join date
+            user['last_login'].strftime('%Y-%m-%d %H:%M:%S') if user['last_login'] else 'Never',  # Last login date, handle if never logged in
+            user['phone_number'] if user['phone_number'] else 'N/A'  # Phone number, handle if not provided
+        ])
+
+    return response
+
+def coupons_used_report(request):
+    # Fetch all orders where coupons were used, ordered by date
+    orders_with_coupons = Order.objects.filter(coupon__isnull=False).order_by('created_at').values(
+        'user__email', 'coupon__code', 'coupon__discount_amount', 'created_at', 'total_amount'
+    )
+
+    # Create the CSV response
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="coupons_used_report.csv"'
+
+    # Create a CSV writer object
+    writer = csv.writer(response)
+
+    # Write header row
+    writer.writerow(['User Email', 'Coupon Code', 'Discount Applied', 'Order Date', 'Total Amount'])
+
+    # Write data rows
+    for order in orders_with_coupons:
+        writer.writerow([
+            order['user__email'],  # User email
+            order['coupon__code'],  # Coupon code
+            f"{order['coupon__discount_amount']:.2f}",  # Coupon discount (formatted as decimal)
+            order['created_at'].strftime('%Y-%m-%d %H:%M:%S'),  # Order date
+            f"{order['total_amount']:.2f}"  # Total order amount (formatted as decimal)
+        ])
+
+    return response
 
 ###################
 # User Management #

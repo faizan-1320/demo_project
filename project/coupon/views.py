@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import permission_required
-from django.db.models import BooleanField, Case, Value, When
+from django.db.models import Case, Value, When
 from project.utils import custom_required # pylint: disable=E0401
 from .models import Coupon
 from .forms import CouponForm

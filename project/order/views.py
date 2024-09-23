@@ -277,8 +277,8 @@ def checkout(request): # pylint: disable=R0914,R0912,R0915
                             return redirect(link.href)
                 else:
                     messages.error(request,
-                    f"""An error occurred while processing your payment:
-                    {payment.error}""")
+                    f"""An error occurred while processing your payment
+                    """)
 
             elif payment_method == 'cash_on_delivery':
                 order = Order.objects.create( # pylint: disable=E1101
@@ -293,7 +293,6 @@ def checkout(request): # pylint: disable=R0914,R0912,R0915
 
                 # Save each product in the order
                 for item in cart_items:
-                    print('item: ', item)
                     product = item['product']
                     product = Product.objects.get(id=product.id)
                     product.quantity = product.quantity - item['quantity']
@@ -319,7 +318,7 @@ def checkout(request): # pylint: disable=R0914,R0912,R0915
             primary_address = None
             messages.error(request, "You need to set a primary address before checking out.")
             return redirect('add-address')
-        
+
     context = {
         'cart_items': cart_items,
         'cart_sub_total': cart_sub_total,
@@ -357,7 +356,6 @@ def paypal_execute_payment(request): #pylint: disable=R0914
         if response.status_code == 200:
             # Payment executed successfully
             payment = response.json()
-            print('payment: ', payment)
             order_data = request.session.get('order_data')
             if order_data: # pylint: disable=R1705
                 user = request.user
@@ -376,6 +374,7 @@ def paypal_execute_payment(request): #pylint: disable=R0914
                     shipping_method=shipping_method,
                     coupon=coupon,
                     discount_amount=discount_amount,
+                    paypal_payment_id=payment_id,
                 )
                 cart = get_cart(request)
                 for product_id, quantity in cart.items():
@@ -444,7 +443,7 @@ def order_detail_user(request, pk):
     """
     Order detail view for user
     """
-    order = get_object_or_404(Order, id=pk)
+    order = get_object_or_404(Order, id=pk,user=request.user)
 
     order_items = [
         {
@@ -453,7 +452,7 @@ def order_detail_user(request, pk):
             'price': item.price,
             'total_price': item.quantity * item.price
         }
-        for item in order.productinorder_set.all()
+        for item in order.order_items.all()
     ]
 
     context = {

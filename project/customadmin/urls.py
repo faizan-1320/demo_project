@@ -10,13 +10,17 @@ from .views import (
     banner, add_banner, delete_banner,
     edit_banner, contact_us, contact_us_detail, flatpage_list, add_flatpage,
     edit_flatpage, delete_flatpage, email_template, add_template, edit_email_template,
-    delete_email_template, news_letter
+    delete_email_template, news_letter,export_sales_report_csv,customer_registration_report,
+    coupons_used_report,
 )
 
 urlpatterns = [
     path('', adminlogin, name='adminlogin'),
     path('logout-admin/', logoutadmin, name='logout-admin'),
     path('dashboard/', dashboard, name='dashboard'),
+    path('export-sales-report/', export_sales_report_csv, name='export_sales_report_csv'),
+    path('customer-registration-report/', customer_registration_report, name='customer_registration_report'),
+    path('coupons-used-report/', coupons_used_report, name='coupons_used_report'),
     # User URL
     path('users/', users, name='users'),
     path('users/add/', add_users, name='add-user'),
