@@ -4,12 +4,14 @@ Views for the order application.
 This module contains views for listing, creating, editing, and deleting order.
 """
 from decimal import Decimal
+import json
 import requests
 import paypalrestsdk
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.shortcuts import render, redirect,get_object_or_404
-from django.http import JsonResponse
+from django.http import JsonResponse,HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.utils import timezone
@@ -369,7 +371,6 @@ def paypal_execute_payment(request): #pylint: disable=R0914
                 order = Order.objects.create( #pylint: disable=E1101
                     user=user,
                     total_amount=total_amount,
-                    payment_status=1,
                     address=address,
                     shipping_method=shipping_method,
                     coupon=coupon,
@@ -387,7 +388,7 @@ def paypal_execute_payment(request): #pylint: disable=R0914
                         quantity=quantity,
                         price=product.price * quantity
                     )
-                request.session['cart'] = {}
+                
                 messages.success(request, "Payment completed successfully!")
                 return redirect('order-confirmation', pk=order.id)
             else:
@@ -400,6 +401,56 @@ def paypal_execute_payment(request): #pylint: disable=R0914
     else:
         messages.error(request, "Payment ID or Payer ID missing.")
         return redirect('checkout')
+
+@csrf_exempt
+def paypal_webhook(request):
+    """
+    PayPal Webhook listener view
+    """
+    if request.method == 'POST':
+        webhook_event = json.loads(request.body)
+        print('webhook_event: ', webhook_event)
+
+        # Verify the webhook event type
+        event_type = webhook_event.get('event_type')
+        print('event_type: ', event_type)
+        
+        if event_type == 'PAYMENT.SALE.COMPLETED':
+            print('event_type: ', event_type)
+            # Payment has been completed
+            payment_id = webhook_event['resource']['parent_payment']
+            print('payment_id: ', payment_id)
+
+            # Update the order in your system
+            try:
+                order = Order.objects.get(paypal_payment_id=payment_id)
+                order.payment_status = 1  # Mark as Paid
+                order.save()
+                request.session['cart'] = {}
+                # Additional processing (e.g., send confirmation email)
+                # send_order_confirmation_email(order)
+                
+                return HttpResponse(status=200)
+
+            except Order.DoesNotExist:
+                # Handle case where order does not exist
+                return HttpResponse(status=404)
+
+        elif event_type == 'PAYMENT.SALE.DENIED':
+            print('event_type: ', event_type)
+            # Handle denied payment scenario
+            payment_id = webhook_event['resource']['parent_payment']
+            try:
+                order = Order.objects.get(paypal_payment_id=payment_id)
+                order.payment_status = 2  # Mark as Denied
+                order.save()
+                return HttpResponse(status=200)
+            except Order.DoesNotExist:
+                return HttpResponse(status=404)
+
+        # Add more webhook event types as needed
+
+    return HttpResponse(status=400)
 
 @login_required
 def paypal_cancel_payment(request):
