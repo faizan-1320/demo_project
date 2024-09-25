@@ -55,6 +55,7 @@ class Order(BaseModel):
     paypal_payment_id = models.CharField(max_length=255,null=True,blank=True)
 
     def save(self, *args, **kwargs):
+        """Save Functions"""
         if self.payment_status == 6:
             self.is_cash_on_delivery = True
         else:

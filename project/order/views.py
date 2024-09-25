@@ -1,3 +1,4 @@
+# pylint: disable=E0401,W1309
 """
 Views for the order application.
 
@@ -15,9 +16,9 @@ from django.http import JsonResponse,HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.utils import timezone
-from project.users.models import Address # pylint: disable=E0401
-from project.coupon.models import Coupon # pylint: disable=E0401
-from project.users.models import Wishlist # pylint: disable=E0401
+from project.users.models import Address
+from project.coupon.models import Coupon
+from project.users.models import Wishlist
 from .models import Product,ProductInOrder,Order
 # Configure PayPal SDK
 paypalrestsdk.configure({
@@ -279,8 +280,7 @@ def checkout(request): # pylint: disable=R0914,R0912,R0915
                             return redirect(link.href)
                 else:
                     messages.error(request,
-                    f"""An error occurred while processing your payment
-                    """)
+                    f"""An error occurred while processing your payment""")
 
             elif payment_method == 'cash_on_delivery':
                 order = Order.objects.create( # pylint: disable=E1101
@@ -357,7 +357,6 @@ def paypal_execute_payment(request): #pylint: disable=R0914
 
         if response.status_code == 200:
             # Payment executed successfully
-            payment = response.json()
             order_data = request.session.get('order_data')
             if order_data: # pylint: disable=R1705
                 user = request.user
@@ -388,7 +387,7 @@ def paypal_execute_payment(request): #pylint: disable=R0914
                         quantity=quantity,
                         price=product.price * quantity
                     )
-                
+
                 messages.success(request, "Payment completed successfully!")
                 return redirect('order-confirmation', pk=order.id)
             else:
@@ -409,17 +408,13 @@ def paypal_webhook(request):
     """
     if request.method == 'POST':
         webhook_event = json.loads(request.body)
-        print('webhook_event: ', webhook_event)
 
         # Verify the webhook event type
         event_type = webhook_event.get('event_type')
-        print('event_type: ', event_type)
-        
+
         if event_type == 'PAYMENT.SALE.COMPLETED':
-            print('event_type: ', event_type)
             # Payment has been completed
             payment_id = webhook_event['resource']['parent_payment']
-            print('payment_id: ', payment_id)
 
             # Update the order in your system
             try:
@@ -429,7 +424,7 @@ def paypal_webhook(request):
                 request.session['cart'] = {}
                 # Additional processing (e.g., send confirmation email)
                 # send_order_confirmation_email(order)
-                
+
                 return HttpResponse(status=200)
 
             except Order.DoesNotExist:
@@ -437,7 +432,6 @@ def paypal_webhook(request):
                 return HttpResponse(status=404)
 
         elif event_type == 'PAYMENT.SALE.DENIED':
-            print('event_type: ', event_type)
             # Handle denied payment scenario
             payment_id = webhook_event['resource']['parent_payment']
             try:

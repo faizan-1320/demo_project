@@ -19,7 +19,8 @@ urlpatterns = [
     path('logout-admin/', logoutadmin, name='logout-admin'),
     path('dashboard/', dashboard, name='dashboard'),
     path('export-sales-report/', export_sales_report_csv, name='export_sales_report_csv'),
-    path('customer-registration-report/', customer_registration_report, name='customer_registration_report'),
+    path('customer-registration-report/', customer_registration_report
+        , name='customer_registration_report'),
     path('coupons-used-report/', coupons_used_report, name='coupons_used_report'),
     # User URL
     path('users/', users, name='users'),

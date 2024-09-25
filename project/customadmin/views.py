@@ -1,4 +1,4 @@
-# pylint: disable=R0801
+# pylint: disable=R0801,R0914,W0613,W0621
 """
 Views for the CustomAdmin application.
 
@@ -112,7 +112,7 @@ def dashboard(request):
         .annotate(total_sales=Sum('total_amount'))
         .order_by('month')
     )
-    
+
     last_year_sales = (
         Order.objects.filter(created_at__year=last_year)
         .annotate(month=TruncMonth('created_at'))
@@ -192,8 +192,6 @@ def dashboard(request):
     # Prepare data for chart (labels and data points)
     coupon_labels = [str(entry['created_at__date']) for entry in coupon_usage]
     data_points = [entry['coupon_count'] for entry in coupon_usage]
-    print('coupon_labels: ', coupon_labels)
-    print('data_points: ', data_points)
 
     context = {
         'product_count':product_count,
@@ -236,7 +234,8 @@ def export_sales_report_csv(request):
 
     # Loop through orders and extract product info
     for order in orders:
-        for item in order.order_items.all():  # Assuming `order_items` is the related name for items in Order
+        for item in order.order_items.all():
+        # Assuming `order_items` is the related name for items in Order
             product = item.product
 
             # If product is already in the dictionary, update the quantity
@@ -252,12 +251,13 @@ def export_sales_report_csv(request):
 
     # Write the aggregated data to the CSV file
     for product_name, data in product_sales.items():
-        writer.writerow([product_name, data['total_sold_quantity'], 
+        writer.writerow([product_name, data['total_sold_quantity'],
                         data['current_stock'], data['price']])
 
     return response
 
 def customer_registration_report(request):
+    """New User Report"""
     # Fetch all users and their necessary details
     users = User.objects.values('email', 'date_joined', 'last_login', 'phone_number')
 
@@ -274,14 +274,15 @@ def customer_registration_report(request):
     for user in users:
         writer.writerow([
             user['email'],  # User email
-            user['date_joined'].strftime('%Y-%m-%d %H:%M:%S') if user['date_joined'] else '',  # Join date
-            user['last_login'].strftime('%Y-%m-%d %H:%M:%S') if user['last_login'] else 'Never',  # Last login date, handle if never logged in
-            user['phone_number'] if user['phone_number'] else 'N/A'  # Phone number, handle if not provided
+            user['date_joined'].strftime('%Y-%m-%d %H:%M:%S') if user['date_joined'] else '',
+            user['last_login'].strftime('%Y-%m-%d %H:%M:%S') if user['last_login'] else 'Never',
+            user['phone_number'] if user['phone_number'] else 'N/A'
         ])
 
     return response
 
 def coupons_used_report(request):
+    """Userd Coupon Report"""
     # Fetch all orders where coupons were used, ordered by date
     orders_with_coupons = Order.objects.filter(coupon__isnull=False).order_by('created_at').values(
         'user__email', 'coupon__code', 'coupon__discount_amount', 'created_at', 'total_amount'
@@ -682,7 +683,6 @@ def contact_us_detail(request, pk):
                 contact.save()
                 messages.success(request,'Mail send successfully')
             except Exception as e: # pylint: disable=W0718
-                print(f"Error sending email: {e}")
                 messages.error(request, 'Something went wrong, please contact the admin.')
 
             return redirect('contact-us')
