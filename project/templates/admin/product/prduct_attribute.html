@@ -39,35 +39,37 @@
                 </div>
               </form>
               <h6> <a href="{% url 'add-product-attribute' %}">+ Add Product Attribute</a></h6>
-              <table class="table table-bordered table-hover">
-                <thead>
-                  <tr>
-                    <th>Sr No</th>
-                    <th>Attribute Name</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% if page_obj.object_list %}
-                  {% for attribute in page_obj %}
-                  <tr data-widget="expandable-table" aria-expanded="false">
-                    <td>{{ forloop.counter0|add:start_number }}</td>
-                    <td>{{ attribute.name }}</td>
-                    <td>
-                      <a href="{% url 'edit-attribute' attribute.id %}"><i class="fas fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;
-                      <a href="{% url 'delete-attribute' attribute.id %}" class="delete-btn"><i class="fas fa-trash"></i></a>
-                    </td>
-                  </tr>
-                  {% endfor %}
-                  {% else %}
+              <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                  <thead>
                     <tr>
-                      <td colspan="7" class="text-center">No product attributes found.</td>
+                      <th>Sr No</th>
+                      <th>Attribute Name</th>
+                      <th>Action</th>
                     </tr>
-                  {% endif %}
-                </tbody>
-                <tfoot>
-                </tfoot>
-              </table>
+                  </thead>
+                  <tbody>
+                    {% if page_obj.object_list %}
+                    {% for attribute in page_obj %}
+                    <tr data-widget="expandable-table" aria-expanded="false">
+                      <td>{{ forloop.counter0|add:start_number }}</td>
+                      <td>{{ attribute.name }}</td>
+                      <td>
+                        <a href="{% url 'edit-attribute' attribute.id %}"><i class="fas fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;
+                        <a href="{% url 'delete-attribute' attribute.id %}" class="delete-btn"><i class="fas fa-trash"></i></a>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                      <tr>
+                        <td colspan="7" class="text-center">No product attributes found.</td>
+                      </tr>
+                    {% endif %}
+                  </tbody>
+                  <tfoot>
+                  </tfoot>
+                </table>
+              </div>
 
             </div>
             <!-- /.card-body -->

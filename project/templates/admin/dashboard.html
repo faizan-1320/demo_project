@@ -213,56 +213,85 @@
               </div>
             </div>
             <div class="col-lg-6">
-              <div class="card">
+              <div class="card shadow-sm">
                 <div class="card-header border-0">
-                  <div class="d-flex justify-content-between">
-                    <h3 class="card-title">Sales</h3>
-                    <a href="{% url 'export_sales_report_csv' %}">View Report</a>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">Sales</h3>
+                    <form method="GET" action="{% url 'export_sales_report_csv' %}" class="d-flex p-2 rounded bg-light">
+                      <div class="row">
+                        <div class="col-md-6 mb-2">
+                          <label for="start_date" class="form-label">Start Date:</label>
+                          <input type="date" id="start_date" name="start_date" class="form-control form-control-sm" value="{{ request.GET.start_date }}">
+                        </div>
+                        <div class="col-md-6 mb-2">
+                          <label for="end_date" class="form-label">End Date:</label>
+                          <input type="date" id="end_date" name="end_date" class="form-control form-control-sm" value="{{ request.GET.end_date }}">
+                        </div>
+                        <div class="col-12 text-end">
+                          <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+                        </div>
+                      </div>
+                    </form>
                   </div>
                 </div>
                 <div class="card-body">
-                  <div class="d-flex">
-                    <p class="d-flex flex-column">
+                  <div class="d-flex justify-content-between">
+                    <p class="mb-0">
                       <span class="text-bold text-lg">₹{{ total_sales }}</span>
-                      <span>Sales Over Time</span>
+                      <span class="text-muted">Sales Over Time</span>
                     </p>
-                    <p class="ml-auto d-flex flex-column text-right">
-                      {% if percentage_change <= 30 %} <span class="text-red">
+                    <p class="text-right mb-0">
+                      {% if percentage_change <= 30 %}
+                      <span class="text-danger">
                         <i class="fas fa-arrow-down"></i> {{ percentage_change|floatformat:2 }}%
-                        </span>
-                        {% else %}
-                        <span class="text-success">
-                          <i class="fas fa-arrow-up"></i> {{ percentage_change|floatformat:2 }}%
-                        </span>
-                        {% endif %}
-                        <span class="text-muted">This month</span>
+                      </span>
+                      {% else %}
+                      <span class="text-success">
+                        <i class="fas fa-arrow-up"></i> {{ percentage_change|floatformat:2 }}%
+                      </span>
+                      {% endif %}
+                      <span class="text-muted d-block">This month</span>
                     </p>
                   </div>
-                  <!-- /.d-flex -->
-
+            
+                  <!-- Chart -->
                   <div class="position-relative mb-4">
                     <canvas id="sales-chart" height="200"></canvas>
                   </div>
-
-                  <div class="d-flex flex-row justify-content-end">
-                    <span class="mr-2">
+            
+                  <!-- Legend -->
+                  <div class="d-flex justify-content-end">
+                    <span class="mr-3">
                       <i class="fas fa-square text-primary"></i> This year
                     </span>
-
                     <span>
                       <i class="fas fa-square text-gray"></i> Last year
                     </span>
                   </div>
                 </div>
               </div>
-              <!-- /.card -->
             </div>
+            
             <div class="col-lg-6">
-              <div class="card">
+              <div class="card shadow-sm">
                 <div class="card-header border-0">
-                  <div class="d-flex justify-content-between">
-                    <h3 class="card-title">Registered</h3>
-                    <a href="{% url 'customer_registration_report' %}">View Report</a>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">Registered</h3>
+                    <form method="GET" action="{% url 'customer_registration_report' %}" class="d-flex p-2 rounded bg-light">
+                      <div class="row">
+                        <div class="col-md-6 mb-2">
+                          <label for="start_date" class="form-label">Start Date:</label>
+                          <input type="date" id="start_date" name="start_date" class="form-control form-control-sm" value="{{ request.GET.start_date }}">
+                        </div>
+                        <div class="col-md-6 mb-2">
+                          <label for="end_date" class="form-label">End Date:</label>
+                          <input type="date" id="end_date" name="end_date" class="form-control form-control-sm" value="{{ request.GET.end_date }}">
+                        </div>
+                        <div class="col-12 text-end">
+                          <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+                        </div>
+                      </div>
+                    </form>
                   </div>
                 </div>
                 <div class="card-body">
@@ -273,22 +302,38 @@
               </div>
               <!-- /.card -->
             </div>
+            
             <div class="col-lg-6">
               <div class="card">
-                <div class="card-header border-0">
-                  <div class="d-flex justify-content-between">
-                    <h3 class="card-title">Coupon Used</h3>
-                    <a href="{% url 'coupons_used_report' %}">View Report</a>
+                  <div class="card-header border-0">
+                      <div class="d-flex justify-content-between">
+                          <h3 class="card-title">Coupon Used</h3>
+                          <form method="GET" action="{% url 'coupons_used_report' %}" class="mb-3 p-4 border rounded bg-light shadow-sm">
+                              <div class="row">
+                                  <div class="col-md-6 mb-3">
+                                      <label for="start_date" class="form-label">Start Date:</label>
+                                      <input type="date" id="start_date" name="start_date" class="form-control" value="{{ request.GET.start_date }}">
+                                  </div>
+                                  <div class="col-md-6 mb-3">
+                                      <label for="end_date" class="form-label">End Date:</label>
+                                      <input type="date" id="end_date" name="end_date" class="form-control" value="{{ request.GET.end_date }}">
+                                  </div>
+                              </div>
+                              <div class="text-end">
+                                  <button type="submit" class="btn btn-primary">Filter</button>
+                              </div>
+                          </form>
+                      </div>
                   </div>
-                </div>
-                <div class="card-body">
-                  <div class="position-relative mb-4">
-                    <canvas id="couponsUsedChart" height="200"></canvas>
+                  <div class="card-body">
+                      <div class="position-relative mb-4">
+                          <canvas id="couponsUsedChart" height="200"></canvas>
+                      </div>
                   </div>
-                </div>
               </div>
               <!-- /.card -->
-            </div>
+          </div>
+          
           </div>
           {% endif %}
           {% if user|has_group:"inventory manager" %}

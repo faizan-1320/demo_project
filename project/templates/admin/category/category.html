@@ -41,41 +41,43 @@
                 </div>
               </form>
               <h6 class="mt-2"><a href="{% url 'add-category' %}">+ Add Category</a></h6>
-              <table class="table table-bordered table-hover">
-                <thead>
-                  <tr>
-                    <th>Sr No</th>
-                    <th>Category Name</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% if page_obj.object_list %}
-                  {% for i in page_obj %}
-                  <tr data-widget="expandable-table" aria-expanded="false">
-                    <td>{{ forloop.counter0|add:start_number }}</td>
-                    <td>{{ i.full_path }}</td>
-                    <td>
-                      <button type="button" class="btn btn-default" data-toggle="modal" data-target="#modal-default"
-                        onclick="openEditModal('{{ i.id }}', '{{ i.category_name }}')">
-                        <i class="fas fa-edit"></i>
-                      </button>
-                      &nbsp;&nbsp;&nbsp;&nbsp;
-                      <a href="{% url 'delete-category' i.id %}" class="delete-btn">
-                        <i class="fas fa-trash"></i>
-                      </a>
-                    </td>
-                  </tr>
-                  {% endfor %}
-                  {% else %}
+              <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                  <thead>
                     <tr>
-                      <td colspan="7" class="text-center">No category found.</td>
+                      <th>Sr No</th>
+                      <th>Category Name</th>
+                      <th>Action</th>
                     </tr>
-                  {% endif %}
-                </tbody>
-                <tfoot>
-                </tfoot>
-              </table>
+                  </thead>
+                  <tbody>
+                    {% if page_obj.object_list %}
+                    {% for i in page_obj %}
+                    <tr data-widget="expandable-table" aria-expanded="false">
+                      <td>{{ forloop.counter0|add:start_number }}</td>
+                      <td>{{ i.full_path }}</td>
+                      <td>
+                        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#modal-default"
+                          onclick="openEditModal('{{ i.id }}', '{{ i.category_name }}')">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        <a href="{% url 'delete-category' i.id %}" class="delete-btn">
+                          <i class="fas fa-trash"></i>
+                        </a>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                      <tr>
+                        <td colspan="7" class="text-center">No category found.</td>
+                      </tr>
+                    {% endif %}
+                  </tbody>
+                  <tfoot>
+                  </tfoot>
+                </table>
+              </div>
             </div>
             <div class="modal fade" id="modal-default">
               <div class="modal-dialog">

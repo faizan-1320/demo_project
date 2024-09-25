@@ -29,37 +29,36 @@
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">CMS</h3>
-
                         </div>
                         <!-- /.card-header -->
                         <div class="card-body">
                             <h6><a href="{% url 'add-flatpage' %}">+ Add New CMS</a></h6>
-                            <table id="example1" class="table table-bordered table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>URL</th>
-                                        <th>Title</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for flatpage in flatpages %}
-                                    <tr data-widget="expandable-table" aria-expanded="false">
-                                        <td><a href="/pages{{ flatpage.url }}">{{ flatpage.url }}</a></td>
-                                        <td>{{ flatpage.title }}</td>
-                                        <td><a href="{% url 'edit-flatpage' flatpage.id %}">Edit</a> |
-                                            <a href="{% url 'delete-flatpage' flatpage.id %}" class="delete-btn">Delete</a>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                                <tfoot>
-                                </tfoot>
-                            </table>
-
+                            <div class="table-responsive">
+                                <table id="example1" class="table table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>URL</th>
+                                            <th>Title</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for flatpage in flatpages %}
+                                        <tr data-widget="expandable-table" aria-expanded="false">
+                                            <td><a href="/pages{{ flatpage.url }}">{{ flatpage.url }}</a></td>
+                                            <td>{{ flatpage.title }}</td>
+                                            <td><a href="{% url 'edit-flatpage' flatpage.id %}">Edit</a> |
+                                                <a href="{% url 'delete-flatpage' flatpage.id %}" class="delete-btn">Delete</a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    <tfoot>
+                                    </tfoot>
+                                </table>
+                            </div>
                         </div>
                         <!-- /.card-body -->
-
                     </div>
 
                 </div>

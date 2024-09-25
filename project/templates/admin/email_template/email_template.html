@@ -34,34 +34,35 @@
                                 </div>
                                 <div style="clear: both;"></div>
                             </h6>
-                            <table id="example1" class="table table-bordered table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Subject</th>
-                                        <th>Template Name</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% if email_templates %}
-                                        {% for email_template in email_templates %}
-                                        <tr data-widget="expandable-table" aria-expanded="false">
-                                            <td>{{ email_template.subject }}</td>
-                                            <td>{{ email_template.template_name }}</td>
-                                            <td><a href="{% url 'edit-email' email_template.id %}">Edit</a> |
-                                                <a href="{% url 'delete-email' email_template.id %}" class="delete-btn">Delete</a>
-                                            </td>
+                            <div class="table-responsive">
+                                <table id="example1" class="table table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Subject</th>
+                                            <th>Template Name</th>
+                                            <th>Actions</th>
                                         </tr>
-                                        {% endfor %}
-                                    {% else %}
-                                    <tr>
-                                        <td colspan="3" style="color: red; text-align: center;">No email templates available.</td>
-                                    </tr>
-                                    {% endif %}
-                                </tbody>
-                                <tfoot></tfoot>
-                            </table>
-
+                                    </thead>
+                                    <tbody>
+                                        {% if email_templates %}
+                                            {% for email_template in email_templates %}
+                                            <tr data-widget="expandable-table" aria-expanded="false">
+                                                <td>{{ email_template.subject }}</td>
+                                                <td>{{ email_template.template_name }}</td>
+                                                <td><a href="{% url 'edit-email' email_template.id %}">Edit</a> |
+                                                    <a href="{% url 'delete-email' email_template.id %}" class="delete-btn">Delete</a>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="3" style="color: red; text-align: center;">No email templates available.</td>
+                                        </tr>
+                                        {% endif %}
+                                    </tbody>
+                                    <tfoot></tfoot>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>

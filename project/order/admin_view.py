@@ -3,6 +3,7 @@ Views for the CustomAdmin application.
 
 This module contains views for listing, creating, editing, and deleting CustomAdmin.
 """
+from datetime import datetime, timedelta
 from django.shortcuts import redirect,render,get_object_or_404
 from django.contrib.auth.decorators import permission_required
 from django.core.paginator import Paginator
@@ -18,28 +19,71 @@ from .forms import OrderStatusForm
 # Order Management #
 ####################
 
-@permission_required('product.view_order',raise_exception=True)
+@permission_required('product.view_order',login_url='adminlogin')
 def order(request):
     """
-    Display a list.
+    Display a list of orders with filters.
     """
     # Check if the user is an admin
     if not custom_required.check_login_admin(request.user):
         return redirect('adminlogin')
-    search_query = request.GET.get('search','')
-    orders = Order.objects.filter(order_id__icontains=search_query).order_by('-id') # pylint: disable=E1101
-    paginator = Paginator(orders,10)
+
+    # Get search and filter parameters from the GET request
+    search_query = request.GET.get('search', '')
+    payment_status = request.GET.get('payment_status', '')
+    order_status = request.GET.get('order_status', '')
+    start_date = request.GET.get('start_date', '')
+    end_date = request.GET.get('end_date', '')
+
+    # Start with all orders
+    orders = Order.objects.all()
+
+    # Apply filters progressively
+    if payment_status:
+        orders = orders.filter(payment_status=payment_status)
+
+    if order_status:
+        orders = orders.filter(status=order_status)
+
+    if start_date and end_date:
+        try:
+            # Convert string to datetime
+            start_date = datetime.strptime(start_date, "%Y-%m-%d")
+            end_date = datetime.strptime(end_date, "%Y-%m-%d")
+            end_date = end_date + timedelta(days=1)
+            # Filter orders based on date range
+            orders = orders.filter(created_at__range=[start_date, end_date])
+        except ValueError:
+            print('Error in date filter: invalid date format')
+
+    # Apply search query filter (order_id)
+    if search_query:
+        orders = orders.filter(order_id__icontains=search_query)
+
+    # Order by latest first
+    orders = orders.order_by('-id')  # pylint: disable=E1101
+
+    # Apply pagination
+    paginator = Paginator(orders, 10)  # Show 10 orders per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     start_number = (page_obj.number - 1) * paginator.per_page + 1
 
+    # Prepare context for the template
     context = {
-        'page_obj':page_obj,
-        'start_number':start_number,
-        'search_query':search_query
+        'page_obj': page_obj,
+        'start_number': start_number,
+        'search_query': search_query,
+        'payment_status': payment_status,
+        'order_status': order_status,
+        'start_date': start_date.strftime("%Y-%m-%d") if start_date else '',
+        'end_date': end_date.strftime("%Y-%m-%d") if end_date else '',
     }
+
+    # Add a message if no orders are found
     if search_query and not orders.exists():
-        context['message_not_found'] = 'Not order found'
+        context['message_not_found'] = 'No orders found'
+
     return render(request, 'admin/orders/orders.html', context)
 
 @permission_required('product.change_order',raise_exception=True)

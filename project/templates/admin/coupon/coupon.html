@@ -46,45 +46,47 @@
                             {% if coupon_err %}
                             <p style="color: red; text-align: center;">{{ coupon_err }}</p>
                             {% else %}
-                            <table id="example1" class="table table-bordered table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Sr No</th>
-                                        <th>Code</th>
-                                        <th>Discount Amount</th>
-                                        <th>Start Date</th>
-                                        <th>End Date</th>
-                                        <th>Active</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% if page_obj.object_list %}
-                                    {% for coupon in page_obj %}
-                                    <tr data-widget="expandable-table" aria-expanded="false">
-                                        <td>{{ forloop.counter0|add:start_number }}</td>
-                                        <td>{{ coupon.code }}</td>
-                                        <td>{{ coupon.discount_amount }}</td>
-                                        <td>{{ coupon.start_date }}</td>
-                                        <td>{{ coupon.end_date }}</td>
-                                        <td>{{ coupon.currently_active|yesno:"Yes,No" }}</td>
-                                        <td>
-                                            <a href="{% url 'edit-coupon' coupon.id %}"><i
-                                                    class="fas fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;<a
-                                                href="{% url 'delete-coupon' coupon.id %}" class="delete-btn"><i
-                                                    class="fas fa-trash"></i></a>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                    {% else %}
-                                    <tr>
-                                        <td colspan="7" style="color: red; text-align: center;">No Coupon found.</td>
-                                    </tr>
-                                    {% endif %}
-                                </tbody>
-                                <tfoot>
-                                </tfoot>
-                            </table>
+                            <div class="table-responsive">
+                                <table id="example1" class="table table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Sr No</th>
+                                            <th>Code</th>
+                                            <th>Discount Amount</th>
+                                            <th>Start Date</th>
+                                            <th>End Date</th>
+                                            <th>Active</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if page_obj.object_list %}
+                                        {% for coupon in page_obj %}
+                                        <tr data-widget="expandable-table" aria-expanded="false">
+                                            <td>{{ forloop.counter0|add:start_number }}</td>
+                                            <td>{{ coupon.code }}</td>
+                                            <td>{{ coupon.discount_amount }}</td>
+                                            <td>{{ coupon.start_date }}</td>
+                                            <td>{{ coupon.end_date }}</td>
+                                            <td>{{ coupon.currently_active|yesno:"Yes,No" }}</td>
+                                            <td>
+                                                <a href="{% url 'edit-coupon' coupon.id %}"><i
+                                                        class="fas fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;<a
+                                                    href="{% url 'delete-coupon' coupon.id %}" class="delete-btn"><i
+                                                        class="fas fa-trash"></i></a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="7" style="color: red; text-align: center;">No Coupon found.</td>
+                                        </tr>
+                                        {% endif %}
+                                    </tbody>
+                                    <tfoot>
+                                    </tfoot>
+                                </table>
+                            </div>
                             {% endif %}
                         </div>
                         <!-- /.card-body -->

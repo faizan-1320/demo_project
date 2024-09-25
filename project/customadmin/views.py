@@ -9,7 +9,7 @@ import csv
 import calendar
 import zoneinfo
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime,timedelta
 from django.shortcuts import render,redirect,get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
@@ -168,7 +168,7 @@ def dashboard(request):
     # Calculate the percentage change
     percentage_change = calculate_percentage_change(current_month_sales, previous_month_sales)
 
-    # Aggregate registrations by date
+    # Registrations by date
     registration_data = (
         User.objects.annotate(date=TruncDate('date_joined'))
         .values('date')
@@ -180,7 +180,7 @@ def dashboard(request):
     dates = [data['date'].strftime('%Y-%m-%d') for data in registration_data]  # Format the date
     counts = [data['count'] for data in registration_data]
 
-    # Aggregate coupons used per day
+    # Coupons used per day
     orders_with_coupons = Order.objects.filter(coupon__isnull=False)
     coupon_usage = (
         orders_with_coupons
@@ -216,6 +216,18 @@ def dashboard(request):
 
 def export_sales_report_csv(request):
     """Sales Report Csv Generate"""
+
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    if start_date and end_date:
+        start_date = datetime.strptime(start_date,'%Y-%m-%d')
+        end_date = datetime.strptime(end_date,'%Y-%m-%d') + timedelta(days=1)
+        orders = Order.objects.filter(created_at__range=[start_date,end_date])
+    else:
+        # Fetch order data (modify this query to fit your Order/OrderItem model structure)
+        orders = Order.objects.all()
+
     # Create the HttpResponse object with the appropriate CSV header.
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="sales_report.csv"'
@@ -224,16 +236,13 @@ def export_sales_report_csv(request):
     writer = csv.writer(response)
 
     # Write the header row
-    writer.writerow(['Product Name', 'Total Sold Quantity', 'Current Stock', 'Price'])
+    writer.writerow(['Product Name', 'Total Sold Quantity', 'Current Stock', 'Price', 'Date Range'])
 
     # Initialize a dictionary to store product data (aggregate by product name)
     product_sales = {}
 
-    # Fetch order data (modify this query to fit your Order/OrderItem model structure)
-    orders = Order.objects.all().prefetch_related('order_items__product')
-
     # Loop through orders and extract product info
-    for order in orders:
+    for order in orders.prefetch_related('order_items__product'):
         for item in order.order_items.all():
         # Assuming `order_items` is the related name for items in Order
             product = item.product
@@ -252,14 +261,26 @@ def export_sales_report_csv(request):
     # Write the aggregated data to the CSV file
     for product_name, data in product_sales.items():
         writer.writerow([product_name, data['total_sold_quantity'],
-                        data['current_stock'], data['price']])
+                        data['current_stock'], data['price'],
+        f"{start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}" 
+        if start_date and end_date else 'All Time'])
 
     return response
 
 def customer_registration_report(request):
     """New User Report"""
-    # Fetch all users and their necessary details
-    users = User.objects.values('email', 'date_joined', 'last_login', 'phone_number')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    if start_date and end_date:
+        start_date = datetime.strptime(start_date,'%Y-%m-%d')
+        original_end_date = datetime.strptime(end_date, '%Y-%m-%d')
+        end_date = datetime.strptime(end_date,'%Y-%m-%d') + timedelta(days=1)
+        users = User.objects.filter(date_joined__range=[start_date,end_date]).values(
+            'email', 'date_joined', 'last_login', 'phone_number'
+        )
+    else:
+        # Fetch all users and their necessary details
+        users = User.objects.values('email', 'date_joined', 'last_login', 'phone_number')
 
     # Create the CSV response
     response = HttpResponse(content_type='text/csv')
@@ -268,7 +289,7 @@ def customer_registration_report(request):
     # Write to CSV
     writer = csv.writer(response)
     # Header row
-    writer.writerow(['Email', 'Join Date', 'Last Login', 'Phone Number'])
+    writer.writerow(['Email', 'Join Date', 'Last Login', 'Phone Number','Range Date'])
 
     # Write each user's data
     for user in users:
@@ -276,17 +297,32 @@ def customer_registration_report(request):
             user['email'],  # User email
             user['date_joined'].strftime('%Y-%m-%d %H:%M:%S') if user['date_joined'] else '',
             user['last_login'].strftime('%Y-%m-%d %H:%M:%S') if user['last_login'] else 'Never',
-            user['phone_number'] if user['phone_number'] else 'N/A'
+            user['phone_number'] if user['phone_number'] else 'N/A',
+            f"{start_date.strftime('%Y-%m-%d')} to {original_end_date.strftime('%Y-%m-%d')}" 
+        if start_date and end_date else 'All Time'
         ])
 
     return response
 
 def coupons_used_report(request):
     """Userd Coupon Report"""
-    # Fetch all orders where coupons were used, ordered by date
-    orders_with_coupons = Order.objects.filter(coupon__isnull=False).order_by('created_at').values(
-        'user__email', 'coupon__code', 'coupon__discount_amount', 'created_at', 'total_amount'
-    )
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    if start_date and end_date:
+        start_date = datetime.strptime(start_date,'%Y-%m-%d')
+        original_end_date = datetime.strptime(end_date,'%Y-%m-%d')
+        end_date = datetime.strptime(end_date,'%Y-%m-%d') + timedelta(days=1)
+        # Fetch all orders where coupons were used, ordered by date
+        orders_with_coupons = Order.objects.filter(coupon__isnull=False,
+        created_at__range=[start_date,end_date]).order_by(
+        'created_at').values('user__email', 'coupon__code',
+         'coupon__discount_amount', 'created_at', 'total_amount')
+    else:
+        # Fetch all orders where coupons were used, ordered by date
+        orders_with_coupons = Order.objects.filter(coupon__isnull=False).order_by(
+        'created_at').values('user__email', 'coupon__code', 
+        'coupon__discount_amount', 'created_at', 'total_amount')
 
     # Create the CSV response
     response = HttpResponse(content_type='text/csv')
@@ -296,7 +332,8 @@ def coupons_used_report(request):
     writer = csv.writer(response)
 
     # Write header row
-    writer.writerow(['User Email', 'Coupon Code', 'Discount Applied', 'Order Date', 'Total Amount'])
+    writer.writerow(['User Email', 'Coupon Code', 'Discount Applied', 'Order Date', 
+    'Total Amount','Date Range'])
 
     # Write data rows
     for order in orders_with_coupons:
@@ -305,7 +342,9 @@ def coupons_used_report(request):
             order['coupon__code'],  # Coupon code
             f"{order['coupon__discount_amount']:.2f}",  # Coupon discount (formatted as decimal)
             order['created_at'].strftime('%Y-%m-%d %H:%M:%S'),  # Order date
-            f"{order['total_amount']:.2f}"  # Total order amount (formatted as decimal)
+            f"{order['total_amount']:.2f}",  # Total order amount (formatted as decimal)
+            f"{start_date.strftime('%Y-%m-%d')} to {original_end_date.strftime('%Y-%m-%d')}" 
+        if start_date and end_date else 'All Time'
         ])
 
     return response

@@ -42,61 +42,62 @@
                 </div>
               </form>
               <h6> <a href="{% url 'add-user' %}">+ Add User</a></h6>
-              <table id="example1" class="table table-bordered table-hover">
-                <thead>
-                  <tr>
-                    <th>Sr No</th>
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th>Email</th>
-                    <th>Last Login</th>
-                    <th>Phone Number</th>
-                    <th>Register Date</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% if page_obj.object_list %}
-                  {% for user in page_obj %}
-                  <tr data-widget="expandable-table" aria-expanded="false">
-                    <td>{{ forloop.counter0|add:start_number }}</td>
-                    <td>{{user.first_name}}</td>
-                    <td>{{user.last_name}}</td>
-                    <td>{{user.email}}</td>
-                    <td>{{user.last_login}}</td>
-                    <td>{{user.phone_number}}</td>
-                    <td>{{ user.date_joined|date:"d/m/Y" }}</td>
-                    <td><a href="{% url 'user-edit' user.id %}"><i
-                          class="fas fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;<a href="{% url 'user-delete' user.id %}"
-                        class="delete-btn"><i class="fas fa-trash"></i></a></td>
-                  </tr>
-                  <tr class="expandable-body">
-                    <td colspan="5">
-                      <p>
-                        {% for address in user.address.all %}
-                        {{ address.address|default:"No address provided" }},
-                        {{ address.city|default:"No city provided" }},
-                        {{ address.country|default:"No country provided" }},
-                        {{ address.district|default:"No district provided" }},
-                        {{ address.postcode|default:"No postcode provided" }}
-                        <br>
-                        {% empty %}
-                        No addresses found for this user.
-                        {% endfor %}
-                      </p>
-                    </td>
-                  </tr>
-                  {% endfor %}
-                  {% else %}
+              <div class="table-responsive">
+                <table id="example1" class="table table-bordered table-hover">
+                  <thead>
                     <tr>
-                      <td colspan="7" class="text-center">No users found.</td>
+                      <th>Sr No</th>
+                      <th>First Name</th>
+                      <th>Last Name</th>
+                      <th>Email</th>
+                      <th>Last Login</th>
+                      <th>Phone Number</th>
+                      <th>Register Date</th>
+                      <th>Action</th>
                     </tr>
-                  {% endif %}
-                </tbody>
-                <tfoot>
-                </tfoot>
-              </table>
-
+                  </thead>
+                  <tbody>
+                    {% if page_obj.object_list %}
+                    {% for user in page_obj %}
+                    <tr data-widget="expandable-table" aria-expanded="false">
+                      <td>{{ forloop.counter0|add:start_number }}</td>
+                      <td>{{user.first_name}}</td>
+                      <td>{{user.last_name}}</td>
+                      <td>{{user.email}}</td>
+                      <td>{{user.last_login}}</td>
+                      <td>{{user.phone_number}}</td>
+                      <td>{{ user.date_joined|date:"d/m/Y" }}</td>
+                      <td><a href="{% url 'user-edit' user.id %}"><i
+                            class="fas fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;<a href="{% url 'user-delete' user.id %}"
+                          class="delete-btn"><i class="fas fa-trash"></i></a></td>
+                    </tr>
+                    <tr class="expandable-body">
+                      <td colspan="5">
+                        <p>
+                          {% for address in user.address.all %}
+                          {{ address.address|default:"No address provided" }},
+                          {{ address.city|default:"No city provided" }},
+                          {{ address.country|default:"No country provided" }},
+                          {{ address.district|default:"No district provided" }},
+                          {{ address.postcode|default:"No postcode provided" }}
+                          <br>
+                          {% empty %}
+                          No addresses found for this user.
+                          {% endfor %}
+                        </p>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                      <tr>
+                        <td colspan="7" class="text-center">No users found.</td>
+                      </tr>
+                    {% endif %}
+                  </tbody>
+                  <tfoot>
+                  </tfoot>
+                </table>
+              </div>
             </div>
             <!-- /.card-body -->
               <!-- Pagination Controls -->

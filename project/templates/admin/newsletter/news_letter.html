@@ -38,32 +38,34 @@
                   </div>
                 </div>
               </form>
-              <table class="table table-bordered table-hover">
-                <thead>
-                  <tr>
-                    <th>Sr No</th>
-                    <th>Email</th>
-                    <th>Subscriber</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% if page_obj.object_list %}
-                  {% for news_email in page_obj %}
-                  <tr data-widget="expandable-table" aria-expanded="false">
-                    <td>{{ forloop.counter0|add:start_number }}</td>
-                    <td>{{ news_email.email }}</td>
-                    <td>{% if news_email.is_subscribed %}Yes {% else %}No{% endif %}</td>
-                  </tr>
-                  {% endfor %}
-                  {% else %}
+              <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                  <thead>
                     <tr>
-                      <td colspan="7" class="text-center">No data found.</td>
+                      <th>Sr No</th>
+                      <th>Email</th>
+                      <th>Subscriber</th>
                     </tr>
-                  {% endif %}
-                </tbody>
-                <tfoot>
-                </tfoot>
-              </table>
+                  </thead>
+                  <tbody>
+                    {% if page_obj.object_list %}
+                    {% for news_email in page_obj %}
+                    <tr data-widget="expandable-table" aria-expanded="false">
+                      <td>{{ forloop.counter0|add:start_number }}</td>
+                      <td>{{ news_email.email }}</td>
+                      <td>{% if news_email.is_subscribed %}Yes {% else %}No{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                      <tr>
+                        <td colspan="7" class="text-center">No data found.</td>
+                      </tr>
+                    {% endif %}
+                  </tbody>
+                  <tfoot>
+                  </tfoot>
+                </table>
+              </div>
 
             </div>
             <!-- /.card-body -->
