@@ -90,13 +90,13 @@
                                     </h4>
                                 </td>
                                 <td class="cart_price">
-                                    <p>₹{{ item.product.price }}</p>
+                                    <p>${{ item.product.price }}</p>
                                 </td>
                                 <td class="cart_quantity">
                                     <p>{{ item.quantity }}</p>
                                 </td>
                                 <td class="cart_total">
-                                    <p class="cart_total_price">₹{{ item.total_price }}</p>
+                                    <p class="cart_total_price">${{ item.total_price }}</p>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -132,25 +132,25 @@
                                 <table class="table table-condensed total-result">
                                     <tr>
                                         <td>Cart Sub Total</td>
-                                        <td>₹{{ cart_sub_total }}</td>
+                                        <td>${{ cart_sub_total }}</td>
                                     </tr>
                                     <tr>
                                         <td>Eco Tax</td>
-                                        <td>₹{{ eco_tax }}</td>
+                                        <td>${{ eco_tax }}</td>
                                     </tr>
                                     <tr class="shipping-cost">
                                         <td>Shipping Cost</td>
-                                        <td>{% if shipping_cost == 0 %}Free{% else %}₹{{ shipping_cost }}{% endif %}</td>
+                                        <td>{% if shipping_cost == 0 %}Free{% else %}${{ shipping_cost }}{% endif %}</td>
                                     </tr>
                                     {% if applied_coupon %}
                                     <tr>
                                         <td>Discount ({{ applied_coupon.code }})</td>
-                                        <td>₹{{ discount_amount }}</td>
+                                        <td>${{ discount_amount }}</td>
                                     </tr>
                                     {% endif %}
                                     <tr>
                                         <td>Total</td>
-                                        <td><span>₹{{ total }}</span></td>
+                                        <td><span>${{ total }}</span></td>
                                     </tr>
                                 </table>
                             </td>

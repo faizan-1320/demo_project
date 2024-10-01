@@ -65,6 +65,7 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10,decimal_places=2)
     quantity = models.PositiveIntegerField(null=True,blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE,related_name='categories')
+    is_features = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_delete = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)

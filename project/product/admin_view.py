@@ -86,6 +86,7 @@ def add_products(request): #pylint: disable=R0914,R0911,R0912
         images = request.FILES.getlist('product_images[]')
         product_attribute_ids = request.POST.getlist('product_attribute_id')
         product_attribute_values = request.POST.getlist('product_attribute_value')
+        is_featured = request.POST.get('is_featured') == 'on'
 
         # Validate the inputs
         if not name:
@@ -130,7 +131,8 @@ def add_products(request): #pylint: disable=R0914,R0911,R0912
                     name=name,
                     price=price,
                     quantity=quantity,
-                    category_id=category_id
+                    category_id=category_id,
+                    is_features=is_featured
                 )
 
                 # Create product attribute values
@@ -208,6 +210,7 @@ def edit_product(request, pk): # pylint: disable=R0914,R0912,R0915
         images_to_delete = request.POST.getlist('images_to_delete')
         images = request.FILES.getlist('product_images[]')
         delete_attribute_values = request.POST.getlist('delete_attribute_values')
+        is_featured = request.POST.get('is_featured') == 'on'
 
         # Form validation
         if not product_name:
@@ -243,6 +246,7 @@ def edit_product(request, pk): # pylint: disable=R0914,R0912,R0915
                 product.price = price
                 product.quantity = quantity
                 product.category_id = category_id
+                product.is_features = is_featured
                 product.save()
 
                 # Delete attribute values marked for deletion

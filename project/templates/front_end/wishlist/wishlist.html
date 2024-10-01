@@ -59,7 +59,7 @@
                             <p>{{ item.product.description }}</p>
                         </td>
                         <td class="cart_price">
-                            <p>₹{{ item.product.price }}</p>
+                            <p>${{ item.product.price }}</p>
                         </td>
                         <td class="cart_price">
                             <a href="{% url 'add-to-cart' item.product.id %}" class="add-to-cart">Add to cart</a>

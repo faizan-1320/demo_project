@@ -1,4 +1,4 @@
-# pylint: disable=E0401,R1705,C0206,E1101
+# pylint: disable=E0401,R1705,C0206,E1101,R0914,E1120
 """
 Views for the product application.
 
@@ -35,6 +35,7 @@ def home(request):
     View for the homepage. Displays banners, categories, and products.
     Handles filtering products based on selected category and pagination.
     """
+    # Fetch active banners and categories
     banners = Banner.objects.filter(is_active=True, is_delete=False)
     categories = Category.objects.filter(is_active=True, is_delete=False)
     category_tree = get_category_tree(categories)
@@ -42,8 +43,8 @@ def home(request):
     # Get selected category from query parameters
     category_id = request.GET.get('category', None)
 
+    # Filter products based on the selected category
     if category_id:
-        # If a category is selected, filter products by that category and its subcategories
         selected_category = get_object_or_404(
         Category, id=category_id, is_active=True, is_delete=False)
         subcategories = Category.objects.filter(
@@ -52,12 +53,17 @@ def home(request):
         products = Product.objects.filter(
         category__in=categories_to_filter, is_active=True, is_delete=False)
     else:
-        # If no category is selected, display all active products
+        # Display all active products if no category is selected
         products = Product.objects.filter(
         is_active=True, is_delete=False).prefetch_related('product')
 
+    # Fetch featured products
+    featured_products = Product.objects.filter(is_features=True, is_active=True, is_delete=False)
+
     # Paginate products
     paginator = Paginator(products, 12)
+    featured_paginator = Paginator(featured_products, 12)
+
     page = request.GET.get('page', 1)
 
     try:
@@ -67,22 +73,22 @@ def home(request):
     except EmptyPage:
         products_paginated = paginator.page(paginator.num_pages)
 
-    form = NewsletterForm()
-
     # Handle newsletter subscription form submission
-    if request.method == 'POST':
-        form = NewsletterForm(request.POST)
-        if form.is_valid():
-            form.save(request)
-            return redirect('home')
+    form = NewsletterForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        return redirect('home')
 
+    # Prepare context for rendering the template
     context = {
         'banners': banners,
         'products': products_paginated,
+        'featured_products': featured_paginator.page(page),
         'categories': category_tree,
         'selected_category': category_id,
         'form': form,
     }
+
     return render(request, 'front_end/index.html', context)
 
 def auth_view(request):

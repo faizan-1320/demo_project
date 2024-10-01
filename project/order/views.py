@@ -1,4 +1,4 @@
-# pylint: disable=E0401,W1309
+# pylint: disable=E0401,W1309,C0116,R0914,W0613,W0612
 """
 Views for the order application.
 
@@ -8,6 +8,9 @@ from decimal import Decimal
 import json
 import requests
 import paypalrestsdk
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
@@ -20,6 +23,7 @@ from project.users.models import Address
 from project.coupon.models import Coupon
 from project.users.models import Wishlist
 from .models import Product,ProductInOrder,Order
+
 # Configure PayPal SDK
 paypalrestsdk.configure({
     "mode": "sandbox",
@@ -506,3 +510,140 @@ def order_detail_user(request, pk):
     }
 
     return render(request, 'front_end/order/user/order_detail_user.html', context)
+
+def generate_invoice_pdf(request, order_id):
+    """
+    generate_invoice_pdf view for user
+    """
+    try:
+        # Fetch the order details
+        order = Order.objects.get(id=order_id)
+        items = order.order_items.all()  # Fetch related order items
+
+        # Create a HttpResponse object with PDF content type
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="invoice_{order.order_id}.pdf"'
+
+        # Create a PDF canvas using reportlab
+        p = canvas.Canvas(response, pagesize=A4)
+
+        # Start writing to the PDF
+        width, height = A4
+        p.setFont("Helvetica", 12)
+
+        # Invoice title
+        p.drawString(200, height - 50, f"Invoice #{order.id}")
+        p.drawString(50, height - 80, f"Customer: {order.user.email}")
+        p.drawString(50, height - 100, f"Address: {order.address}")
+
+        # Mapping payment status
+        payment_status_dict = dict(order.payment_status_choice)
+        payment_status = payment_status_dict.get(order.payment_status, "Unknown")
+
+        # Add Payment Type to PDF
+        p.drawString(50, height - 120, f"Payment Type: {payment_status}")
+
+        # Applied Discount near Payment Status
+        applied_discount_str = f"Applied Discount: -${order.discount_amount:.2f}"
+        p.drawString(50, height - 140, applied_discount_str)
+
+        # Set column widths
+        col_widths = {
+            'product': 200,
+            'quantity': 50,
+            'unit_price': 100,
+            'total_price': 100,
+        }
+
+        # Draw table header
+        header_y = height - 170
+        p.setFillColor(colors.grey)
+        p.rect(50, header_y - 20, sum(col_widths.values()), 20, fill=1)
+        p.setFillColor(colors.black)
+        p.drawString(50, header_y - 15, "Product")
+        p.drawString(50 + col_widths['product'], header_y - 15, "Quantity")
+        p.drawString(50 + col_widths['product'] + col_widths['quantity'],
+                     header_y - 15, "Unit Price")
+        p.drawString(50 + col_widths['product'] + col_widths['quantity']
+                     + col_widths['unit_price'], header_y - 15, "Total Price")
+
+        # Draw header line
+        p.line(50, header_y - 20, 50 + sum(col_widths.values()), header_y - 20)
+
+        # Loop through order items and add to the PDF
+        y_position = header_y - 40
+        p.setFont("Helvetica", 12)
+
+        for item in items:
+            # Draw product name with wrapping
+            product_name = item.product.name
+            product_lines = []
+            max_line_length = col_widths['product'] // 8
+
+            # Wrap the product name based on calculated length
+            while product_name:
+                product_lines.append(product_name[:max_line_length])
+                product_name = product_name[max_line_length:]
+
+            # Draw each line of the product name
+            for line in product_lines:
+                p.drawString(50, y_position, line)
+                y_position -= 15  # Move down for the next line
+
+            # Draw quantity
+            p.drawString(50 + col_widths['product'], y_position + 15, str(item.quantity))
+
+            # Draw unit price
+            p.drawString(50 + col_widths['product'] + col_widths['quantity'],
+                         y_position + 15, f"${item.price:.2f}")
+
+            # Calculate and draw total price
+            total_price = item.price * item.quantity
+            p.drawString(50 + col_widths['product'] +
+            col_widths['quantity'] + col_widths['unit_price'],
+            y_position + 15, f"${total_price:.2f}")
+
+            # Draw item row bottom line
+            p.line(50, y_position + 10, 50 + sum(col_widths.values()), y_position + 10)
+            y_position -= 20  # Move down for the next row
+
+        # Total Amount
+        y_position -= 10  # Extra space before the total
+        total_amount_str = f"Total Amount: ${order.total_amount:.2f}"
+        p.drawString(350, y_position, total_amount_str)
+
+        # Draw a complete line under the total amount
+        line_y_position = y_position - 5
+        p.line(50, line_y_position, 50 + sum(col_widths.values()), line_y_position)
+
+        # Close the PDF object
+        p.showPage()
+        p.save()
+
+        # Return the PDF response
+        return response
+    except Order.DoesNotExist:
+        return HttpResponse('Order not found', status=404)
+
+
+def invoice_view(request, order_id):
+    """
+    invoice_pdf view for user
+    """
+    # Retrieve the order object or return a 404 if not found
+    order = get_object_or_404(Order, id=order_id)
+    items = order.order_items.all()
+
+    # Map payment status to a readable format
+    payment_status_dict = dict(order.payment_status_choice)
+    payment_status = payment_status_dict.get(order.payment_status, "Unknown")
+
+    # Prepare the context for the template
+    context = {
+        'order': order,
+        'items': items,
+        'payment_status': payment_status,
+    }
+
+    # Render the invoice template and return the HTTP response
+    return render(request, 'front_end/invoice.html', context)

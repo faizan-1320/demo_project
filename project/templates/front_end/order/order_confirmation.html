@@ -50,7 +50,7 @@
                 <tr>
                     <td>{{ item.product.name }}</td>
                     <td>{{ item.quantity }}</td>
-                    <td>₹{{ item.price }}</td>
+                    <td>${{ item.price }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -58,7 +58,7 @@
     </div>
 
     <div class="order-details">
-        <p><strong>Total Amount:</strong> ₹{{ order.total_amount }}</p>
+        <p><strong>Total Amount:</strong> ${{ order.total_amount }}</p>
         <p><strong>Payment Status:</strong> {{ order.get_payment_status_display }}</p>
         <p><strong>Shipping Method:</strong> {{ order.get_shipping_method_display }}</p>
         <p><strong>Delivery Address:</strong> {{ order.address }}</p>

@@ -60,7 +60,7 @@
                             <p>{{ item.product.description }}</p>
                         </td>
                         <td class="cart_price">
-                            <p>₹{{ item.product.price }}</p>
+                            <p>${{ item.product.price }}</p>
                         </td>
                         <td class="cart_quantity">
                             <div class="cart_quantity_button">
@@ -70,7 +70,7 @@
                             </div>
                         </td>
                         <td class="cart_total">
-                            <p class="cart_total_price">₹{{item.total_price}}</p>
+                            <p class="cart_total_price">${{item.total_price}}</p>
                         </td>
                         <td class="cart_delete">
                             <form action="{% url 'remove-from-cart' item.product.id  %}" method="post">
@@ -98,10 +98,10 @@
             <div class="col-sm-12">
                 <div class="total_area">
                     <ul>
-                        <li>Sub Total <span>₹{{ cart_sub_total }}</span></li>
-                        <li>Eco Tax <span>₹{{ eco_tax }}</span></li>
-                        <li>Shipping Cost <span>{% if shipping_cost == 0 %}Free{% else %}₹{{ shipping_cost }}{% endif %}</span></li>
-                        <li>Total <span>₹{{ total }}</span></li>
+                        <li>Sub Total <span>${{ cart_sub_total }}</span></li>
+                        <li>Eco Tax <span>${{ eco_tax }}</span></li>
+                        <li>Shipping Cost <span>{% if shipping_cost == 0 %}Free{% else %}${{ shipping_cost }}{% endif %}</span></li>
+                        <li>Total <span>${{ total }}</span></li>
                     </ul>
                         <a class="btn btn-default check_out" href="{% url 'checkout' %}">Check Out</a>
                 </div>

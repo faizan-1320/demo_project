@@ -59,3 +59,11 @@ def render_category_tree_tag(context):
 @register.filter
 def is_out_of_stock(quantity):
     return quantity == 0
+
+@register.filter
+def get_category_name(category_id):
+    try:
+        category = Category.objects.get(id=category_id)
+        return category.category_name
+    except Category.DoesNotExist:
+        return "Unknown Category"

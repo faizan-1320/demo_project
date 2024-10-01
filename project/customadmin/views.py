@@ -1,4 +1,4 @@
-# pylint: disable=R0801,R0914,W0613,W0621
+# pylint: disable=R0801,R0914,W0613,W0621,R0912,W0612
 """
 Views for the CustomAdmin application.
 
@@ -215,20 +215,44 @@ def dashboard(request):
     return render(request,'admin/dashboard.html',context)
 
 def export_sales_report_csv(request):
-    """Sales Report Csv Generate"""
+    """Sales Report CSV Generate with Validations and Default to All Data"""
 
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
 
+    # Validate the date inputs if provided
     if start_date and end_date:
-        start_date = datetime.strptime(start_date,'%Y-%m-%d')
-        end_date = datetime.strptime(end_date,'%Y-%m-%d') + timedelta(days=1)
-        orders = Order.objects.filter(created_at__range=[start_date,end_date])
-    else:
-        # Fetch order data (modify this query to fit your Order/OrderItem model structure)
-        orders = Order.objects.all()
+        try:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date, '%Y-%m-%d')
 
-    # Create the HttpResponse object with the appropriate CSV header.
+            # Validate that the end date is not earlier than the start date
+            if end_date < start_date:
+                messages.error(request, 'End date cannot be earlier than start date.')
+                return redirect('dashboard')  # Redirect to the dashboard
+
+            # Include the end of the day for the end date
+            end_date += timedelta(days=1)
+        except ValueError:
+            messages.error(request, 'Invalid date format. Please use YYYY-MM-DD.')
+            return redirect('dashboard')
+    else:
+        # If no date range is provided, fetch all orders
+        start_date = None
+        end_date = None
+
+    # Fetch orders within the date range if provided, otherwise fetch all
+    if start_date and end_date:
+        orders = Order.objects.filter(created_at__range=[start_date, end_date])
+    else:
+        orders = Order.objects.all()  # Fetch all orders if no date range is provided
+
+    # Check if any orders exist
+    if not orders.exists():
+        messages.error(request, 'No orders found for the selected date range.')
+        return redirect('dashboard')
+
+    # Create the HttpResponse object with the appropriate CSV header
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="sales_report.csv"'
 
@@ -244,7 +268,6 @@ def export_sales_report_csv(request):
     # Loop through orders and extract product info
     for order in orders.prefetch_related('order_items__product'):
         for item in order.order_items.all():
-        # Assuming `order_items` is the related name for items in Order
             product = item.product
 
             # If product is already in the dictionary, update the quantity
@@ -258,29 +281,59 @@ def export_sales_report_csv(request):
                     'current_stock': product.quantity
                 }
 
+    # Check if any products were sold
+    if not product_sales:
+        messages.error(request, 'No products sold during the selected period.')
+        return redirect('dashboard')
+
     # Write the aggregated data to the CSV file
     for product_name, data in product_sales.items():
         writer.writerow([product_name, data['total_sold_quantity'],
-                        data['current_stock'], data['price'],
-        f"{start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}" 
-        if start_date and end_date else 'All Time'])
+                         data['current_stock'], data['price'],
+                         f"{start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}"
+                         if start_date and end_date else 'All Time'])
 
     return response
 
 def customer_registration_report(request):
-    """New User Report"""
+    """New User Report with Validation and Default to All Data"""
+
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
+
+    # Validate the date inputs if provided
     if start_date and end_date:
-        start_date = datetime.strptime(start_date,'%Y-%m-%d')
-        original_end_date = datetime.strptime(end_date, '%Y-%m-%d')
-        end_date = datetime.strptime(end_date,'%Y-%m-%d') + timedelta(days=1)
-        users = User.objects.filter(date_joined__range=[start_date,end_date]).values(
+        try:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d')
+            original_end_date = datetime.strptime(end_date, '%Y-%m-%d')
+
+            # Validate that the end date is not earlier than the start date
+            if original_end_date < start_date:
+                messages.error(request, 'End date cannot be earlier than start date.')
+                return redirect('dashboard')  # Redirect to the dashboard
+
+            # Include the end of the day for the end date
+            end_date = original_end_date + timedelta(days=1)
+        except ValueError:
+            messages.error(request, 'Invalid date format. Please use YYYY-MM-DD.')
+            return redirect('dashboard')
+    else:
+        # If no date range is provided, fetch all users
+        start_date = None
+        end_date = None
+
+    # Fetch users within the date range if provided, otherwise fetch all users
+    if start_date and end_date:
+        users = User.objects.filter(date_joined__range=[start_date, end_date]).values(
             'email', 'date_joined', 'last_login', 'phone_number'
         )
     else:
-        # Fetch all users and their necessary details
         users = User.objects.values('email', 'date_joined', 'last_login', 'phone_number')
+
+    # Check if there are users found in the query
+    if not users.exists():
+        messages.error(request, 'No users found for the selected date range.')
+        return redirect('dashboard')
 
     # Create the CSV response
     response = HttpResponse(content_type='text/csv')
@@ -289,7 +342,7 @@ def customer_registration_report(request):
     # Write to CSV
     writer = csv.writer(response)
     # Header row
-    writer.writerow(['Email', 'Join Date', 'Last Login', 'Phone Number','Range Date'])
+    writer.writerow(['Email', 'Join Date', 'Last Login', 'Phone Number', 'Date Range'])
 
     # Write each user's data
     for user in users:
@@ -299,30 +352,57 @@ def customer_registration_report(request):
             user['last_login'].strftime('%Y-%m-%d %H:%M:%S') if user['last_login'] else 'Never',
             user['phone_number'] if user['phone_number'] else 'N/A',
             f"{start_date.strftime('%Y-%m-%d')} to {original_end_date.strftime('%Y-%m-%d')}" 
-        if start_date and end_date else 'All Time'
+            if start_date and original_end_date else 'All Time'
         ])
 
     return response
 
 def coupons_used_report(request):
-    """Userd Coupon Report"""
+    """Used Coupon Report with Validation and Default to All Data"""
+
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
 
+    # Validate the date inputs if provided
     if start_date and end_date:
-        start_date = datetime.strptime(start_date,'%Y-%m-%d')
-        original_end_date = datetime.strptime(end_date,'%Y-%m-%d')
-        end_date = datetime.strptime(end_date,'%Y-%m-%d') + timedelta(days=1)
-        # Fetch all orders where coupons were used, ordered by date
-        orders_with_coupons = Order.objects.filter(coupon__isnull=False,
-        created_at__range=[start_date,end_date]).order_by(
-        'created_at').values('user__email', 'coupon__code',
-         'coupon__discount_amount', 'created_at', 'total_amount')
+        try:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d')
+            original_end_date = datetime.strptime(end_date, '%Y-%m-%d')
+
+            # Validate that the end date is not earlier than the start date
+            if original_end_date < start_date:
+                messages.error(request, 'End date cannot be earlier than start date.')
+                return redirect('dashboard')  # Redirect to the dashboard
+
+            # Include the end of the day for the end date
+            end_date = original_end_date + timedelta(days=1)
+        except ValueError:
+            messages.error(request, 'Invalid date format. Please use YYYY-MM-DD.')
+            return redirect('dashboard')
     else:
-        # Fetch all orders where coupons were used, ordered by date
-        orders_with_coupons = Order.objects.filter(coupon__isnull=False).order_by(
-        'created_at').values('user__email', 'coupon__code', 
-        'coupon__discount_amount', 'created_at', 'total_amount')
+        # If no date range is provided, fetch all data
+        start_date = None
+        end_date = None
+
+    # Fetch orders where coupons were used, with or without date range
+    if start_date and end_date:
+        orders_with_coupons = Order.objects.filter(
+            coupon__isnull=False,
+            created_at__range=[start_date, end_date]
+        ).order_by('created_at').values(
+            'user__email', 'coupon__code', 'coupon__discount_amount', 'created_at', 'total_amount'
+        )
+    else:
+        orders_with_coupons = Order.objects.filter(
+            coupon__isnull=False
+        ).order_by('created_at').values(
+            'user__email', 'coupon__code', 'coupon__discount_amount', 'created_at', 'total_amount'
+        )
+
+    # Check if there are any orders found
+    if not orders_with_coupons.exists():
+        messages.error(request, 'No coupon usage records found for the selected date range.')
+        return redirect('dashboard')
 
     # Create the CSV response
     response = HttpResponse(content_type='text/csv')
@@ -332,22 +412,23 @@ def coupons_used_report(request):
     writer = csv.writer(response)
 
     # Write header row
-    writer.writerow(['User Email', 'Coupon Code', 'Discount Applied', 'Order Date', 
-    'Total Amount','Date Range'])
+    writer.writerow(['User Email', 'Coupon Code', 'Discount Applied', 'Order Date',
+                     'Total Amount', 'Date Range'])
 
     # Write data rows
     for order in orders_with_coupons:
         writer.writerow([
             order['user__email'],  # User email
             order['coupon__code'],  # Coupon code
-            f"{order['coupon__discount_amount']:.2f}",  # Coupon discount (formatted as decimal)
+            f"{order['coupon__discount_amount']:.2f}",  # Coupon discount formatted as decimal
             order['created_at'].strftime('%Y-%m-%d %H:%M:%S'),  # Order date
-            f"{order['total_amount']:.2f}",  # Total order amount (formatted as decimal)
+            f"{order['total_amount']:.2f}",  # Total order amount formatted as decimal
             f"{start_date.strftime('%Y-%m-%d')} to {original_end_date.strftime('%Y-%m-%d')}" 
-        if start_date and end_date else 'All Time'
+            if start_date and original_end_date else 'All Time'
         ])
 
     return response
+
 
 ###################
 # User Management #

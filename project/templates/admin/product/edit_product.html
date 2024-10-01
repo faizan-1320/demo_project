@@ -81,6 +81,10 @@
                                         {% endfor %}
                                     </select>
                                 </div>
+                                <div class="form-group">
+                                    <label for="is_featured">Featured:</label>
+                                    <input type="checkbox" id="is_featured" name="is_featured" {% if product.is_features %}checked{% endif %}>
+                                </div>                                
                             </div>
                             <div class="card-footer">
                                 <button type="submit" class="btn btn-primary">Submit</button>

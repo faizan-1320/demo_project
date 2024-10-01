@@ -1,0 +1,91 @@
+{% load multiply %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice #{{ order.id }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        h2 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .total {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+        .print-button {
+            margin-top: 20px;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .print-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Invoice #{{ order.id }}</h1>
+    <p><strong>Customer:</strong> {{ order.user.email }}</p>
+    <p><strong>Address:</strong> {{ order.address }}</p>
+    <p><strong>Order Date:</strong> {{ order.datetime_of_payment|date:"Y-m-d H:i" }}</p>
+    <p><strong>Payment Type:</strong> {{ order.payment_status }}</p> <!-- This should be updated to show readable format -->
+    
+    {% if order.discount_amount > 0 %}
+        <p><strong>Discount Applied:</strong> ${{ order.discount_amount|floatformat:2 }}</p>
+    {% endif %}
+
+    <h3>Order Details</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>Total Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>${{ item.price|floatformat:2 }}</td>
+                    <td>${{ item.price|floatformat:2|multiply:item.quantity }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <h2 class="total">Total Amount: ${{ order.total_amount|floatformat:2 }}</h2>
+
+    <button class="print-button" onclick="window.print()">Print Invoice</button>
+</body>
+</html>

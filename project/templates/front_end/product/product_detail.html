@@ -51,7 +51,7 @@
                                 <span>{{ average_rating|floatformat:1 }}/5</span>
                                 {% endif %}
                                 <div>
-                                    <span>₹{{ product.price }}</span>
+                                    <span>${{ product.price }}</span>
                                 </div>
                                 {% if not product.quantity|is_out_of_stock %}
                                 <label>Quantity:</label>

@@ -50,6 +50,7 @@
                       <th>Category</th>
                       <th>Images</th>
                       <th>Attributes</th>
+                      <th>Features</th>
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -72,6 +73,11 @@
                         <strong>{{ attribute_value.product_attribute.name }}:</strong> {{ attribute_value.value }}<br>
                         {% endfor %}
                       </td>
+                      {% if product.is_features %}
+                      <td>Yes</td>
+                      {% else %}
+                      <td>No</td>
+                      {% endif %}
                       <td>
                         <a href="{% url 'edit-product' product.id %}"><i
                             class="fas fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;<a

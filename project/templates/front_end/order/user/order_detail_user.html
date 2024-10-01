@@ -29,11 +29,28 @@
 <div class="container my-5">
     <h2 class="mb-4">Order Details</h2>
     <div class="card p-4 shadow-sm">
-        <h5 class="mb-3">Order ID: <span class="text-primary">{{ order.order_id }}</span></h5>
-        <p><strong>Order Date:</strong> {{ order.datetime_of_payment|date:"F d, Y" }}</p>
-        <p><strong>Order Type:</strong> {{ order.get_status_display }}</p>
-        <p><strong>Payment Status:</strong> {{ order.get_payment_status_display }}</p>
-        <p><strong>Discount:</strong> {{ order.discount_amount }}</p>
+        <div class="row">
+            <div class="col-md-6">
+                <h5 class="mb-3">
+                    Order ID: <span class="text-primary">{{ order.order_id }}</span>
+                </h5>
+                <p><strong>Order Date:</strong> {{ order.datetime_of_payment|date:"F d, Y" }}</p>
+                <p><strong>Order Type:</strong> {{ order.get_status_display }}</p>
+                <p><strong>Payment Status:</strong> {{ order.get_payment_status_display }}</p>
+                <p><strong>Discount:</strong> ${{ order.discount_amount|floatformat:2 }}</p> <!-- Format to 2 decimal places -->
+            </div>
+            <div class="col-md-6 text-right"> <!-- Use Bootstrap class for alignment -->
+                <a href="{% url 'generate-invoice-pdf' order.id %}" class="btn btn-primary">
+                    Download Invoice
+                </a>
+                <a href="{% url 'generate-html-invoice-pdf' order.id %}" class="btn btn-primary">
+                    Download Invoice Html
+                </a>
+            </div>
+        </div>
+        
+        
+       
         <hr>
         <h5 class="mb-3">Order Items</h5>
         <div class="list-group">
@@ -44,16 +61,16 @@
                     <div>
                         <h6 class="mb-0">{{ item.product.name }}</h6>
                         <small class="text-muted">Quantity: {{ item.quantity }}</small>
-                        <p class="mb-0 text-muted">Price: ₹{{ item.product.price }}</p>
+                        <p class="mb-0 text-muted">Price: ${{ item.product.price }}</p>
                     </div>
                 </div>
-                <span class="badge bg-secondary">₹{{ item.price }}</span>
+                <span class="badge bg-secondary">${{ item.price }}</span>
             </div>
             {% endfor %}
         </div>
         <hr>
         <div class="d-flex justify-content-between align-items-center">
-            <p class="mb-0"><strong>Total Amount: </strong><span class="text-primary">₹{{ order.total_amount }}</span></p>
+            <p class="mb-0"><strong>Total Amount: </strong><span class="text-primary">${{ order.total_amount }}</span></p>
         </div>
     </div>
 </div>
