@@ -1,5 +1,36 @@
 {% extends 'front_end/index.html' %}
 {% load static %}
+{% block css %}
+<style>
+   .star-rating {
+    display: flex;
+    direction: row;
+}
+
+.star-rating input {
+    display: none; /* Hide the default radio buttons */
+}
+
+.star-rating label {
+    font-size: 30px; /* Size of the stars */
+    color: gray; /* Color for empty stars */
+    cursor: pointer; /* Pointer on hover */
+}
+
+/* Change the color of the stars when checked */
+.star-rating input:checked ~ label {
+    color: gold; /* Color for filled stars */
+}
+
+/* Highlight stars on hover */
+.star-rating label:hover,
+.star-rating label:hover ~ label {
+    color: gold; /* Highlight stars */
+}
+
+
+</style>
+{% endblock %}
 {% block content %}
 <section>
     <div class="container">
@@ -11,12 +42,17 @@
         {{ review_form.as_p }}
     </div>
     <div>
-        {{ rating_form.as_p }}
+        <label>Rate this product:</label>
+        <div class="star-rating">
+            {% for i in star_range %}
+                <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}">
+                <label for="star{{ i }}">★</label>
+            {% endfor %}
+        </div>
     </div>
     <div style="margin-bottom: 10px;">
-        <button type="submit" class="btn btn-primary" >Submit</button>
+        <button type="submit" class="btn btn-primary">Submit</button>
         <a href="{% url 'product-detail' product.id %}" class="btn btn-primary">Cancel</a>
-        <!-- <button type="submit" class="btn btn-primary" style="margin-bottom: 10px;">Submit</button> -->
     </div>
 </form>
 </div>

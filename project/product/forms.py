@@ -24,14 +24,14 @@ class RatingForm(forms.ModelForm):
     """
     Form for Rating.
     """
-    class Meta: # pylint: disable=R0903
-        """
-        Meta options for RatingForm.
-        """
+    class Meta:
         model = Rating
         fields = ['rating']
         widgets = {
-            'rating':forms.TextInput(attrs={'class': 'form-control'})
+            'rating': forms.RadioSelect(
+                choices=[(i, str(i)) for i in range(1, 6)],  # Choices from 1 to 5
+                attrs={'class': 'star-rating'}
+            )
         }
 
 class ProductAttributeForm(forms.ModelForm):

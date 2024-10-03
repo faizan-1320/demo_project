@@ -151,6 +151,7 @@ class Review(models.Model):
 
     class Meta: # pylint: disable=R0903
         """Meta Class"""
+        unique_together = ('user', 'product')
         verbose_name = 'Review'
         verbose_name_plural = 'Reviews'
 
@@ -171,6 +172,7 @@ class Rating(models.Model):
 
     class Meta: # pylint: disable=R0903
         """Meta Class"""
+        unique_together = ('user', 'product')   
         verbose_name = 'Rating'
         verbose_name_plural = 'Ratings'
 

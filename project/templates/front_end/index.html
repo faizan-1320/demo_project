@@ -17,6 +17,8 @@
 	<link href="{% static 'assets/css/responsive.css' %}" rel="stylesheet">
 	<!-- SweetAlert CSS -->
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
 
 	{% block css %}
 	<style>
@@ -69,6 +71,18 @@
 			background-color: #007bff;
 			color: white;
 		}
+		.add-to-cart{
+    font-size: 9px !important;
+    margin-bottom: 7px !important;
+}	.add-to-wishlist{
+	font-size: 9px !important;
+    margin-bottom: 7px !important;
+	background: #F5F5ED;
+	border: 0 none;
+	border-radius: 0;
+    color: #696763;
+    font-family: 'Roboto', sans-serif;
+}
 	</style>
 	{% endblock %}
 </head><!--/head-->
@@ -86,8 +100,10 @@
 					</div>
 					<div class="col-sm-8">
 						<div class="shop-menu pull-right">
-							<ul class="nav navbar-nav">								
-								<li><a href="{% url 'cart-detail' %}"><i class="fa fa-shopping-cart"></i> Cart</a></li>
+							<ul class="nav navbar-nav">
+								<li>
+									<a href="{% url 'cart-detail' %}"><i class="fa fa-shopping-cart"></i> Cart</a>
+								</li>														
 								<li><a href="{% url 'contact' %}"><i class="fa fa-envelope"></i>Contact</a></li>
 								{% if user.is_authenticated %}
 								<li><a href="{% url 'wishlist' %}"><i class="fa fa-star"></i> Wishlist</a></li>
@@ -227,11 +243,11 @@
 															</p>
 															{% if product.quantity %}
 																<div class="button-container">
-																	<a href="{% url 'add-to-cart' product.id %}" class="btn btn-default add-to-cart">
+																	<a href="{% url 'add-to-cart' product.id %}" class="btn btn-default add-to-cart" id="add-to-cart">
 																		<i class="fa fa-shopping-cart"></i> Add to cart
 																	</a>
-																	<a href="{% url 'add-to-wishlist' product.id %}" class="btn btn-default add-to-cart">
-																		<i class="fa fa-plus-square"></i> Add to wishlist
+																	<a href="{% url 'add-to-wishlist' product.id %}" class="btn btn-default add-to-wishlist" id="add-to-wishlist">
+																		<i class="fa fa-heart"></i> Add to wishlist
 																	</a>
 																</div>
 															{% endif %}
@@ -287,11 +303,11 @@
 														
 														<!-- Display buttons based on quantity -->
 														{% if featured_product.quantity > 0 %}
-															<a href="{% url 'add-to-cart' featured_product.id %}" class="btn btn-default add-to-cart">
+															<a href="{% url 'add-to-cart' featured_product.id %}" class="btn btn-default add-to-cart" id="add-to-cart">
 																<i class="fa fa-shopping-cart"></i> Add to cart
 															</a>
-															<a href="{% url 'add-to-wishlist' featured_product.id %}" class="btn btn-default add-to-cart">
-																<i class="fa fa-plus-square"></i> Add to wishlist
+															<a href="{% url 'add-to-wishlist' featured_product.id %}" class="btn btn-default add-to-wishlist" id="add-to-wishlist">
+																<i class="fa fa-heart"></i> Add to wishlist
 															</a>
 														{% endif %}
 													</div>
@@ -301,11 +317,11 @@
 															<a href="{% url 'product-detail' featured_product.id %}">
 															<p class="product-name">{{ featured_product.name }}</p></a>
 															{% if featured_product.quantity > 0 %}
-															<a href="{% url 'add-to-cart' featured_product.id %}" class="btn btn-default add-to-cart">
+															<a href="{% url 'add-to-cart' featured_product.id %}" class="btn btn-default add-to-cart" id="add-to-cart">
 																<i class="fa fa-shopping-cart"></i> Add to cart
 															</a>
-															<a href="{% url 'add-to-wishlist' featured_product.id %}" class="btn btn-default add-to-cart">
-																<i class="fa fa-plus-square"></i> Add to wishlist
+															<a href="{% url 'add-to-wishlist' featured_product.id %}" class="btn btn-default add-to-wishlist" id="add-to-wishlist">
+																<i class="fa fa-heart"></i> Add to wishlist
 															</a>
 															{% endif %}
 														</div>

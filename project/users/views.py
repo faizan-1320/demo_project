@@ -73,6 +73,14 @@ def home(request):
     except EmptyPage:
         products_paginated = paginator.page(paginator.num_pages)
 
+    # Paginate featured products separately
+    try:
+        featured_products_paginated = featured_paginator.page(page)
+    except PageNotAnInteger:
+        featured_products_paginated = featured_paginator.page(1)
+    except EmptyPage:
+        featured_products_paginated = featured_paginator.page(featured_paginator.num_pages)
+
     # Handle newsletter subscription form submission
     form = NewsletterForm(request.POST or None)
     if form.is_valid():
@@ -83,7 +91,7 @@ def home(request):
     context = {
         'banners': banners,
         'products': products_paginated,
-        'featured_products': featured_paginator.page(page),
+        'featured_products': featured_products_paginated,
         'categories': category_tree,
         'selected_category': category_id,
         'form': form,
@@ -267,8 +275,12 @@ def add_to_wishlist(request, product_id):
             wishlist_item.is_active = True
             wishlist_item.save()
             messages.success(request, 'Product added to your wishlist.')
+            return redirect('home')
+
         else:
             messages.error(request, 'This product is already in your wishlist.')
+            return redirect('home')
+
     else:
         messages.success(request, 'Product added to your wishlist.')
     return redirect('home')

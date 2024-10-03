@@ -86,6 +86,19 @@
 
 {% block js %}
 	<script>
+        "{% if messages %}"
+        "{% for message in messages %}"
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: '{% if message.tags == "error" %}error{% else %}{{ message.tags }}{% endif %}',
+                title: '{{ message }}',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+            });
+        "{% endfor %}"
+    "{% endif %}"
 	$(document).ready(function() {
         $('.add-to-cart').click(function(e) {
             e.preventDefault();

@@ -79,11 +79,9 @@
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
       <!-- Brand Logo -->
       <a href="{% url 'dashboard' %}" class="brand-link">
-
         <span class="brand-text font-weight-light" style="
         padding-left: 45px;">Admin Panel</span>
       </a>
-
       {% include 'admin/side_bar.html' %}
     </aside>
     {% block content %}
@@ -404,8 +402,8 @@
           {% endif %}
         </div>
         <!-- /.row -->
+      </section>
     </div><!-- /.container-fluid -->
-    </section>
     <!-- /.content -->
   </div>
   <!-- /.content-wrapper -->

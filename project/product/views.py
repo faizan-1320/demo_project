@@ -7,6 +7,7 @@ from collections import defaultdict
 from django.shortcuts import render,get_object_or_404,redirect
 from django.db.models import Avg
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from .models import Product,ProductAttributeValue,Review, Rating
 from .forms import ReviewForm, RatingForm
 
@@ -21,6 +22,7 @@ def product_detail(request,pk):
     ratings = Rating.objects.filter(product=product, is_active=True, is_delete=False) # pylint: disable=E1101
 
     average_rating = ratings.aggregate(Avg('rating'))['rating__avg'] or 0
+    average_rating = float(average_rating) if average_rating else 0
 
     grouped_attributes = defaultdict(list)
     for attribute in attributes:
@@ -49,11 +51,18 @@ def product_detail(request,pk):
 @login_required
 def product_review_and_rating(request, product_id):
     """
-    Product Detail Listing View
+    Product Review and Rating View.
     """
     product = get_object_or_404(Product, id=product_id)
     review_form = ReviewForm(request.POST or None)
     rating_form = RatingForm(request.POST or None)
+
+    existing_review = Review.objects.filter(user=request.user, product=product).exists()
+    existing_rating = Rating.objects.filter(user=request.user, product=product).exists()
+
+    if existing_review or existing_rating:
+        messages.error(request, "You have already submitted a review and rating for this product.")
+        return redirect('product-detail', product.id)
 
     if request.method == 'POST':
         if review_form.is_valid() and rating_form.is_valid():
@@ -67,11 +76,15 @@ def product_review_and_rating(request, product_id):
             rating.product = product
             rating.save()
 
+            messages.success(request, "Your review and rating have been submitted!")
             return redirect('product-detail', product.id)
+
+    star_range = range(1, 6)
 
     context = {
         'product': product,
         'review_form': review_form,
         'rating_form': rating_form,
+        'star_range': star_range,
     }
     return render(request, 'front_end/product/review_and_rating.html', context)

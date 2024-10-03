@@ -15,7 +15,32 @@
 			display: block;
 			/* Make sure the text block takes up the full width available */
 		}
+        #similar-product {
+    overflow: hidden; /* Ensures that overflow content is hidden */
+}
+
+#similar-product .carousel-inner {
+    display: flex; /* Align items in a row */
+}
+
+#similar-product .carousel-inner .item {
+    flex: 1; /* Make all items flexible */
+    height: 400px; /* Set a fixed height for all items */
+}
+
+#similar-product .carousel-inner .item img {
+    width: 100%; /* Ensure the image takes up the full width */
+    height: 100%; /* Ensure the image takes up the full height */
+    object-fit: cover; /* Ensure images cover the area without distortion */
+}
+.star-rating {
+    font-size: 20px; /* Adjust size as needed */
+    color: gold; /* Color for filled stars */
+}
+
+
     </style>
+    
 {% endblock %}
 {% block content %}
 <section>
@@ -41,21 +66,24 @@
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         </div>
-
                     </div>
                     <div class="col-sm-7">
                         <div class="product-information"><!--/product-information-->
                             <h2>{{ product.name }}</h2>
-                            <span>
-                                {% if average_rating %}
-                                <span>{{ average_rating|floatformat:1 }}/5</span>
-                                {% endif %}
-                                <div>
-                                    <span>${{ product.price }}</span>
+                                <div class="star-rating">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= average_rating %}
+                                            ★ <!-- Full star -->
+                                        {% elif forloop.counter < average_rating|add:"1" %}
+                                            <p>average_rating</p>
+                                            ✮ <!-- Half star -->
+                                        {% else %}
+                                            ☆ <!-- Empty star -->
+                                        {% endif %}
+                                    {% endfor %}
                                 </div>
+                                    <span style="font-size: large;">${{ product.price }}</span>
                                 {% if not product.quantity|is_out_of_stock %}
-                                <label>Quantity:</label>
-                                <input type="text" disabled value="{{product.quantity}}" />
                                 <a type="button" class="btn btn-fefault cart add-to-cart" href="{% url 'add-to-cart' product.id %}">
                                     <i class="fa fa-shopping-cart"></i>
                                     Add to cart
@@ -103,6 +131,19 @@
 </section>
 {% block js %}
 	<script>
+        "{% if messages %}"
+        "{% for message in messages %}"
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: '{% if message.tags == "error" %}error{% else %}{{ message.tags }}{% endif %}',
+                title: '{{ message }}',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+            });
+        "{% endfor %}"
+    "{% endif %}"
 	
 	$(document).ready(function() {
         $('.add-to-cart').click(function(e) {
@@ -153,6 +194,22 @@
             });
         });
     });
+    document.addEventListener("DOMContentLoaded", function() {
+        const items = document.querySelectorAll("#similar-product .carousel-inner .item");
+        let maxHeight = 0;
+
+        // Reset heights to find the tallest item
+        items.forEach(item => {
+            item.style.height = 'auto'; // Reset height to calculate natural height
+            maxHeight = Math.max(maxHeight, item.offsetHeight); // Find the tallest item
+        });
+
+        // Set all items to the tallest height
+        items.forEach(item => {
+            item.style.height = maxHeight + 'px';
+        });
+    });
+
 	</script>
 	{% endblock %}
 {% endblock %}
