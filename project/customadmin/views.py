@@ -811,7 +811,19 @@ def flatpage_list(request):
     Display a list.
     """
     flatpages = FlatPage.objects.all() # pylint: disable=E1101
-    return render(request, 'admin/cms/flatpage.html', {'flatpages': flatpages})
+    # Proceed with pagination if templates exist
+    paginator = Paginator(flatpages, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # Calculate start number for the current page
+    start_number = (page_obj.number - 1) * paginator.per_page + 1
+
+    context = {
+        'page_obj': page_obj,
+        'start_number': start_number,
+    }
+    return render(request, 'admin/cms/flatpage.html', context)
 
 @admin_required
 @permission_required('flatpages.add_flat_page',raise_exception=True)
@@ -869,11 +881,26 @@ def email_template(request):
     Display a list.
     """
     email_templates = EmailTemplate.objects.filter(is_active=True)
+
+    # Check if there are email templates before creating the paginator
     if not email_templates.exists():
         email_err = 'No email templates available.'
         return render(request, 'admin/email_template/email_template.html', {'email_err': email_err})
-    return render(request, 'admin/email_template/email_template.html',
-         {'email_templates': email_templates})
+
+    # Proceed with pagination if templates exist
+    paginator = Paginator(email_templates, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # Calculate start number for the current page
+    start_number = (page_obj.number - 1) * paginator.per_page + 1
+
+    context = {
+        'page_obj': page_obj,
+        'start_number': start_number,
+    }
+    return render(request, 'admin/email_template/email_template.html', context)
+
 
 @admin_required
 @permission_required('customadmin.add_email_template',raise_exception=True)

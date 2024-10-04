@@ -499,7 +499,7 @@ def order_detail_user(request, pk):
             'product': item.product,
             'quantity': item.quantity,
             'price': item.price,
-            'total_price': item.quantity * item.price
+            'total_price': item.quantity * item.price,
         }
         for item in order.order_items.all()
     ]
@@ -507,6 +507,7 @@ def order_detail_user(request, pk):
     context = {
         'order': order,
         'order_items': order_items,
+        'estimated_delivery_date': order.estimated_delivery_date
     }
 
     return render(request, 'front_end/order/user/order_detail_user.html', context)

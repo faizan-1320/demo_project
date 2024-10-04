@@ -2,32 +2,33 @@
 {% load static %}
 {% block css %}
 <style>
- .card {
-    border-radius: 10px;
-}
+    .card {
+        border-radius: 10px;
+    }
 
-.card img {
-    border-radius: 8px;
-}
+    .card img {
+        border-radius: 8px;
+    }
 
-.list-group-item {
-    margin-top: 12px;
-    border-radius: 10px;
-}
+    .list-group-item {
+        margin-top: 12px;
+        border-radius: 10px;
+    }
 
-.list-group-item img {
-    border-radius: 8px;
-}
+    .list-group-item img {
+        border-radius: 8px;
+    }
 
-.badge {
-    font-size: 1rem;
-}
-
+    .badge {
+        font-size: 1rem;
+    }
 </style>
 {% endblock %}
+
 {% block content %}
 <div class="container my-5">
     <h2 class="mb-4">Order Details</h2>
+
     <div class="card p-4 shadow-sm">
         <div class="row">
             <div class="col-md-6">
@@ -35,23 +36,32 @@
                     Order ID: <span class="text-primary">{{ order.order_id }}</span>
                 </h5>
                 <p><strong>Order Date:</strong> {{ order.datetime_of_payment|date:"F d, Y" }}</p>
-                <p><strong>Order Type:</strong> {{ order.get_status_display }}</p>
+                <p><strong>Order Status:</strong> {{ order.get_status_display }}</p>
                 <p><strong>Payment Status:</strong> {{ order.get_payment_status_display }}</p>
-                <p><strong>Discount:</strong> ${{ order.discount_amount|floatformat:2 }}</p> <!-- Format to 2 decimal places -->
+                <p><strong>Discount:</strong> ${{ order.discount_amount|floatformat:2 }}</p>
+                {% if order.status == 3 %}
+                    {% if estimated_delivery_date %}
+                        <p><strong>Estimated Delivery:</strong> {{ estimated_delivery_date|date:"F d, Y" }}</p>
+                    {% else %}
+                        <p><strong>Estimated Delivery:</strong> Not available</p>
+                    {% endif %}
+                {% endif %}
+
+
             </div>
-            <div class="col-md-6 text-right"> <!-- Use Bootstrap class for alignment -->
-                <a href="{% url 'generate-invoice-pdf' order.id %}" class="btn btn-primary">
+
+            <div class="col-md-6 text-md-end">
+                <a href="{% url 'generate-invoice-pdf' order.id %}" class="btn btn-primary mb-2">
                     Download Invoice
                 </a>
-                <a href="{% url 'generate-html-invoice-pdf' order.id %}" class="btn btn-primary">
-                    Download Invoice Html
+                <a href="{% url 'generate-html-invoice-pdf' order.id %}" class="btn btn-primary mb-2">
+                    Download Invoice HTML
                 </a>
             </div>
         </div>
-        
-        
-       
+
         <hr>
+
         <h5 class="mb-3">Order Items</h5>
         <div class="list-group">
             {% for item in order_items %}
@@ -61,17 +71,28 @@
                     <div>
                         <h6 class="mb-0">{{ item.product.name }}</h6>
                         <small class="text-muted">Quantity: {{ item.quantity }}</small>
-                        <p class="mb-0 text-muted">Price: ${{ item.product.price }}</p>
+                        <p class="mb-0 text-muted">Price: ${{ item.price|floatformat:2 }}</p>
                     </div>
                 </div>
-                <span class="badge bg-secondary">${{ item.price }}</span>
+                <span class="badge bg-secondary">${{ item.total_price|floatformat:2 }}</span>
             </div>
             {% endfor %}
         </div>
+
         <hr>
+
         <div class="d-flex justify-content-between align-items-center">
-            <p class="mb-0"><strong>Total Amount: </strong><span class="text-primary">${{ order.total_amount }}</span></p>
+            <p class="mb-0">
+                <strong>Total Amount: </strong>
+                <span class="text-primary">${{ order.total_amount|floatformat:2 }}</span>
+            </p>
         </div>
+
+        {% if order.status == 3 %}
+        <hr>
+        <h5 class="mb-3">Tracking Information</h5>
+        <p><strong>Shipping Method:</strong> {{ order.get_shipping_method_display }}</p>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

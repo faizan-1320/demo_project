@@ -34,3 +34,4 @@ def send_custom_mail(to_email=None, template_name="", context={}):
     except Exception as e:
         print('An error occurred:', e)
         return False
+    

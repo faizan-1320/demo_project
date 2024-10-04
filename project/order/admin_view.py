@@ -108,8 +108,8 @@ def order_detail(request, pk):
                 'datetime_of_payment': 
                 order.datetime_of_payment.isoformat()
                 if order.datetime_of_payment else None,
-                'shipping_method': order.shipping_method,
-                'payment_status': order.payment_status,
+                'shipping_method': order.get_shipping_method_display(),
+                'payment_status': order.get_payment_status_display(),
                 'total_amount': order.total_amount,
                 'first_name': order.user.first_name,
                 'order_status': dict(Order.status_choice).get(new_status, 'Unknown'),

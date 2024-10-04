@@ -14,15 +14,17 @@ from project.utils.base_model import BaseModel # pylint: disable=E0401
 
 
 # Create your models here.
+from datetime import timedelta
+
 class Order(BaseModel):
     """
-    Model representing a Order for display.
+    Model representing an Order for display.
     """
     status_choice = (
-        (1,'Not Packed'),
-        (2,'Ready For Shipment'),
-        (3,'Shipped'),
-        (4,'Deliverd'),
+        (1, 'Not Packed'),
+        (2, 'Ready For Shipment'),
+        (3, 'Shipped'),
+        (4, 'Delivered'),
     )
     payment_status_choice = (
         (1, 'SUCCESS'),
@@ -38,24 +40,26 @@ class Order(BaseModel):
         (3, 'Overnight Shipping'),
         (4, 'Pickup'),
     )
-    user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
-    status = models.IntegerField(choices=status_choice,default=1)
+
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    status = models.IntegerField(choices=status_choice, default=1)
     address = models.ForeignKey(
-    Address,
-    on_delete=models.CASCADE,
-    related_name='order_address', null=True, blank=True)
+        Address, on_delete=models.CASCADE, related_name='order_address', null=True, blank=True
+    )
     total_amount = models.FloatField(null=True, blank=True)
-    payment_status = models.IntegerField(choices=payment_status_choice,default=3)
+    payment_status = models.IntegerField(choices=payment_status_choice, default=3)
     order_id = models.CharField(unique=True, max_length=100, null=True, blank=True)
     datetime_of_payment = models.DateTimeField(default=timezone.now)
     is_cash_on_delivery = models.BooleanField(default=False)
     shipping_method = models.IntegerField(choices=shipping_method_choice, default=1)
     coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True)
     discount_amount = models.FloatField(default=0)
-    paypal_payment_id = models.CharField(max_length=255,null=True,blank=True)
+    paypal_payment_id = models.CharField(max_length=255, null=True, blank=True)
+    estimated_delivery_date = models.DateField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        """Save Functions"""
+        """Save Function"""
         if self.payment_status == 6:
             self.is_cash_on_delivery = True
         else:
@@ -64,10 +68,25 @@ class Order(BaseModel):
         if not self.order_id:
             self.order_id = self.datetime_of_payment.strftime( # pylint: disable=E1101
             'PAY2ME%Y%m%dODR') + str(uuid.uuid4().hex[:6]).upper()
+
+        # Calculate estimated delivery date based on shipping method
+        if self.status == 3:  # Order is marked as 'Shipped'
+            if self.shipping_method == 1:
+                self.estimated_delivery_date = timezone.now().date() + timedelta(days=5)  # Standard Shipping
+            elif self.shipping_method == 2:
+                self.estimated_delivery_date = timezone.now().date() + timedelta(days=2)  # Express Shipping
+            elif self.shipping_method == 3:
+                self.estimated_delivery_date = timezone.now().date() + timedelta(days=1)  # Overnight Shipping
         super().save(*args, **kwargs)
 
+    def get_shipping_method_display(self):
+        return dict(self.__class__.shipping_method_choice).get(self.shipping_method, "Unknown Method")
+
+    def get_payment_status_display(self):
+        return dict(self.__class__.payment_status_choice).get(self.payment_status, "Unknown Status")
+    
     def __str__(self):
-        return self.user.email + " " + str(self.id) # pylint: disable=E1101
+        return f"{self.user.email} {self.order_id}"
 
 class ProductInOrder(models.Model):
     """
