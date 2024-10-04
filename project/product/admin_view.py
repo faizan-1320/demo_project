@@ -1,4 +1,4 @@
-# pylint: disable=R0801
+# pylint: disable=R0801,E0401
 """
 Views for the CustomAdmin.
 
@@ -13,7 +13,7 @@ from django.db.utils import IntegrityError
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.http import JsonResponse
-from project.utils import custom_required #pylint: disable=E0401
+from project.utils.custom_required import admin_required
 from .models import (
     Product,
     ProductAttribute,
@@ -27,14 +27,12 @@ from .forms import ProductAttributeForm
 # Product Management #
 ######################
 
+@admin_required
 @permission_required('product.view_product', raise_exception=True)
 def product(request):
     """
     Display a list.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     search_query = request.GET.get('q','')
     products = Product.objects.filter( # pylint: disable=E1101
         is_active=True,
@@ -65,14 +63,12 @@ def product(request):
         context['not_found_message'] = 'No products found'
     return render(request,'admin/product/product.html',context)
 
+@admin_required
 @permission_required('product.add_product', raise_exception=True)
 def add_products(request): #pylint: disable=R0914,R0911,R0912
     """
     Handle the creation.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     category = Category.objects.filter(is_active=True,is_delete=False) # pylint: disable=W0621,E1101
     product_attribute = ProductAttribute.objects.all() # pylint: disable=W0621,E1101
     context = {'category': category,
@@ -158,14 +154,12 @@ def add_products(request): #pylint: disable=R0914,R0911,R0912
 
     return render(request, 'admin/product/add_product.html', context)
 
+@admin_required
 @permission_required('product.delete_product')
 def delete_product(request,pk):
     """
     Handle the deletion.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     if request.method == 'POST':
         product = Product.objects.get(id=pk) # pylint: disable=W0621,E1101
         product.is_active = False
@@ -174,14 +168,12 @@ def delete_product(request,pk):
         return redirect('products')
     return render(request,'admin/product/product.html')
 
+@admin_required
 @permission_required('product.change_product',raise_exception=True)
 def edit_product(request, pk): # pylint: disable=R0914,R0912,R0915
     """
     Handle the editing.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     product = get_object_or_404(Product, id=pk) # pylint: disable=W0621
     categories = Category.objects.all() # pylint: disable=E1101
     product_images = ProductImage.objects.filter(product=product, is_active=True, is_delete=False) # pylint: disable=E1101
@@ -291,14 +283,12 @@ def edit_product(request, pk): # pylint: disable=R0914,R0912,R0915
 
     return render(request, 'admin/product/edit_product.html', context)
 
+@admin_required
 @permission_required('product.view_productattribute',raise_exception=True)
 def product_attribute(request):
     """
     Display a list.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     product_attribute_data = ProductAttribute.objects.filter(is_active=True,is_delete=False) # pylint: disable=E1101
     search_query = request.GET.get('search_query','')
     if search_query:
@@ -315,14 +305,12 @@ def product_attribute(request):
     }
     return render(request,'admin/product/prduct_attribute.html',context)
 
+@admin_required
 @permission_required('product.add_productattribute', raise_exception=True)
 def add_product_attribute(request):
     """
     Handle the creation.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     if request.method == 'POST':
         attribute_name = request.POST.get('attribute_name')
         if not attribute_name:
@@ -337,6 +325,7 @@ def add_product_attribute(request):
         return render(request,'admin/product/add_product_attribute.html')
     return render(request,'admin/product/add_product_attribute.html')
 
+@admin_required
 @permission_required('product.change_productattribute',raise_exception=True)
 def edit_product_attribute(request,pk):
     """
@@ -355,13 +344,12 @@ def edit_product_attribute(request,pk):
         form = ProductAttributeForm(instance=attribute)
     return render(request,'admin/product/edit_product_attribute.html',{'form':form})
 
+@admin_required
 @permission_required('product.delete_productattribute',raise_exception=True)
 def delete_product_attribute(request,pk):
     """
     Handle the deletion.
     """
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     if request.method == 'POST':
         delete_attribute = ProductAttribute.objects.get(id=pk) # pylint: disable=E1101
         delete_attribute.is_active = False
@@ -375,14 +363,12 @@ def delete_product_attribute(request,pk):
 # Category Management #
 #######################
 
+@admin_required
 @permission_required('product.view_category', raise_exception=True)
 def category(request):
     """
     Display a list.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     search_query = request.GET.get('search','')
     category = Category.objects.filter( # pylint: disable=W0621,E1101
         is_active=True,
@@ -401,14 +387,12 @@ def category(request):
         context['not_found_message'] = 'No Categorys found'
     return render(request,'admin/category/category.html',context)
 
+@admin_required
 @permission_required('product.change_category', raise_exception=True)
 def edit_category(request,pk):
     """
     Handle the editing.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     if request.method == 'POST':
         category_name = request.POST.get('category_name')
         category = Category.objects.get(pk=pk) # pylint: disable=W0621,E1101
@@ -417,14 +401,12 @@ def edit_category(request,pk):
         return JsonResponse({'success': True, 'message': 'Category updated successfully'})
     return render(request, 'admin/category/edit_category.html')
 
+@admin_required
 @permission_required('product.delete_category', raise_exception=True)
 def delete_category(request,pk):
     """
     Handle the deletion.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     if request.method == 'POST':
         category = Category.objects.get(id=pk) # pylint: disable=W0621,E1101
         def hard_delete(cat):
@@ -438,14 +420,12 @@ def delete_category(request,pk):
         return redirect('categories')
     return redirect('categories')
 
+@admin_required
 @permission_required('product.delete_category', raise_exception=True)
 def add_category(request):
     """
     Handle the creation.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     category = Category.objects.filter() # pylint: disable=W0621,E1101
     context = {
     'category':category

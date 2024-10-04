@@ -53,19 +53,11 @@
         <li class="nav-item">
           <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
         </li>
-        <li class="nav-item d-none d-sm-inline-block">
-          <a href="{% url 'dashboard' %}" class="nav-link">Home</a>
-        </li>
-        <li class="nav-item d-none d-sm-inline-block">
-          <!-- <a href="#" class="nav-link">Contact</a> -->
-        </li>
       </ul>
 
       <!-- Right navbar links -->
       <ul class="navbar-nav ml-auto">
         <!-- Navbar Search -->
-
-
         <li class="nav-item">
           <a class="nav-link" data-widget="fullscreen" href="#" role="button">
             <i class="fas fa-expand-arrows-alt"></i>
@@ -462,14 +454,13 @@
   <script src="{% static 'admin/plugins/toastr/toastr.min.js' %}"></script>
   {% block js %}
   <script>
-    console.log("script is calll");
 
     // Data from Django view
     const labels = {{ labels| safe }};
     const currentYearData = {{ current_year_data| safe }};
     const lastYearData = {{ last_year_data| safe }};
 
-    // Creating the chart
+    // SalesChart chart
     const ctx = document.getElementById('sales-chart').getContext('2d');
     const salesChart = new Chart(ctx, {
       type: 'bar',
@@ -525,7 +516,7 @@
     var dates = {{ dates|safe }};
     var counts = {{ counts|safe }};
 
-    // Chart.js setup
+    // RegistrationChart setup
     var ctx_register = document.getElementById('registration-chart').getContext('2d');
     var registrationChart = new Chart(ctx_register, {
         type: 'line',  // You can change it to 'bar' or any other type
@@ -557,9 +548,9 @@
     var coupon_labels = {{ coupon_labels|safe }};
     var data_points = {{ data_points|safe }};
 
-    // Chart.js setup
+    // CouponsUsedChart setup
     var ctx_coupon = document.getElementById('couponsUsedChart').getContext('2d');
-    var registrationChart = new Chart(ctx_coupon, {
+    var couponsUsedChart = new Chart(ctx_coupon, {
         type: 'line',  // You can change it to 'bar' or any other type
         data: {
             labels: coupon_labels,  // Dates as labels
@@ -616,6 +607,7 @@
 
       })
     })
+
     "{% if messages %}"
     "{% for message in messages %}"
     Swal.fire({

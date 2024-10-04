@@ -8,6 +8,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import Group
 from django.db import IntegrityError
 from django.conf import settings
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
@@ -132,6 +133,11 @@ def auth_view(request):
                     user = register_form.save(commit=False)
                     user.email = user.email.lower()
                     user.save()
+
+                    # Add the user to the "customer" group
+                    customer_group = Group.objects.get(name='customer')
+                    user.groups.add(customer_group)
+                    
                     messages.success(request, 'Register Successfully')
                     return redirect('auth-view')
                 except IntegrityError:

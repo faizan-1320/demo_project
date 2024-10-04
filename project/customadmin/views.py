@@ -1,4 +1,4 @@
-# pylint: disable=R0801,R0914,W0613,W0621,R0912,W0612
+# pylint: disable=R0801,R0914,W0613,W0621,R0912,W0612, E0401,R0915,W0718,W0622
 """
 Views for the CustomAdmin application.
 
@@ -23,11 +23,11 @@ from django.utils.html import strip_tags
 from django.db.models import Sum,Count
 from django.db.models.functions import TruncMonth,TruncDate
 
-from project.users.models import User # pylint: disable=E0401
-from project.product.models import Category,Product # pylint: disable=E0401
-from project.order.models import Order # pylint: disable=E0401
-from project.coupon.models import Coupon # pylint: disable=E0401
-from project.utils import custom_required # pylint: disable=E0401
+from project.users.models import User
+from project.product.models import Category,Product
+from project.order.models import Order
+from project.coupon.models import Coupon
+from project.utils.custom_required import admin_required
 from .models import Banner,ContactUs,EmailTemplate,NewsletterSubscriber
 from .tasks import celery_mail,send_contact_email
 from .forms import (
@@ -82,13 +82,11 @@ def logoutadmin(request):
     logout(request)
     return redirect('adminlogin')
 
+@admin_required
 def dashboard(request):
     """
     Handle the admin dashboard.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     user_count = User.objects.filter(is_superuser=False, is_active=True).count()
     product_count = Product.objects.filter(is_active=True,is_delete=False).count()
     category_count = Category.objects.filter(is_active=True,is_delete=False).count()
@@ -214,6 +212,7 @@ def dashboard(request):
     }
     return render(request,'admin/dashboard.html',context)
 
+@admin_required
 def export_sales_report_csv(request):
     """Sales Report CSV Generate with Validations and Default to All Data"""
 
@@ -295,6 +294,7 @@ def export_sales_report_csv(request):
 
     return response
 
+@admin_required
 def customer_registration_report(request):
     """New User Report with Validation and Default to All Data"""
 
@@ -357,6 +357,7 @@ def customer_registration_report(request):
 
     return response
 
+@admin_required
 def coupons_used_report(request):
     """Used Coupon Report with Validation and Default to All Data"""
 
@@ -429,19 +430,15 @@ def coupons_used_report(request):
 
     return response
 
-
 ###################
 # User Management #
 ###################
-
+@admin_required
 @permission_required('users.view_user', raise_exception=True)
 def users(request):
     """
     Display a list.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     search_query = request.GET.get('search','')
     # Filter users to include only active and non-deleted ones
     users = User.objects.filter( # pylint: disable=W0621
@@ -468,13 +465,12 @@ def users(request):
         context['not_found_message'] = 'No users found'
     return render(request, 'admin/users/users.html', context)
 
+@admin_required
 @permission_required('users.add_user', raise_exception=True)
-def add_users(request): # pylint: disable=R0914,R0912,R0915
+def add_users(request):
     """
     Handle the creation.
     """
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     groups = Group.objects.all()
     if request.method == 'POST':
         first_name = request.POST.get('first_name')
@@ -553,7 +549,7 @@ def add_users(request): # pylint: disable=R0914,R0912,R0915
             new_user.save()
 
             # Add user to selecetd groups
-            for id in groupids: # pylint: disable=W0622
+            for id in groupids:
                 group = Group.objects.get(id=int(id))
                 new_user.groups.add(group)
             mail_context = {
@@ -569,20 +565,19 @@ def add_users(request): # pylint: disable=R0914,R0912,R0915
                     template_name='admin-register'
                 )
             return JsonResponse({'success': True, 'message': 'User created successfully!'})
-        except Exception as e: # pylint: disable=W0718
+        except Exception as e:
             return JsonResponse({'success':False,'errors': {'server':str(e)}})
     context = {
     'groups':groups
     }
     return render(request,'admin/users/add_user.html',context)
 
+@admin_required
 @permission_required('users.delete_user', raise_exception=True)
 def delete_user(request, pk):
     """
     Handle the deletion.
     """
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     if request.method == 'POST':
         try:
             user = User.objects.get(id=pk)
@@ -597,13 +592,12 @@ def delete_user(request, pk):
         return redirect('users')
     return redirect('users')
 
+@admin_required
 @permission_required('users.change_user', raise_exception=True)
 def edit_user(request,pk): # pylint: disable=R0914,R0912
     """
     Handle the editing.
     """
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     user = User.objects.get(id=pk)
     groups = Group.objects.all()
     user_groups = user.groups.all()
@@ -632,6 +626,9 @@ def edit_user(request,pk): # pylint: disable=R0914,R0912
             errors['email'] = 'Please Enter Email Address'
         elif not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
             errors['email'] = 'Please Enter Valid Email Address'
+        else:
+            if User.objects.filter(email=email).exclude(id=user.id).exists():
+                errors['email'] = 'This email is already in use by another user.'
 
         # Validate phone number
         phone_number_pattern = (
@@ -640,6 +637,10 @@ def edit_user(request,pk): # pylint: disable=R0914,R0912
             r'[\s.-]?\d{3}'  # Separator and first part of the number
             r'[\s.-]?\d{4}$'  # Separator and last part of the number
         )
+
+        # Validate groups
+        if not groupids:
+            errors['groups'] = 'Please select at least one group.'
 
         if not phone_number:
             errors['phone_number'] = 'Please Enter Phone Number'
@@ -674,14 +675,12 @@ def edit_user(request,pk): # pylint: disable=R0914,R0912
 # Banner Management #
 #####################
 
+@admin_required
 @permission_required('customadmin.view_banner',raise_exception=True)
 def banner(request):
     """
     Display a list.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     banner = Banner.objects.filter(is_active=True,is_delete=False) # pylint: disable=E1101,W0621
     paginator = Paginator(banner,10)
     page_number = request.GET.get('page')
@@ -694,13 +693,12 @@ def banner(request):
     }
     return render(request,'admin/banner/banner.html',context)
 
+@admin_required
 @permission_required('customadmin.add_banner', raise_exception=True)
 def add_banner(request):
     """
     Handle the creation.
     """
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     if request.method == 'POST':
         form = BannerForm(request.POST, request.FILES)
         if form.is_valid():
@@ -712,13 +710,12 @@ def add_banner(request):
 
     return render(request, 'admin/banner/add_banner.html', {'form': form})
 
+@admin_required
 @permission_required('customadmin.delete_banner',raise_exception=True)
 def delete_banner(request,pk):
     """
     Handle the deletion.
     """
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     if request.method == 'POST':
         banner = Banner.objects.get(id=pk) # pylint: disable=E1101,W0621
         banner.is_active = False
@@ -728,13 +725,12 @@ def delete_banner(request,pk):
         return redirect('banners')
     return render(request,'admin/banner/banner.html')
 
+@admin_required
 @permission_required('customadmin.change_banner',raise_exception=True)
 def edit_banner(request, pk):
     """
     Handle the editing.
     """
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     banner = get_object_or_404(Banner, id=pk) # pylint: disable=W0621
     if request.method == 'POST':
         form = BannerForm(request.POST, request.FILES, instance=banner)
@@ -751,14 +747,12 @@ def edit_banner(request, pk):
 # Contact US Management #
 #########################
 
+@admin_required
 @permission_required('customadmin.view_contact_us',raise_exception=True)
 def contact_us(request):
     """
     Display a list.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     search_query = request.GET.get('search','')
     contact = ContactUs.objects.filter(subject__icontains=search_query)
     paginator = Paginator(contact,10)
@@ -775,14 +769,12 @@ def contact_us(request):
         context['message_not_found'] = 'Not Contact Us found'
     return render(request,'admin/contact_us/contact_us.html',context)
 
+@admin_required
 @permission_required('customadmin.change_contact_us',raise_exception=True)
 def contact_us_detail(request, pk):
     """
     Display a list.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     contact = get_object_or_404(ContactUs, pk=pk)
 
     if request.method == 'POST':
@@ -812,25 +804,21 @@ def contact_us_detail(request, pk):
 # CMS Management #
 ##################
 
+@admin_required
 @permission_required('flatpages.view_flat_page',raise_exception=True)
 def flatpage_list(request):
     """
     Display a list.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     flatpages = FlatPage.objects.all() # pylint: disable=E1101
     return render(request, 'admin/cms/flatpage.html', {'flatpages': flatpages})
 
+@admin_required
 @permission_required('flatpages.add_flat_page',raise_exception=True)
 def add_flatpage(request):
     """
     Handle the creation.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     if request.method == 'POST':
         form = CustomFlatPageForm(request.POST)
         if form.is_valid():
@@ -841,14 +829,12 @@ def add_flatpage(request):
         form = CustomFlatPageForm()
     return render(request,'admin/cms/add_flatpage.html',{'form':form})
 
+@admin_required
 @permission_required('flatpages.change_flat_page',raise_exception=True)
 def edit_flatpage(request,pk):
     """
     Handle the editing.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     flatpage = get_object_or_404(FlatPage, id=pk)
     if request.method == 'POST':
         form = CustomFlatPageForm(request.POST,instance=flatpage)
@@ -860,14 +846,12 @@ def edit_flatpage(request,pk):
         form = CustomFlatPageForm(instance=flatpage)
     return render(request,'admin/cms/edit_flatpage.html',{'form':form,'flatpage':flatpage})
 
+@admin_required
 @permission_required('flatpages.delete_flat_page',raise_exception=True)
 def delete_flatpage(request,pk):
     """
     Handle the deletion.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     flatpage =  FlatPage.objects.filter(id=pk) # pylint: disable=E1101
     if request.method == 'POST':
         flatpage.delete()
@@ -878,14 +862,12 @@ def delete_flatpage(request,pk):
 # Email Templage Management #
 #############################
 
+@admin_required
 @permission_required('customadmin.view_email_template',raise_exception=True)
 def email_template(request):
     """
     Display a list.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     email_templates = EmailTemplate.objects.filter(is_active=True)
     if not email_templates.exists():
         email_err = 'No email templates available.'
@@ -893,14 +875,12 @@ def email_template(request):
     return render(request, 'admin/email_template/email_template.html',
          {'email_templates': email_templates})
 
+@admin_required
 @permission_required('customadmin.add_email_template',raise_exception=True)
 def add_template(request):
     """
     Handle the creation.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     if request.method == 'POST':
         form = EmailTemplateForm(request.POST)
         if form.is_valid():
@@ -911,14 +891,12 @@ def add_template(request):
         form = EmailTemplateForm()
     return render(request,'admin/email_template/add_email_template.html',{'form':form})
 
+@admin_required
 @permission_required('customadmin.change_email_template',raise_exception=True)
 def edit_email_template(request, pk):
     """
     Handle the editing.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     template = get_object_or_404(EmailTemplate, pk=pk)
     if request.method == 'POST':
         form = EmailTemplateForm(request.POST, instance=template)
@@ -930,14 +908,12 @@ def edit_email_template(request, pk):
         form = EmailTemplateForm(instance=template)
     return render(request, 'admin/email_template/edit_email_template.html', {'form': form})
 
+@admin_required
 @permission_required('customadmin.delete_email_template',raise_exception=True)
 def delete_email_template(request, pk):
     """
     Handle the deletion.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     template = get_object_or_404(EmailTemplate, pk=pk)
     if request.method == 'POST':
         template.delete()
@@ -949,12 +925,12 @@ def delete_email_template(request, pk):
 # News Letter Management #
 ##########################
 
+@admin_required
+@permission_required('customadmin.view_news_letter_subscriber',raise_exception=True)
 def news_letter(request):
     """
     Display a list.
     """
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
     news_letter_data = NewsletterSubscriber.objects.all()
     search_query = request.GET.get('search','')
     if search_query:

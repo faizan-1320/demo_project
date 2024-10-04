@@ -10,19 +10,17 @@ from django.utils import timezone
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import permission_required
 from django.db.models import Case, Value, When
-from project.utils import custom_required # pylint: disable=E0401
+from project.utils.custom_required import admin_required # pylint: disable=E0401
 from .models import Coupon
 from .forms import CouponForm
 
 # View for listing coupons with pagination and search functionality
+@admin_required
 @permission_required('coupon.view_coupon', raise_exception=True)
 def coupon_list(request):
     """
     Display a list of coupons with pagination and search functionality.
     """
-    if not custom_required.check_login_admin(request.user):
-        return redirect('admin-custom')
-
     today = timezone.now().date()
     search_query = request.GET.get('search', '')
     # coupons = Coupon.objects.filter(is_delete=False, code__icontains=search_query)
@@ -54,14 +52,12 @@ def coupon_list(request):
     return render(request, 'admin/coupon/coupon.html', context)
 
 # View for adding a new coupon
+@admin_required
 @permission_required('coupon.add_coupon', raise_exception=True)
 def add_coupon(request):
     """
     Handle the creation of a new coupon.
     """
-    if not custom_required.check_login_admin(request.user):
-        return redirect('admin-custom')
-
     errors = None
     if request.method == 'POST':
         form = CouponForm(request.POST)
@@ -75,14 +71,12 @@ def add_coupon(request):
     return render(request, 'admin/coupon/add_coupon.html', {'form': form, 'errors': errors})
 
 # View for editing an existing coupon
+@admin_required
 @permission_required('coupon.change_coupon', raise_exception=True)
 def edit_coupon(request, pk):
     """
     Handle the editing of an existing coupon.
     """
-    if not custom_required.check_login_admin(request.user):
-        return redirect('admin-custom')
-
     coupon_instance = get_object_or_404(Coupon, pk=pk)
     if request.method == 'POST':
         form = CouponForm(request.POST, instance=coupon_instance)
@@ -96,14 +90,12 @@ def edit_coupon(request, pk):
     return render(request, 'admin/coupon/edit_coupon.html', {'form': form})
 
 # View for deleting a coupon
+@admin_required
 @permission_required('coupon.delete_coupon', raise_exception=True)
 def delete_coupon(request, pk):
     """
     Handle the deletion of a coupon by marking it as deleted.
     """
-    if not custom_required.check_login_admin(request.user):
-        return redirect('admin-custom')
-
     if request.method == 'POST':
         coupon_instance = get_object_or_404(Coupon, id=pk)
         coupon_instance.is_delete = True

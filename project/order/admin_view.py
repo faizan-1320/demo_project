@@ -1,3 +1,4 @@
+# pylint: disable=E0401
 """
 Views for the CustomAdmin application.
 
@@ -9,9 +10,9 @@ from django.contrib.auth.decorators import permission_required
 from django.core.paginator import Paginator
 from django.contrib import messages
 
-from project.customadmin.tasks import celery_mail # pylint: disable=E0401
-from project.utils import custom_required # pylint: disable=E0401
-from project.users.models import Address # pylint: disable=E0401
+from project.customadmin.tasks import celery_mail
+from project.utils.custom_required import admin_required
+from project.users.models import Address
 from .models import Order,ProductInOrder
 from .forms import OrderStatusForm
 
@@ -19,21 +20,18 @@ from .forms import OrderStatusForm
 # Order Management #
 ####################
 
-@permission_required('product.view_order',login_url='adminlogin')
+@admin_required
+@permission_required('product.view_order',raise_exception=True)
 def order(request):
     """
     Display a list of orders with filters.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
-
     # Get search and filter parameters from the GET request
     search_query = request.GET.get('search', '')
     payment_status = request.GET.get('payment_status', '')
     order_status = request.GET.get('order_status', '')
-    start_date = request.GET.get('start_date', '')
-    end_date = request.GET.get('end_date', '')
+    start_date = request.GET.get('start_date', None)
+    end_date = request.GET.get('end_date', None)
 
     # Start with all orders
     orders = Order.objects.all()
@@ -69,6 +67,10 @@ def order(request):
     page_obj = paginator.get_page(page_number)
     start_number = (page_obj.number - 1) * paginator.per_page + 1
 
+    # After conversion to datetime, you can use strftime
+    start_date_str = start_date.strftime("%Y-%m-%d") if isinstance(start_date, datetime) else ''
+    end_date_str = end_date.strftime("%Y-%m-%d") if isinstance(end_date, datetime) else ''
+
     # Prepare context for the template
     context = {
         'page_obj': page_obj,
@@ -76,8 +78,8 @@ def order(request):
         'search_query': search_query,
         'payment_status': payment_status,
         'order_status': order_status,
-        'start_date': start_date.strftime("%Y-%m-%d") if start_date else '',
-        'end_date': end_date.strftime("%Y-%m-%d") if end_date else '',
+        'start_date': start_date_str,
+        'end_date': end_date_str,
     }
 
     # Add a message if no orders are found
@@ -86,15 +88,12 @@ def order(request):
 
     return render(request, 'admin/orders/orders.html', context)
 
+@admin_required
 @permission_required('product.change_order',raise_exception=True)
 def order_detail(request, pk):
     """
     Display a list.
     """
-    # Check if the user is an admin
-    if not custom_required.check_login_admin(request.user):
-        return redirect('adminlogin')
-
     # Fetch the order details
     order = get_object_or_404(Order, id=pk) # pylint: disable=W0621
     products_in_order = ProductInOrder.objects.filter(order=order) # pylint: disable=E1101
