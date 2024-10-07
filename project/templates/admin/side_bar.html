@@ -3,20 +3,6 @@
 {% load custom_filters %}
 <!-- Sidebar -->
 <div class="sidebar">
-    <!-- Sidebar user panel (optional) -->
-    <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-      <div class="info">
-        <a  href="{% url 'dashboard' %}"class="brand-text font-weight-light" style="padding-left: 45px; font-size: 20px;">
-            {% if request.user.first_name and request.user.last_name %}
-                {{ request.user.first_name }} {{ request.user.last_name }}
-            {% else %}
-                Admin
-            {% endif %}
-        </a>
-    </div>
-    
-    </div>
-    
     <!-- Sidebar Menu -->
     <nav class="mt-2">
       <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">

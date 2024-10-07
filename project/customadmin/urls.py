@@ -11,12 +11,13 @@ from .views import (
     edit_banner, contact_us, contact_us_detail, flatpage_list, add_flatpage,
     edit_flatpage, delete_flatpage, email_template, add_template, edit_email_template,
     delete_email_template, news_letter,export_sales_report_csv,customer_registration_report,
-    coupons_used_report,
+    coupons_used_report,change_password,
 )
 
 urlpatterns = [
     path('', adminlogin, name='adminlogin'),
     path('logout-admin/', logoutadmin, name='logout-admin'),
+    path('change-password/', change_password, name='change-password'),
     path('dashboard/', dashboard, name='dashboard'),
     path('export-sales-report/', export_sales_report_csv, name='export_sales_report_csv'),
     path('customer-registration-report/', customer_registration_report

@@ -12,12 +12,13 @@ from collections import defaultdict
 from datetime import datetime,timedelta
 from django.shortcuts import render,redirect,get_object_or_404
 from django.contrib import messages
-from django.contrib.auth import authenticate,login,logout
-from django.contrib.auth.models import Group
 from django.http import JsonResponse,HttpResponse
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.contrib.auth import authenticate,login,logout,update_session_auth_hash
+from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.flatpages.models import FlatPage
 from django.utils.html import strip_tags
 from django.db.models import Sum,Count
@@ -81,6 +82,21 @@ def logoutadmin(request):
     """
     logout(request)
     return redirect('adminlogin')
+
+@admin_required
+def change_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # Important for keeping the user logged in after password change
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect('dashboard')
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = PasswordChangeForm(request.user)
+    return render(request, 'admin/authentication/change_password.html', {'form': form})
 
 @admin_required
 def dashboard(request):
