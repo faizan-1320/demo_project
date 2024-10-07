@@ -37,7 +37,7 @@ def home(request):
     Handles filtering products based on selected category and pagination.
     """
     # Fetch active banners and categories
-    banners = Banner.objects.filter(is_active=True, is_delete=False)
+    banners = Banner.objects.filter(is_active=True, is_delete=False).order_by('priority')
     categories = Category.objects.filter(is_active=True, is_delete=False)
     category_tree = get_category_tree(categories)
 

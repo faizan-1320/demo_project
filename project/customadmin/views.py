@@ -89,7 +89,7 @@ def change_password(request):
         form = PasswordChangeForm(request.user, request.POST)
         if form.is_valid():
             user = form.save()
-            update_session_auth_hash(request, user)  # Important for keeping the user logged in after password change
+            update_session_auth_hash(request, user)
             messages.success(request, 'Your password was successfully updated!')
             return redirect('dashboard')
         else:
@@ -449,6 +449,7 @@ def coupons_used_report(request):
 ###################
 # User Management #
 ###################
+
 @admin_required
 @permission_required('users.view_user', raise_exception=True)
 def users(request):
@@ -916,7 +917,6 @@ def email_template(request):
         'start_number': start_number,
     }
     return render(request, 'admin/email_template/email_template.html', context)
-
 
 @admin_required
 @permission_required('customadmin.add_email_template',raise_exception=True)

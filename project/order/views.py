@@ -626,7 +626,6 @@ def generate_invoice_pdf(request, order_id):
     except Order.DoesNotExist:
         return HttpResponse('Order not found', status=404)
 
-
 def invoice_view(request, order_id):
     """
     invoice_pdf view for user
