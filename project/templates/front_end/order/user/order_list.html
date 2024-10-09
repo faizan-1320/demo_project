@@ -3,56 +3,76 @@
 {% block content %}
 <div class="container my-5">
     <h2 class="mb-4">Your Orders</h2>
+
+    <!-- Search form with proper styling -->
+    <form method="GET" action="" class="form-inline mb-4">
+        <div class="form-group mr-2">
+            <input type="text" name="q" class="form-control" placeholder="Search orders by Order ID"
+                value="{{ search_query }}">
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-bottom: 15px;">Search</button>
+    </form>
+
     {% if page_obj %}
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover shadow-sm">
-                <thead class="thead-light">
-                    <tr>
-                        <th scope="col">Order ID</th>
-                        <th scope="col">Date Placed</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for order in page_obj %}
-                    <tr>
-                        <td>
-                            <span class="text-primary">{{ order.order_id }}</span>
-                        </td>
-                        <td>{{ order.datetime_of_payment|date:"F d, Y" }}</td>
-                        <td>
-                            <span class="badge bg-info">{{ order.get_payment_status_display }}</span>
-                        </td>
-                        <td>
-                            <a href="{% url 'user-order' order.id %}" class="btn btn-sm btn-primary">View Details</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <!-- Pagination Controls -->
-        <div class="pagination order-page">
-            <span class="step-links">
-                {% if page_obj.has_previous %}
-                    <a href="?page=1">&laquo; first</a>
-                    <a href="?page={{ page_obj.previous_page_number }}">previous</a>
-                {% endif %}
-                
-                <span class="current">
-                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-                </span>
-                
-                {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}">next</a>
-                    <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
-                {% endif %}
+    <!-- If there are orders, display them in a table -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover shadow-sm">
+            <thead class="thead-light">
+                <tr>
+                    <th scope="col">Order ID</th>
+                    <th scope="col">Date Placed</th>
+                    <th scope="col">Payment Status</th>
+                    <th scope="col">Order Status</th>
+                    <th scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in page_obj %}
+                <tr>
+                    <td>
+                        <span class="text-primary">{{ order.order_id }}</span>
+                    </td>
+                    <td>{{ order.datetime_of_payment|date:"F d, Y" }}</td>
+                    <td>
+                        <span class="badge bg-info">{{ order.get_payment_status_display }}</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-info">{{ order.get_order_status_display }}</span>
+                    </td>
+                    <td>
+                        <a href="{% url 'user-order' order.id %}" class="btn btn-sm btn-primary"
+                            style="margin: 0px !important;">View Details</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination links with search query preserved -->
+    <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+            <a href="?page=1&q={{ search_query }}">First</a>
+            <a href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}">Previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
             </span>
-        </div>
-        
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&q={{ search_query }}">Next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}&q={{ search_query }}">Last</a>
+            {% endif %}
+        </span>
+    </div>
+
     {% else %}
-        <p>No orders found. Start shopping now!</p>
+    <!-- If no orders found -->
+    <div class="alert alert-warning">
+        <p>No orders found.</p>
+    </div>
     {% endif %}
 </div>
 {% endblock %}

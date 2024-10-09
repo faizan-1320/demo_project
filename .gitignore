@@ -125,6 +125,8 @@ media/
 # Environments
 .env
 .venv
+.virtual_env
+virtual_env/
 env/
 venv/
 ENV/

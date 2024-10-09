@@ -18,6 +18,7 @@ from django.shortcuts import render, redirect,get_object_or_404
 from django.http import JsonResponse,HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.db.models import Q
 from django.utils import timezone
 from project.users.models import Address
 from project.coupon.models import Coupon
@@ -295,6 +296,7 @@ def checkout(request): # pylint: disable=R0914,R0912,R0915
                 shipping_method=shipping_method,
                 coupon=coupon,
                 discount_amount=discount_amount,
+                payment_method=2
                 )
 
                 # Save each product in the order
@@ -311,8 +313,6 @@ def checkout(request): # pylint: disable=R0914,R0912,R0915
                     )
                 messages.success(request, "Order placed successfully with Cash on Delivery!")
                 request.session['cart'] = {}
-                order.payment_status = 6  # Set payment status to CASH_ON_DELIVERY
-                order.save()
                 return redirect('order-confirmation', pk=order.id)
     else:
         eco_tax = Decimal('2.00')
@@ -379,6 +379,7 @@ def paypal_execute_payment(request): #pylint: disable=R0914
                     coupon=coupon,
                     discount_amount=discount_amount,
                     paypal_payment_id=payment_id,
+                    payment_method=2
                 )
                 cart = get_cart(request)
                 for product_id, quantity in cart.items():
@@ -478,12 +479,21 @@ def order_list(request):
     """
     Order list view
     """
+    query = request.GET.get('q', '')
     orders = Order.objects.filter(user=request.user).order_by('-datetime_of_payment') #pylint: disable=E1101
+    if query:
+        print('query: ', query)
+        # If there is a search query, filter by order fields (e.g., order ID, product name)
+        orders = orders.filter(
+            Q(order_id__icontains=query)
+        ).distinct()
     paginator = Paginator(orders,10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    
     context = {
         'page_obj': page_obj,
+        'search_query': query,
     }
     return render(request, 'front_end/order/user/order_list.html', context)
 
@@ -512,6 +522,7 @@ def order_detail_user(request, pk):
 
     return render(request, 'front_end/order/user/order_detail_user.html', context)
 
+@login_required
 def generate_invoice_pdf(request, order_id):
     """
     generate_invoice_pdf view for user
@@ -626,6 +637,7 @@ def generate_invoice_pdf(request, order_id):
     except Order.DoesNotExist:
         return HttpResponse('Order not found', status=404)
 
+@login_required
 def invoice_view(request, order_id):
     """
     invoice_pdf view for user

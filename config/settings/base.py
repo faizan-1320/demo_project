@@ -25,7 +25,7 @@ BASE_DIR = root()
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-cghh7^5txwy7=i1n=@2^_)%q5z2@4$u*2h3)=bdf58+2d)lq1)'
+SECRET_KEY = env('SECRET_KEY')
 
 # Application definition
 
@@ -160,14 +160,14 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'faizanmahammed.neosoftmail@gmail.com'
-EMAIL_HOST_PASSWORD = 'yxtrdprmhkssvxex'
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 
 LOGIN_URL = '/auth-view/'
 
-PAYPAL_CLIENT_ID ='AQIomGzeKsnNgkKyf9kfWu27UOllP_MoMpEbeUH0qVEK3VLhQZr9rBj8Icn4CMsxf8AEQco6N0w7wdKt'
-PAYPAL_CLIENT_SECRET = 'EE6UMMHCzd5A_KXEb695XjLLVb-Uf_-1Zhy3fKM9PIh5dkZPS8e1pr99UHFTyMe56hhqa24kZUj3xq2r'
-WEBHOOK_ID = '8MR83469BP156444E'
+PAYPAL_CLIENT_ID =env('PAYPAL_CLIENT_ID')
+PAYPAL_CLIENT_SECRET = env('PAYPAL_CLIENT_SECRET')
+WEBHOOK_ID = env('WEBHOOK_ID')
 PAYPAL_MODE = 'sandbox'
 
 LOGIN_REDIRECT_URL = 'home' 
@@ -181,7 +181,7 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+# ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 
 AUTHENTICATION_BACKENDS = (
     'project.users.backends.EmailBackend',

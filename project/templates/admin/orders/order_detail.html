@@ -53,7 +53,7 @@
                             <p><strong>Total Amount:</strong> ${{ order.total_amount }}</p>
                             <p><strong>Payment Date:</strong> {{ order.datetime_of_payment }}</p>
                             <p><strong>Shipping Method:</strong> {{ order.get_shipping_method_display }}</p>
-                            <p><strong>Cash on Delivery:</strong> {% if order.is_cash_on_delivery %}Yes{% else %}No{% endif %}</p>
+                            <p><strong>Payment Method:</strong> {{ order.get_payment_method_display }}</p>
                         </div>
                     </div>
 

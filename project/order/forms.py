@@ -11,15 +11,24 @@ class OrderStatusForm(forms.ModelForm):
     """
     Form for updating the status of an order.
     """
-    class Meta: # pylint: disable=R0903
+
+    class Meta:  # pylint: disable=R0903
         """
-        Meta options for OrderForm.
+        Meta options for OrderStatusForm.
         """
         model = Order
-        fields = ['status']
+        fields = ['status', 'payment_status']
         widgets = {
-            'status': forms.Select(choices=Order.status_choice, attrs={'class': 'form-control'})
+            'status': forms.Select(choices=Order.status_choice, attrs={'class': 'form-control'}),
+            'payment_status': forms.Select(choices=Order.payment_status_choice, attrs={'class': 'form-control'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Hide payment_status field if payment method is PayPal
+        if self.instance.payment_method == 'paypal':
+            self.fields['payment_status'].widget = forms.HiddenInput()  # Hide payment status field
 
     def clean_status(self):
         """
@@ -32,3 +41,4 @@ class OrderStatusForm(forms.ModelForm):
             raise ValidationError('You cannot move the status to an earlier stage.')
 
         return new_status
+

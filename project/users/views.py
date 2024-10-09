@@ -13,6 +13,7 @@ from django.db import IntegrityError
 from django.conf import settings
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from project.customadmin.models import Banner
+from project.customadmin.tasks import celery_mail
 from project.product.models import Product, Category
 from .models import Address, User, Wishlist
 from .forms import (LoginForm, UserForm,
@@ -85,7 +86,7 @@ def home(request):
     # Handle newsletter subscription form submission
     form = NewsletterForm(request.POST or None)
     if form.is_valid():
-        form.save()
+        form.save(request)
         return redirect('home')
 
     # Prepare context for rendering the template
@@ -130,6 +131,9 @@ def auth_view(request):
 
             if register_form.is_valid():
                 try:
+                    email = register_form.cleaned_data['email']
+                    password = register_form.cleaned_data['password1']
+
                     user = register_form.save(commit=False)
                     user.email = user.email.lower()
                     user.save()
@@ -137,7 +141,15 @@ def auth_view(request):
                     # Add the user to the "customer" group
                     customer_group = Group.objects.get(name='customer')
                     user.groups.add(customer_group)
-                    
+                    mail_context = {
+                    'email':email,
+                    'password':password,
+                    }
+                    celery_mail.delay(
+                    to_email=email,
+                    context=mail_context,
+                    template_name='user-register'
+                    )
                     messages.success(request, 'Register Successfully')
                     return redirect('auth-view')
                 except IntegrityError:

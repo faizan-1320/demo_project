@@ -46,6 +46,8 @@
                         <p><strong>Estimated Delivery:</strong> Not available</p>
                     {% endif %}
                 {% endif %}
+                <p><strong>Payment Method:</strong> {{ order.get_payment_method_display }}</p>
+
 
 
             </div>

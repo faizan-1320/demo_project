@@ -95,25 +95,23 @@ def order_detail(request, pk):
     Display a list.
     """
     # Fetch the order details
-    order = get_object_or_404(Order, id=pk) # pylint: disable=W0621
-    products_in_order = ProductInOrder.objects.filter(order=order) # pylint: disable=E1101
+    order = get_object_or_404(Order, id=pk)  # pylint: disable=W0621
+    products_in_order = ProductInOrder.objects.filter(order=order)  # pylint: disable=E1101
     customer_address = Address.objects.filter(user=order.user, is_active=True).first()
 
     if request.method == 'POST':
-        form = OrderStatusForm(request.POST, instance=order)
+        form = OrderStatusForm(request.POST, instance=order)  # No need to pass payment_method
         if form.is_valid():
             new_status = form.cleaned_data['status']
             order_data = {
                 'order_id': order.order_id,
                 'datetime_of_payment': 
-                order.datetime_of_payment.isoformat()
-                if order.datetime_of_payment else None,
+                order.datetime_of_payment.isoformat() if order.datetime_of_payment else None,
                 'shipping_method': order.get_shipping_method_display(),
                 'payment_status': order.get_payment_status_display(),
                 'total_amount': order.total_amount,
                 'first_name': order.user.first_name,
                 'order_status': dict(Order.status_choice).get(new_status, 'Unknown'),
-                'is_cash_on_delivery': order.is_cash_on_delivery,
             }
             products_data = [
                 {
@@ -140,7 +138,6 @@ def order_detail(request, pk):
                 'order_status': order_data['order_status'],
                 'products': products_data,
                 'customer_address': customer_address_data,
-                'is_cash_on_delivery': order_data['is_cash_on_delivery']
             }
             try:
                 celery_mail.delay(
@@ -148,7 +145,7 @@ def order_detail(request, pk):
                     context=context_email,
                     template_name='order_status'
                 )
-            except Exception as e: # pylint: disable=W0718
+            except Exception as e:  # pylint: disable=W0718
                 print('Error sending email:', e)
             form.save()
             messages.success(request, 'Order status updated successfully.')
@@ -164,3 +161,5 @@ def order_detail(request, pk):
     }
 
     return render(request, 'admin/orders/order_detail.html', context)
+
+

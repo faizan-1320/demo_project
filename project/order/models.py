@@ -32,7 +32,6 @@ class Order(BaseModel):
         (3, 'PENDING'),
         (4, 'REFUNDED'),
         (5, 'DISPUTED'),
-        (6, 'CASH_ON_DELIVERY')
     )
     shipping_method_choice = (
         (1, 'Standard Shipping'),
@@ -41,6 +40,10 @@ class Order(BaseModel):
         (4, 'Pickup'),
     )
 
+    payment_method_choice = (
+        (1, 'Paypal'),
+        (2, 'Cash on Delivery'),
+    )
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     status = models.IntegerField(choices=status_choice, default=1)
@@ -48,10 +51,10 @@ class Order(BaseModel):
         Address, on_delete=models.CASCADE, related_name='order_address', null=True, blank=True
     )
     total_amount = models.FloatField(null=True, blank=True)
+    payment_method = models.IntegerField(choices=payment_method_choice, default=1)
     payment_status = models.IntegerField(choices=payment_status_choice, default=3)
     order_id = models.CharField(unique=True, max_length=100, null=True, blank=True)
     datetime_of_payment = models.DateTimeField(default=timezone.now)
-    is_cash_on_delivery = models.BooleanField(default=False)
     shipping_method = models.IntegerField(choices=shipping_method_choice, default=1)
     coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True)
     discount_amount = models.FloatField(default=0)
@@ -60,10 +63,6 @@ class Order(BaseModel):
 
     def save(self, *args, **kwargs):
         """Save Function"""
-        if self.payment_status == 6:
-            self.is_cash_on_delivery = True
-        else:
-            self.is_cash_on_delivery = False
 
         if not self.order_id:
             self.order_id = self.datetime_of_payment.strftime( # pylint: disable=E1101
@@ -84,6 +83,12 @@ class Order(BaseModel):
 
     def get_payment_status_display(self):
         return dict(self.__class__.payment_status_choice).get(self.payment_status, "Unknown Status")
+    
+    def get_payment_method_display(self):
+        return dict(self.__class__.payment_method_choice).get(self.payment_method, "Unknown Status")
+    
+    def get_order_status_display(self):
+        return dict(self.__class__.status_choice).get(self.status, "Unknown Status")
     
     def __str__(self):
         return f"{self.user.email} {self.order_id}"
