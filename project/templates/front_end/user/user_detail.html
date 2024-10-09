@@ -34,6 +34,7 @@
         <thead>
             <tr>
                 <th>Address</th>
+                <th>Address Type</th>
                 <th>City</th>
                 <th>District</th>
                 <th>Postcode</th>
@@ -46,6 +47,7 @@
             {% for address in addresses %}
             <tr>
                 <td>{{ address.address }}</td>
+                <td>{{ address.address_type }}</td>
                 <td>{{ address.city }}</td>
                 <td>{{ address.district }}</td>
                 <td>{{ address.postcode }}</td>

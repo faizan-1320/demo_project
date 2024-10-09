@@ -63,13 +63,14 @@ class AdressForm(forms.ModelForm):
         Meta Class.
         """
         model = Address
-        fields =['address','city','country','district','postcode','is_primary']
+        fields =['address','address_type','city','country','district','postcode','is_primary']
         widgets = {
             'address':forms.Textarea(attrs={'class':'form-control'}),
+            'address_type':forms.RadioSelect(attrs={'class': 'form-check-input'}),
             'city':forms.TextInput(attrs={'class':'form-control'}),
             'country':forms.TextInput(attrs={'class':'form-control'}),
             'district':forms.TextInput(attrs={'class':'form-control'}),
-            'postcode':forms.TextInput(attrs={'class':'form-control'})
+            'postcode':forms.TextInput(attrs={'class':'form-control'}),
         }
 
 class ContactForm(forms.ModelForm):

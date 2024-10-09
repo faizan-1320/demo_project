@@ -44,13 +44,38 @@
                 <div class="col-sm-5 clearfix">
                     <div class="bill-to">
                         <p>Bill To</p>
-                        {% if primary_address %}
-                            <p><strong>Email:</strong> {{ user.email }}</p>
-                            <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
-                            <p><strong>Address:</strong> {{ primary_address.address }}</p>
-                            <p><strong>City:</strong> {{ primary_address.city }}</p>
-                            <p><strong>Zip / Postal Code:</strong> {{ primary_address.postcode }}</p>
-                            <p><strong>Country:</strong> {{ primary_address.country }}</p>
+                        {% if addresses %}
+                            <select name="billing_address" required>
+                                <option value="">Select Billing Address</option>
+                                {% for address in addresses %}
+                                    {% if address.address_type == 'billing' %}  {# Check if the address is a billing address #}
+                                        <option value="{{ address.id }}"
+                                            {% if billing_address and address.id == billing_address.id %}selected{% endif %}>
+                                            {{ address.address }}, {{ address.city }}, {{ address.country }} 
+                                        </option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        {% else %}
+                            <p>No address found.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-sm-5 clearfix">
+                    <div class="bill-to">
+                        <p>Ship To</p>
+                        {% if addresses %}
+                            <select name="shipping_address" required>
+                                <option value="">Select Shipping Address</option>
+                                {% for address in addresses %}
+                                    {% if address.address_type == 'shipping' %}  {# Check if the address is a shipping address #}
+                                        <option value="{{ address.id }}"
+                                            {% if shipping_address and address.id == shipping_address.id %}selected{% endif %}>
+                                            {{ address.address }}, {{ address.city }}, {{ address.country }} 
+                                        </option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
                         {% else %}
                             <p>No address found.</p>
                         {% endif %}
@@ -58,6 +83,8 @@
                 </div>
             </div>
         </div>
+        
+        
 
         <div class="review-payment">
             <h2>Review & Payment</h2>

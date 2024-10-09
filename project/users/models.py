@@ -48,7 +48,12 @@ class Address(models.Model):
     """
     Model representing a Address for display.
     """
+    ADDRESS_TYPE_CHOICES = (
+        ('billing', 'Billing'),
+        ('shipping', 'Shipping'),
+    )
     user = models.ForeignKey(User,on_delete=models.CASCADE,related_name='address')
+    address_type = models.CharField(max_length=10, choices=ADDRESS_TYPE_CHOICES, default='billing')
     address = models.TextField()
     city = models.CharField(max_length=100)
     country = models.CharField(max_length=100)

@@ -186,7 +186,7 @@ def calculate_cart_subtotal(cart):
     return subtotal
 
 @login_required
-def checkout(request): # pylint: disable=R0914,R0912,R0915
+def checkout(request):
     """
     Checkout view
     """
@@ -198,7 +198,8 @@ def checkout(request): # pylint: disable=R0914,R0912,R0915
     discount_amount = Decimal(request.POST.get('discount_amount', 0))
 
     today = timezone.now().date()
-
+    
+    # Fetch active coupons
     active_coupons = Coupon.objects.filter(
         is_delete=False,
         is_active=True,
@@ -206,6 +207,7 @@ def checkout(request): # pylint: disable=R0914,R0912,R0915
         end_date__gte=today
     )
 
+    # Calculate cart subtotal
     for product_id, quantity in cart.items():
         product = Product.objects.get(id=product_id)
         cart_items.append({
@@ -215,9 +217,14 @@ def checkout(request): # pylint: disable=R0914,R0912,R0915
         })
         cart_sub_total += product.price * quantity
 
-    if request.method == 'POST': # pylint: disable=R1702
-        coupon_code = request.POST.get('coupon_code','').strip()
+    eco_tax = Decimal('2.00')  # Initialize eco_tax
+    shipping_cost = Decimal('0.00')  # Initialize shipping_cost
+    total = cart_sub_total + eco_tax + shipping_cost - discount_amount
+    
+    if request.method == 'POST':
+        coupon_code = request.POST.get('coupon_code', '').strip()
 
+        # Handle coupon code input
         if coupon_code:
             try:
                 coupon = Coupon.objects.get(code=coupon_code, is_active=True)
@@ -229,30 +236,41 @@ def checkout(request): # pylint: disable=R0914,R0912,R0915
             except Coupon.DoesNotExist:
                 discount_amount = 0
 
-        eco_tax = 2
-        shipping_cost = 0
+        # Calculate total amount
+        eco_tax = Decimal('2.00')
+        shipping_cost = Decimal('0.00')
         total = cart_sub_total + eco_tax + shipping_cost - discount_amount
+        
+        # Get selected billing and shipping addresses
+        billing_address_id = request.POST.get('billing_address')
+        shipping_address_id = request.POST.get('shipping_address')
+
         try:
-            primary_address = get_object_or_404(Address, user=user, is_primary=True)
-        except: # pylint: disable=W0702
-            primary_address = None
-            messages.error(request, "You need to set a primary address before checking out.")
+            billing_address = get_object_or_404(Address, id=billing_address_id, user=user)
+        except:  # Handle case where billing address is not found
+            billing_address = None
+            messages.error(request, "You need to set a valid billing address before checking out.")
             return redirect('add-address')
+
+        try:
+            shipping_address = get_object_or_404(Address, id=shipping_address_id, user=user)
+        except:  # Handle case where shipping address is not found
+            shipping_address = billing_address  # Fallback to billing address
 
         payment_method = request.POST.get('payment_method')
         shipping_method = int(request.POST.get('shipping_method', 1))
 
         if payment_method:
-
             if payment_method == 'paypal':
+                # Payment processing with PayPal
                 request.session['order_data'] = {
-                'user_id': user.id,
-                'total_amount': str(total),
-                'address_id': primary_address.id,
-                'shipping_method': shipping_method,
-                'coupon_id': coupon.id if coupon else None,
-                'discount_amount': str(discount_amount)
-            }
+                    'user_id': user.id,
+                    'total_amount': str(total),
+                    'address_id': billing_address.id,
+                    'shipping_method': shipping_method,
+                    'coupon_id': coupon.id if coupon else None,
+                    'discount_amount': str(discount_amount)
+                }
                 payment = paypalrestsdk.Payment({
                     "intent": "sale",
                     "payer": {
@@ -284,28 +302,27 @@ def checkout(request): # pylint: disable=R0914,R0912,R0915
                         if link.rel == "approval_url":
                             return redirect(link.href)
                 else:
-                    messages.error(request,
-                    f"""An error occurred while processing your payment""")
+                    messages.error(request, "An error occurred while processing your payment")
 
             elif payment_method == 'cash_on_delivery':
-                order = Order.objects.create( # pylint: disable=E1101
-                user=user,
-                total_amount=total,
-                payment_status=3,
-                address=primary_address,
-                shipping_method=shipping_method,
-                coupon=coupon,
-                discount_amount=discount_amount,
-                payment_method=2
+                # Create order for cash on delivery
+                order = Order.objects.create(
+                    user=user,
+                    total_amount=total,
+                    payment_status=3,
+                    address=billing_address,
+                    shipping_method=shipping_method,
+                    coupon=coupon,
+                    discount_amount=discount_amount,
+                    payment_method=2
                 )
 
                 # Save each product in the order
                 for item in cart_items:
                     product = item['product']
-                    product = Product.objects.get(id=product.id)
-                    product.quantity = product.quantity - item['quantity']
+                    product.quantity -= item['quantity']  # Deduct quantity
                     product.save()
-                    ProductInOrder.objects.create( # pylint: disable=E1101
+                    ProductInOrder.objects.create(
                         order=order,
                         product=item['product'],
                         quantity=item['quantity'],
@@ -314,30 +331,26 @@ def checkout(request): # pylint: disable=R0914,R0912,R0915
                 messages.success(request, "Order placed successfully with Cash on Delivery!")
                 request.session['cart'] = {}
                 return redirect('order-confirmation', pk=order.id)
-    else:
-        eco_tax = Decimal('2.00')
-        shipping_cost = Decimal('0.00')
-        total = cart_sub_total + eco_tax + shipping_cost - discount_amount
-        try:
-            primary_address = get_object_or_404(Address, user=user, is_primary=True)
-        except: #pylint: disable=W0702
-            primary_address = None
-            messages.error(request, "You need to set a primary address before checking out.")
-            return redirect('add-address')
+
+    # For GET request, get the user's addresses
+    addresses = Address.objects.filter(user=user)
 
     context = {
         'cart_items': cart_items,
         'cart_sub_total': cart_sub_total,
-        'eco_tax': eco_tax,
-        'shipping_cost': shipping_cost,
+        'eco_tax': Decimal('2.00'),
+        'shipping_cost': Decimal('0.00'),
         'total': total,
-        'primary_address': primary_address,
+        'billing_address': billing_address if 'billing_address' in locals() else None,
+        'shipping_address': shipping_address if 'shipping_address' in locals() else None,
         'coupons': active_coupons,
         'applied_coupon': coupon,
-        'discount_amount': discount_amount
+        'discount_amount': discount_amount,
+        'addresses': addresses  # Pass the user's addresses to the template
     }
 
     return render(request, 'front_end/order/checkout.html', context)
+
 
 @login_required
 def paypal_execute_payment(request): #pylint: disable=R0914
