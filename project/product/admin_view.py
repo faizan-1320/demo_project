@@ -414,7 +414,9 @@ def delete_category(request,pk):
             for sub_cat in cat.subcategories.all():
                 hard_delete(sub_cat)
             # Then, delete the category itself
-            cat.delete()
+            cat.is_active = False
+            cat.is_delete = True
+            cat.save()
         hard_delete(category)
         messages.success(request, 'Category Deleted Successfully!')
         return redirect('categories')

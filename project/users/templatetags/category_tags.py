@@ -8,9 +8,12 @@ register = template.Library()
 
 def render_category_tree(categories, parent_id=None, selected_category_id=None):
     html = ''
-    for category in categories.filter(parent_id=parent_id,is_active=True,is_delete=False):
-        has_subcategories = category.subcategories.exists()
-        is_active = selected_category_id == category.id
+    
+    # Filter categories to get only active and not deleted ones
+    for category in categories.filter(parent_id=parent_id, is_active=True, is_delete=False):
+        # Check if the category has active and not deleted subcategories
+        has_subcategories = category.subcategories.filter(is_active=True, is_delete=False).exists()
+        is_active_category = selected_category_id == category.id
 
         # Panel for category
         html += '<div class="panel panel-default">'
@@ -40,7 +43,7 @@ def render_category_tree(categories, parent_id=None, selected_category_id=None):
 
         if has_subcategories:
             # Collapse panel for subcategories
-            html += f'    <div id="collapse-{category.id}" class="panel-collapse collapse {"in" if is_active else ""}">'
+            html += f'    <div id="collapse-{category.id}" class="panel-collapse collapse {"in" if is_active_category else ""}">'
             html += '        <div class="panel-body">'
             html += render_category_tree(categories, parent_id=category.id, selected_category_id=selected_category_id)
             html += '        </div>'

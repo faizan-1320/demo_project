@@ -398,7 +398,7 @@ def paypal_execute_payment(request): #pylint: disable=R0914
                     coupon=coupon,
                     discount_amount=discount_amount,
                     paypal_payment_id=payment_id,
-                    payment_method=2
+                    payment_method=1
                 )
                 cart = get_cart(request)
                 for product_id, quantity in cart.items():
@@ -411,7 +411,6 @@ def paypal_execute_payment(request): #pylint: disable=R0914
                         quantity=quantity,
                         price=product.price * quantity
                     )
-                request.session['cart'] = {}
                 messages.success(request, "Payment completed successfully!")
                 return redirect('order-confirmation', pk=order.id)
             else:
