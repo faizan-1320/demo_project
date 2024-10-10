@@ -55,9 +55,10 @@
 <body>
     <h1>Invoice #{{ order.id }}</h1>
     <p><strong>Customer:</strong> {{ order.user.email }}</p>
-    <p><strong>Address:</strong> {{ order.address }}</p>
+    <p><strong>Billing Address:</strong> {{ order.billing_address }}</p>
+    <p><strong>Shipping Address:</strong> {{ order.shipping_address }}</p>
     <p><strong>Order Date:</strong> {{ order.datetime_of_payment|date:"Y-m-d H:i" }}</p>
-    <p><strong>Payment Type:</strong> {{ order.payment_status }}</p> <!-- This should be updated to show readable format -->
+    <p><strong>Payment Status:</strong> {{ order.get_payment_status_display }}</p> <!-- This should be updated to show readable format -->
     
     {% if order.discount_amount > 0 %}
         <p><strong>Discount Applied:</strong> ${{ order.discount_amount|floatformat:2 }}</p>

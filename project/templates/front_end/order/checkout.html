@@ -11,16 +11,15 @@
         max-width: 200px;
     }
     .product-thumbnail {
-        max-width: 50px; /* Adjust as needed for thumbnail size */
-        max-height: 50px; /* Adjust as needed for thumbnail size */
-        object-fit: cover; /* Ensures the image covers the thumbnail area without distortion */
-        border-radius: 10px; /* Optional: Rounds the corners of the image */
-        border: 1px solid #ddd; /* Optional: Adds a border around the thumbnail */
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: Adds a subtle shadow */
+        max-width: 50px;
+        max-height: 50px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
-    /* Optional: Add some margin to separate the thumbnail from text */
     .product-thumbnail-container {
-        margin-right: 10px; /* Adjust space between image and text */
+        margin-right: 10px;
     }
 </style>
 {% endblock %}
@@ -38,176 +37,169 @@
         <div class="step-one">
             <h2 class="heading">Order Details</h2>
         </div>
-
-        <div class="shopper-informations">
-            <div class="row">
-                <div class="col-sm-5 clearfix">
-                    <div class="bill-to">
-                        <p>Bill To</p>
-                        {% if addresses %}
-                            <select name="billing_address" required>
-                                <option value="">Select Billing Address</option>
-                                {% for address in addresses %}
-                                    {% if address.address_type == 'billing' %}  {# Check if the address is a billing address #}
-                                        <option value="{{ address.id }}"
-                                            {% if billing_address and address.id == billing_address.id %}selected{% endif %}>
-                                            {{ address.address }}, {{ address.city }}, {{ address.country }} 
-                                        </option>
-                                    {% endif %}
-                                {% endfor %}
-                            </select>
-                        {% else %}
-                            <p>No address found.</p>
-                        {% endif %}
+        <form method="post" action="{% url 'checkout' %}">
+            {% csrf_token %}
+            <div class="shopper-informations">
+                <div class="row">
+                    <div class="col-sm-5 clearfix">
+                        <div class="bill-to">
+                            <p>Bill To</p>
+                            {% if addresses %}
+                                <select name="billing_address" required>
+                                    <option value="">Select Billing Address</option>
+                                    {% for address in addresses %}
+                                        {% if address.address_type == 'billing' %}
+                                            <option value="{{ address.id }}" 
+                                                {% if billing_address and address.id == billing_address.id %}selected{% endif %}>
+                                                {{ address.address }}, {{ address.city }}, {{ address.country }}
+                                            </option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            {% else %}
+                                <p>No address found.</p>
+                            {% endif %}
+                        </div>
                     </div>
-                </div>
-                <div class="col-sm-5 clearfix">
-                    <div class="bill-to">
-                        <p>Ship To</p>
-                        {% if addresses %}
-                            <select name="shipping_address" required>
-                                <option value="">Select Shipping Address</option>
-                                {% for address in addresses %}
-                                    {% if address.address_type == 'shipping' %}  {# Check if the address is a shipping address #}
-                                        <option value="{{ address.id }}"
-                                            {% if shipping_address and address.id == shipping_address.id %}selected{% endif %}>
-                                            {{ address.address }}, {{ address.city }}, {{ address.country }} 
-                                        </option>
-                                    {% endif %}
-                                {% endfor %}
-                            </select>
-                        {% else %}
-                            <p>No address found.</p>
-                        {% endif %}
+                    <div class="col-sm-5 clearfix">
+                        <div class="bill-to">
+                            <p>Ship To</p>
+                            {% if addresses %}
+                                <select name="shipping_address" required>
+                                    <option value="">Select Shipping Address</option>
+                                    {% for address in addresses %}
+                                        {% if address.address_type == 'shipping' %}
+                                            <option value="{{ address.id }}" 
+                                                {% if shipping_address and address.id == shipping_address.id %}selected{% endif %}>
+                                                {{ address.address }}, {{ address.city }}, {{ address.country }}
+                                            </option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            {% else %}
+                                <p>No address found.</p>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        
 
-        <div class="review-payment">
-            <h2>Review & Payment</h2>
-        </div>
+            <div class="review-payment">
+                <h2>Review & Payment</h2>
+            </div>
 
-        <div class="table-responsive cart_info">
-            <table class="table table-condensed">
-                <thead>
-                    <tr class="cart_menu">
-                        <td class="image">Item</td>
-                        <td class="description"></td>
-                        <td class="price">Price</td>
-                        <td class="quantity">Quantity</td>
-                        <td class="total">Total</td>
-                        <td></td>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if cart_items %}
-                        {% for item in cart_items %}
+            <div class="table-responsive cart_info">
+                <table class="table table-condensed">
+                    <thead>
+                        <tr class="cart_menu">
+                            <td class="image">Item</td>
+                            <td class="description"></td>
+                            <td class="price">Price</td>
+                            <td class="quantity">Quantity</td>
+                            <td class="total">Total</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if cart_items %}
+                            {% for item in cart_items %}
+                                <tr>
+                                    <td class="cart_product">
+                                        <a href="{% url 'product-detail' item.product.id %}">
+                                            <img src="{{ item.product.product.last.image.url }}" class="product-thumbnail" alt="{{ item.product.name }}">
+                                        </a>
+                                    </td>
+                                    <td class="cart_description">
+                                        <h4 class="product-name">
+                                            <a href="{% url 'product-detail' item.product.id %}">{{ item.product.name }}</a>
+                                        </h4>
+                                    </td>
+                                    <td class="cart_price">
+                                        <p>${{ item.product.price }}</p>
+                                    </td>
+                                    <td class="cart_quantity">
+                                        <p>{{ item.quantity }}</p>
+                                    </td>
+                                    <td class="cart_total">
+                                        <p class="cart_total_price">${{ item.total_price }}</p>
+                                    </td>
+                                </tr>
+                            {% endfor %}
                             <tr>
-                                <td class="cart_product">
-                                    <a href="{% url 'product-detail' item.product.id %}">
-                                        <img src="{{ item.product.product.last.image.url }}" class="product-thumbnail" alt="{{ item.product.name }}">
-                                    </a>
+                                <td colspan="4">
+                                    <div class="col-sm-6">
+                                        <div class="chose_area">
+                                            <form action="{% url 'checkout' %}" method="post">
+                                                {% csrf_token %}
+                                                <ul class="user_option">
+                                                    <li><label>Use Coupon Code</label></li>
+                                                    <li>
+                                                        <input type="hidden" name="applied_coupon" value="{{ applied_coupon }}">
+                                                        {% for coupon in coupons %}
+                                                            <label>
+                                                                <input type="radio" name="coupon_code" value="{{ coupon.code }}"
+                                                                    {% if applied_coupon and applied_coupon.code == coupon.code %}checked{% endif %}>
+                                                                {{ coupon.code }} ({{ coupon.discount_amount }})
+                                                            </label>
+                                                        {% endfor %}
+                                                    </li>
+                                                </ul>
+                                                <button type="submit" class="btn btn-primary">Apply</button>
+                                            </form>
+                                        </div>
+                                    </div>
                                 </td>
-                                <td class="cart_description">
-                                    <h4 class="product-name">
-                                        <a href="{% url 'product-detail' item.product.id %}">{{ item.product.name }}</a>
-                                    </h4>
-                                </td>
-                                <td class="cart_price">
-                                    <p>${{ item.product.price }}</p>
-                                </td>
-                                <td class="cart_quantity">
-                                    <p>{{ item.quantity }}</p>
-                                </td>
-                                <td class="cart_total">
-                                    <p class="cart_total_price">${{ item.total_price }}</p>
+                                <td colspan="2">
+                                    <table class="table table-condensed total-result">
+                                        <tr>
+                                            <td>Cart Sub Total</td>
+                                            <td>${{ cart_sub_total }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Eco Tax</td>
+                                            <td>${{ eco_tax }}</td>
+                                        </tr>
+                                        <tr class="shipping-cost">
+                                            <td>Shipping Cost</td>
+                                            <td>{% if shipping_cost == 0 %}Free{% else %}${{ shipping_cost }}{% endif %}</td>
+                                        </tr>
+                                        {% if applied_coupon %}
+                                        <tr>
+                                            <td>Discount ({{ applied_coupon.code }})</td>
+                                            <td>${{ discount_amount }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        <tr>
+                                            <td>Total</td>
+                                            <td><span>${{ total }}</span></td>
+                                        </tr>
+                                    </table>
                                 </td>
                             </tr>
-                        {% endfor %}
-                        <tr>
-                            <td colspan="4">
-                                <div class="col-sm-6">
-                                    <div class="chose_area">
-                                        <form action="{% url 'checkout' %}" method="post">
-                                            {% csrf_token %}
-                                            <ul class="user_option">
-                                                <li>
-                                                    <label>Use Coupon Code</label>
-                                                </li>
-                                                <li>
-                                                    <input type="hidden" name="applied_coupon" value="{{ applied_coupon }}">
-                                                    {% for coupon in coupons %}
-                                                        <label>
-                                                            <input type="radio" name="coupon_code" value="{{ coupon.code }}" 
-                                                                {% if applied_coupon and applied_coupon.code == coupon.code %}
-                                                                    checked
-                                                                {% endif %}>
-                                                            {{ coupon.code }} ({{ coupon.discount_amount }})
-                                                        </label>
-                                                    {% endfor %}
-                                                </li>
-                                            </ul>
-                                            <button type="submit" class="btn btn-primary">Apply</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </td>
-                            <td colspan="2">
-                                <table class="table table-condensed total-result">
-                                    <tr>
-                                        <td>Cart Sub Total</td>
-                                        <td>${{ cart_sub_total }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Eco Tax</td>
-                                        <td>${{ eco_tax }}</td>
-                                    </tr>
-                                    <tr class="shipping-cost">
-                                        <td>Shipping Cost</td>
-                                        <td>{% if shipping_cost == 0 %}Free{% else %}${{ shipping_cost }}{% endif %}</td>
-                                    </tr>
-                                    {% if applied_coupon %}
-                                    <tr>
-                                        <td>Discount ({{ applied_coupon.code }})</td>
-                                        <td>${{ discount_amount }}</td>
-                                    </tr>
-                                    {% endif %}
-                                    <tr>
-                                        <td>Total</td>
-                                        <td><span>${{ total }}</span></td>
-                                    </tr>
-                                </table>
-                            </td>
-                        </tr>
-                    {% else %}
-                        <tr>
-                            <td colspan="6" style="text-align: center; color: red;">Please Add Product to buy</td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-        </div>
-		{% if cart_sub_total %}
-        <div class="payment-options">
-            <form method="post" action="{% url 'checkout' %}">
-                {% csrf_token %}
-                <input type="hidden" name="coupon_code" value="{{ applied_coupon.code }}">
-                <input type="hidden" name="discount_amount" value="{{ discount_amount }}">
-                <div class="payment_methods">
-                    <label for="paypal">
-                        <input type="radio" id="paypal" name="payment_method" value="paypal"> Pay with PayPal
-                    </label>
-                    <label for="cash_on_delivery">
-                        <input type="radio" id="cash_on_delivery" name="payment_method" value="cash_on_delivery"> Cash on Delivery
-                    </label>
+                        {% else %}
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: red;">Please Add Product to buy</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if cart_sub_total %}
+            <div class="payment-options">
+                    <input type="hidden" name="coupon_code" value="{{ applied_coupon.code }}">
+                    <input type="hidden" name="discount_amount" value="{{ discount_amount }}">
+                    <div class="payment_methods">
+                        <label for="paypal">
+                            <input type="radio" id="paypal" name="payment_method" value="paypal"> Pay with PayPal
+                        </label>
+                        <label for="cash_on_delivery">
+                            <input type="radio" id="cash_on_delivery" name="payment_method" value="cash_on_delivery"> Cash on Delivery
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Place Order</button>
                 </div>
-                <button type="submit" class="btn btn-primary">Place Order</button>
-            </form>
-        </div>
+                {% endif %}
+        </form>
     </div>
-	{% endif %}
-</section> <!--/#cart_items-->
+</section>
 {% endblock %}

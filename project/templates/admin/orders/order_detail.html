@@ -34,11 +34,8 @@
                             <h5>Customer Details</h5>
                             <p><strong>Email:</strong> {{ order.user.email }}</p>
                             {% if customer_address %}
-                                <p><strong>Address:</strong> {{ customer_address.address }}</p>
-                                <p><strong>City:</strong> {{ customer_address.city }}</p>
-                                <p><strong>Country:</strong> {{ customer_address.country }}</p>
-                                <p><strong>District:</strong> {{ customer_address.district }}</p>
-                                <p><strong>Postcode:</strong> {{ customer_address.postcode }}</p>
+                                <p><strong>Billing address:</strong> {{ customer_address.billing_address }}</p>
+                                <p><strong>Shipping address:</strong> {{ customer_address.shipping_address }}</p>
                             {% else %}
                                 <p>No active address found for this customer.</p>
                             {% endif %}

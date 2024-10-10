@@ -247,6 +247,7 @@ def checkout(request):
 
         try:
             billing_address = get_object_or_404(Address, id=billing_address_id, user=user)
+            billing_address_str = f"{billing_address.address}, {billing_address.city}, {billing_address.country}, {billing_address.postcode}"
         except:  # Handle case where billing address is not found
             billing_address = None
             messages.error(request, "You need to set a valid billing address before checking out.")
@@ -254,6 +255,7 @@ def checkout(request):
 
         try:
             shipping_address = get_object_or_404(Address, id=shipping_address_id, user=user)
+            shipping_address_str = f"{shipping_address.address}, {shipping_address.city}, {shipping_address.country}, {shipping_address.postcode}"
         except:  # Handle case where shipping address is not found
             shipping_address = billing_address  # Fallback to billing address
 
@@ -266,7 +268,8 @@ def checkout(request):
                 request.session['order_data'] = {
                     'user_id': user.id,
                     'total_amount': str(total),
-                    'address_id': billing_address.id,
+                    'billing_address': billing_address_str,
+                    'shipping_address': shipping_address_str,
                     'shipping_method': shipping_method,
                     'coupon_id': coupon.id if coupon else None,
                     'discount_amount': str(discount_amount)
@@ -310,7 +313,8 @@ def checkout(request):
                     user=user,
                     total_amount=total,
                     payment_status=3,
-                    address=billing_address,
+                    billing_address=billing_address_str,
+                    shipping_address=shipping_address_str,
                     shipping_method=shipping_method,
                     coupon=coupon,
                     discount_amount=discount_amount,
@@ -377,17 +381,19 @@ def paypal_execute_payment(request): #pylint: disable=R0914
             order_data = request.session.get('order_data')
             if order_data: # pylint: disable=R1705
                 user = request.user
-                address = Address.objects.get(id=order_data['address_id'])
                 coupon = Coupon.objects.get(
                 id=order_data['coupon_id']) if order_data['coupon_id'] else None
                 discount_amount = Decimal(order_data['discount_amount'])
                 total_amount = Decimal(order_data['total_amount'])
+                billing_address= order_data['billing_address']
+                shipping_address= order_data['shipping_address']
                 shipping_method = order_data['shipping_method']
 
                 order = Order.objects.create( #pylint: disable=E1101
                     user=user,
                     total_amount=total_amount,
-                    address=address,
+                    billing_address=billing_address,
+                    shipping_address=shipping_address,
                     shipping_method=shipping_method,
                     coupon=coupon,
                     discount_amount=discount_amount,
@@ -405,7 +411,7 @@ def paypal_execute_payment(request): #pylint: disable=R0914
                         quantity=quantity,
                         price=product.price * quantity
                     )
-
+                request.session['cart'] = {}
                 messages.success(request, "Payment completed successfully!")
                 return redirect('order-confirmation', pk=order.id)
             else:
@@ -559,18 +565,19 @@ def generate_invoice_pdf(request, order_id):
         # Invoice title
         p.drawString(200, height - 50, f"Invoice #{order.id}")
         p.drawString(50, height - 80, f"Customer: {order.user.email}")
-        p.drawString(50, height - 100, f"Address: {order.address}")
+        p.drawString(50, height - 100, f"Billing Address: {order.billing_address}")
+        p.drawString(50, height - 120, f"Shipping Address: {order.shipping_address}")
 
         # Mapping payment status
         payment_status_dict = dict(order.payment_status_choice)
         payment_status = payment_status_dict.get(order.payment_status, "Unknown")
 
         # Add Payment Type to PDF
-        p.drawString(50, height - 120, f"Payment Type: {payment_status}")
+        p.drawString(50, height - 140, f"Payment Type: {payment_status}")
 
         # Applied Discount near Payment Status
         applied_discount_str = f"Applied Discount: -${order.discount_amount:.2f}"
-        p.drawString(50, height - 140, applied_discount_str)
+        p.drawString(50, height - 160, applied_discount_str)
 
         # Set column widths
         col_widths = {

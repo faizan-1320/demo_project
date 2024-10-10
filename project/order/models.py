@@ -47,9 +47,8 @@ class Order(BaseModel):
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     status = models.IntegerField(choices=status_choice, default=1)
-    address = models.ForeignKey(
-        Address, on_delete=models.CASCADE, related_name='order_address', null=True, blank=True
-    )
+    billing_address = models.TextField(null=True, blank=True)
+    shipping_address = models.TextField(null=True, blank=True)
     total_amount = models.FloatField(null=True, blank=True)
     payment_method = models.IntegerField(choices=payment_method_choice, default=1)
     payment_status = models.IntegerField(choices=payment_status_choice, default=3)

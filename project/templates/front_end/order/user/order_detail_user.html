@@ -28,7 +28,6 @@
 {% block content %}
 <div class="container my-5">
     <h2 class="mb-4">Order Details</h2>
-
     <div class="card p-4 shadow-sm">
         <div class="row">
             <div class="col-md-6">
@@ -47,12 +46,11 @@
                     {% endif %}
                 {% endif %}
                 <p><strong>Payment Method:</strong> {{ order.get_payment_method_display }}</p>
-
-
-
             </div>
-
-            <div class="col-md-6 text-md-end">
+            <div class="col-md-6">
+                
+                <p><strong>Billing Address:</strong> {{ order.billing_address }}</p>
+                <p><strong>Shipping Address:</strong> {{ order.shipping_address }}</p>
                 <a href="{% url 'generate-invoice-pdf' order.id %}" class="btn btn-primary mb-2">
                     Download Invoice
                 </a>

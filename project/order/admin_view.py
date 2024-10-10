@@ -97,7 +97,11 @@ def order_detail(request, pk):
     # Fetch the order details
     order = get_object_or_404(Order, id=pk)  # pylint: disable=W0621
     products_in_order = ProductInOrder.objects.filter(order=order)  # pylint: disable=E1101
-    customer_address = Address.objects.filter(user=order.user, is_active=True).first()
+    customer_address_data ={
+        'billing_address' : order.billing_address,
+        'shipping_address' : order.shipping_address
+    }
+
 
     if request.method == 'POST':
         form = OrderStatusForm(request.POST, instance=order)  # No need to pass payment_method
@@ -112,6 +116,8 @@ def order_detail(request, pk):
                 'total_amount': order.total_amount,
                 'first_name': order.user.first_name,
                 'order_status': dict(Order.status_choice).get(new_status, 'Unknown'),
+                'billing_address' : order.billing_address,
+                'shipping_address' : order.shipping_address
             }
             products_data = [
                 {
@@ -122,12 +128,9 @@ def order_detail(request, pk):
                 for product_in_order in products_in_order
             ]
             customer_address_data = {
-                'address': customer_address.address,
-                'city': customer_address.city,
-                'country': customer_address.country,
-                'district': customer_address.district,
-                'postcode': customer_address.postcode,
-            } if customer_address else None
+                'billing_address' : order.billing_address,
+                'shipping_address' : order.shipping_address
+            }
             context_email = {
                 'order_id': order_data['order_id'],
                 'datetime_of_payment': order_data['datetime_of_payment'],
@@ -156,7 +159,7 @@ def order_detail(request, pk):
     context = {
         'order': order,
         'products_in_order': products_in_order,
-        'customer_address': customer_address,
+        'customer_address': customer_address_data,
         'form': form
     }
 
