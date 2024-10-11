@@ -27,6 +27,10 @@ BASE_DIR = root()
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('SECRET_KEY')
 
+CSRF_TRUSTED_ORIGINS = ['https://renewing-kangaroo-hopelessly.ngrok-free.app']
+
+CORS_ALLOW_ALL_ORIGINS = True
+
 # Application definition
 
 DEAFULT_APPS = [
@@ -55,6 +59,7 @@ THIRD_PARTY_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    'corsheaders'
 ]
 
 INSTALLED_APPS = DEAFULT_APPS + LOCAL_APPS + THIRD_PARTY_APPS
@@ -73,6 +78,7 @@ AUTH_USER_MODEL = 'users.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

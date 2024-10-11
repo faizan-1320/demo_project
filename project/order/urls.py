@@ -6,7 +6,7 @@ from django.urls import path
 from .views import (
     cart_detail,add_to_cart,remove_from_cart,
     update_cart_quantity,checkout,paypal_cancel_payment
-    ,paypal_execute_payment,order_confirmation,
+    ,paypal_execute_payment,order_confirmation,track_order,
     order_detail_user,order_list,paypal_webhook,generate_invoice_pdf,invoice_view
 )
 from .admin_view import order, order_detail
@@ -23,6 +23,7 @@ urlpatterns = [
     path('order-confirmation/<int:pk>', order_confirmation, name='order-confirmation'),
     path('user/orders/', order_list, name='order-user'),
     path('user/order/<int:pk>/', order_detail_user, name='user-order'),
+    path('user/order/track-order/', track_order, name='track-order'),
     path('download-invoice/<int:order_id>/', generate_invoice_pdf, name='generate-invoice-pdf'),
     path('download-invoice-html/<int:order_id>/', invoice_view, name='generate-html-invoice-pdf'),
     # Admin Order URL

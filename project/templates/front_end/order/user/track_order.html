@@ -1,0 +1,38 @@
+{% extends 'front_end/index.html' %}
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center"> <!-- Use justify-content-center to center the column -->
+        <div class="col">
+            <div class="card shadow-lg p-4">
+                <h3 class="card-title text-center mb-4">Track Your Order</h3>
+                
+                <!-- Order Tracking Form -->
+                <form method="POST" class="mb-4">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="order_id">Enter your Order ID:</label>
+                        <input type="text" id="order_id" name="order_id" class="form-control" placeholder="Order ID" required>
+                    </div>
+                    <div class="text-center mt-3">
+                        <button type="submit" class="btn btn-primary btn-block">Track Order</button>
+                    </div>
+                </form>
+                
+                <!-- Order Status -->
+                {% if order_status %}
+                    <div class="alert alert-success text-center">
+                        <h4 class="alert-heading">Order Status</h4>
+                        <p><strong>Status:</strong> {{ order_status }}</p>
+                    </div>
+                {% elif order_not_found %}
+                    <div class="alert alert-danger text-center">
+                        <h4 class="alert-heading">No Order Found</h4>
+                        <p>Please check the Order ID and try again.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

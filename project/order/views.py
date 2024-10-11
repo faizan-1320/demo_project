@@ -258,6 +258,8 @@ def checkout(request):
             shipping_address_str = f"{shipping_address.address}, {shipping_address.city}, {shipping_address.country}, {shipping_address.postcode}"
         except:  # Handle case where shipping address is not found
             shipping_address = billing_address  # Fallback to billing address
+            shipping_address_str = f"{shipping_address.address}, {shipping_address.city}, {shipping_address.country}, {shipping_address.postcode}"
+
 
         payment_method = request.POST.get('payment_method')
         shipping_method = int(request.POST.get('shipping_method', 1))
@@ -354,7 +356,6 @@ def checkout(request):
     }
 
     return render(request, 'front_end/order/checkout.html', context)
-
 
 @login_required
 def paypal_execute_payment(request): #pylint: disable=R0914
@@ -491,6 +492,28 @@ def order_confirmation(request,pk):
 ##############
 # USER ORDER #
 ##############
+
+@login_required
+def track_order(request):
+    order_status = None
+    order_not_found = False  # Variable to track if order is not found
+    
+    if request.method == 'POST':
+        order_id = request.POST.get('order_id', '').strip()
+        
+        # Fetch the order by order_id
+        try:
+            order = Order.objects.get(order_id=order_id)
+            order_status = order.get_order_status_display()  # Assuming you have a status choice field
+        except Order.DoesNotExist:
+            order_not_found = True  # Mark that no order was found
+
+    context = {
+        'order_status': order_status,
+        'order_not_found': order_not_found  # Pass the flag to the template
+    }
+    
+    return render(request, 'front_end/order/user/track_order.html', context)
 
 @login_required
 def order_list(request):
