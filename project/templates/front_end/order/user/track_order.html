@@ -11,7 +11,7 @@
                     {% csrf_token %}
                     <div class="form-group">
                         <label for="order_id">Enter your Order ID:</label>
-                        <input type="text" id="order_id" name="order_id" class="form-control" placeholder="Order ID" required>
+                        <input type="text" id="order_id" name="order_id" value="{{order_id}}" class="form-control" placeholder="Order ID" required>
                     </div>
                     <div class="text-center mt-3">
                         <button type="submit" class="btn btn-primary btn-block">Track Order</button>

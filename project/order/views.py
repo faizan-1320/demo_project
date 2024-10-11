@@ -25,15 +25,9 @@ from project.coupon.models import Coupon
 from project.users.models import Wishlist
 from .models import Product,ProductInOrder,Order
 
-# Configure PayPal SDK
-paypalrestsdk.configure({
-    "mode": "sandbox",
-    "client_id": 
-    'AQIomGzeKsnNgkKyf9kfWu27UOllP_MoMpEbeUH0qVEK3VLhQZr9rBj8Icn4CMsxf8AEQco6N0w7wdKt',
-    "client_secret": 
-    'EE6UMMHCzd5A_KXEb695XjLLVb-Uf_-1Zhy3fKM9PIh5dkZPS8e1pr99UHFTyMe56hhqa24kZUj3xq2r',
-    "log_level": "DEBUG"
-})
+##############
+# USER ORDER #
+##############
 
 def get_paypal_access_token():
     """
@@ -489,26 +483,23 @@ def order_confirmation(request,pk):
     # Render the order confirmation page
     return render(request, 'front_end/order/order_confirmation.html',{'order':order})
 
-##############
-# USER ORDER #
-##############
-
 @login_required
 def track_order(request):
     order_status = None
-    order_not_found = False  # Variable to track if order is not found
-    
+    order_not_found = False
+    order_id = ''
     if request.method == 'POST':
         order_id = request.POST.get('order_id', '').strip()
         
         # Fetch the order by order_id
         try:
-            order = Order.objects.get(order_id=order_id)
+            order = Order.objects.get(order_id=order_id,user=request.user)
             order_status = order.get_order_status_display()  # Assuming you have a status choice field
         except Order.DoesNotExist:
             order_not_found = True  # Mark that no order was found
 
     context = {
+        'order_id':order_id,
         'order_status': order_status,
         'order_not_found': order_not_found  # Pass the flag to the template
     }
