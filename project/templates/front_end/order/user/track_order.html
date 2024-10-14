@@ -1,12 +1,100 @@
 {% extends 'front_end/index.html' %}
+{% load static %}
+{% block css %}
+<style>
+    /* Order Tracking Styles */
+    .order-tracking {
+        text-align: center;
+        width: 22%; /* Adjusted to fit steps within container */
+        position: relative;
+        display: inline-block;
+        margin-bottom: 30px;
+    }
+
+    .order-tracking .is-complete {
+        display: block;
+        position: relative;
+        border-radius: 50%;
+        height: 35px;
+        width: 35px;
+        background-color: #f7be16; /* Yellow for incomplete */
+        margin: 0 auto;
+        transition: background 0.25s linear;
+        z-index: 2;
+        border: 2px solid #f7be16;
+    }
+
+    .order-tracking.completed .is-complete {
+        background-color: #27aa80; /* Green when completed */
+        border-color: #27aa80;
+    }
+
+    .order-tracking p {
+        color: #A4A4A4;
+        font-size: 14px;
+        margin-top: 10px;
+        margin-bottom: 0;
+        line-height: 20px;
+    }
+
+    .order-tracking.completed p {
+        color: #000; /* Black text when completed */
+    }
+
+    .order-tracking::before {
+        content: '';
+        display: block;
+        height: 3px;
+        width: 100%;
+        background-color: #f7be16;
+        position: absolute;
+        left: -50%;
+        top: 17px;
+        z-index: 1;
+    }
+
+    .order-tracking:first-child:before {
+        display: none;
+    }
+
+    .order-tracking.completed:before {
+        background-color: #27aa80; /* Green bar when completed */
+    }
+
+    /* Adjusting container and row */
+    .container .row {
+        justify-content: space-between;
+        padding: 0 10px;
+    }
+
+    .order-status-container {
+        margin-top: 20px;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 5px;
+    }
+
+    .btn-warning {
+        background-color: #f7be16;
+        border-color: #f7be16;
+        color: #fff;
+    }
+
+    .btn-warning:hover {
+        background-color: #e0a800;
+        border-color: #d39e00;
+    }
+</style>
+
+{% endblock %}
+
 {% block content %}
 <div class="container my-5">
-    <div class="row justify-content-center"> <!-- Use justify-content-center to center the column -->
-        <div class="col">
+    <div class="row ">
+        <div class="col-12">
             <div class="card shadow-lg p-4">
                 <h3 class="card-title text-center mb-4">Track Your Order</h3>
                 
-                <!-- Order Tracking Form -->
                 <form method="POST" class="mb-4">
                     {% csrf_token %}
                     <div class="form-group">
@@ -14,15 +102,31 @@
                         <input type="text" id="order_id" name="order_id" value="{{order_id}}" class="form-control" placeholder="Order ID" required>
                     </div>
                     <div class="text-center mt-3">
-                        <button type="submit" class="btn btn-primary btn-block">Track Order</button>
+                        <button type="submit" class="btn btn-warning btn-block">Track Order</button>
                     </div>
                 </form>
-                
-                <!-- Order Status -->
+
                 {% if order_status %}
-                    <div class="alert alert-success text-center">
-                        <h4 class="alert-heading">Order Status</h4>
-                        <p><strong>Status:</strong> {{ order_status }}</p>
+
+                    <div class="container">
+                        <div class="row" style="margin-top: 30px;">
+                            <div class="order-tracking {% if order_status >= 1 %}completed{% endif %}">
+                                <span class="is-complete"></span>
+                                <p>Not Packed<br><span>{{ order.ordered_date }}</span></p>
+                            </div>
+                            <div class="order-tracking {% if order_status >= 2 %}completed{% endif %}">
+                                <span class="is-complete"></span>
+                                <p>Ready For Shipment<br><span>{{ order.shipped_date }}</span></p>
+                            </div>
+                            <div class="order-tracking {% if order_status >= 3 %}completed{% endif %}">
+                                <span class="is-complete"></span>
+                                <p>Shipped<br><span>{{ order.shipped_date }}</span></p>
+                            </div>
+                            <div class="order-tracking {% if order_status == 4 %}completed{% endif %}">
+                                <span class="is-complete"></span>
+                                <p>Delivered<br><span>{{ order.delivered_date }}</span></p>
+                            </div>
+                        </div>
                     </div>
                 {% elif order_not_found %}
                     <div class="alert alert-danger text-center">
@@ -34,5 +138,4 @@
         </div>
     </div>
 </div>
-
 {% endblock %}

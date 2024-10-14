@@ -1,6 +1,15 @@
 {% extends 'front_end/index.html' %}
 {% load static %}
 {% load socialaccount %}
+{% block css %}
+<style>
+	#form {
+		margin-top: 30px !important;
+		margin-bottom: 30px !important;
+
+	}
+</style>
+{% endblock %}
 {% block content %}
 <section id="form"><!--form-->
 	<div class="container">
@@ -10,18 +19,13 @@
 					<h2>Login to your account</h2>
 					<form method="post">
 						{% csrf_token %}
-						{% if messages %}
-						<div class="alert-container">
-							{% for message in messages %}
-							<div class="alert alert-{{ message.tags }}">{{ message }}</div>
-							{% endfor %}
-						</div>
-						{% endif %}
 						{{ login_form.as_p }}
+						<div style="margin-top: 10px;">
+							<a href="{% url 'password_reset' %}">Forgot password?</a><br>
+						</div>
 						<button type="submit" class="btn btn-default" name="login">Login</button>
 					</form>
-					<a href="{% url 'password_reset' %}">Forgot Password</a><br>
-					<h4>Social Login <a href="{% provider_login_url 'google' %}?next">Google</a></h4>
+
 				</div><!--/login form-->
 			</div>
 			<div class="col-sm-1">
@@ -37,6 +41,23 @@
 					</form>
 				</div><!--/sign up form-->
 			</div>
+		</div>
+		<div class="row"
+			style="display: flex; flex-direction: column; justify-content: center; align-items: center; margin-top: 10px;">
+			<span style="border: 2px solid black; margin-bottom: 10px;width: 215px;">
+				<a href="{% provider_login_url 'google' %}?next" class="btn btn-google">
+					<img src="{% static 'assets/images/social-login-icon/google-icon.png' %}" style="height: 30px;"
+						alt="Google" />
+						Continue with Google
+				</a>
+			</span>
+			<span style="border: 2px solid black;  margin-bottom: 10px;">
+				<a href="{% provider_login_url 'google' %}?next" class="btn btn-google">
+					<img src="{% static 'assets/images/social-login-icon/facebook-icon.png' %}" style="height: 30px;"
+						alt="Facebook" />
+					Continue with Facebook
+				</a>
+			</span>
 		</div>
 	</div>
 </section><!--/form-->

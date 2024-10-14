@@ -9,16 +9,30 @@ from django import forms
 from django.contrib import messages
 from project.customadmin.models import ContactUs,NewsletterSubscriber # pylint: disable=E0401
 from .models import User,Address
-class CustomUserCreationForm(UserCreationForm): # pylint: disable=R0901
+class CustomUserCreationForm(UserCreationForm):
     """
-    Form for CustomUserCreationForm.
+    Form for RegisterForm.
     """
-    class Meta: # pylint: disable=R0903
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={'placeholder': 'Enter your email', 'class': 'form-control'})
+    )
+    password1 = forms.CharField(
+        required=True,
+        widget=forms.PasswordInput(attrs={'placeholder': 'Enter password', 'class': 'form-control'})
+    )
+    password2 = forms.CharField(
+        required=True,
+        widget=forms.PasswordInput(attrs={'placeholder': 'Confirm password', 'class': 'form-control'})
+    )
+    
+    class Meta:
         """
         Meta Class.
         """
         model = User
-        fields = ("email",)
+        fields = ("email", "password1", "password2")
+
 
 class CustomUserChangeForm(UserChangeForm):
     """
@@ -51,8 +65,8 @@ class LoginForm(forms.Form):
     """
     Form for LoginForm.
     """
-    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    email = forms.EmailField(widget=forms.EmailInput(attrs={'placeholder':'Enter your email','class': 'form-control'}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder':'Enter your password','class': 'form-control'}))
 
 class AdressForm(forms.ModelForm):
     """

@@ -43,7 +43,7 @@ def home(request):
     category_tree = get_category_tree(categories)
 
     # Get selected category from query parameters
-    category_id = request.GET.get('category', None)
+    category_id = request.GET.get('category', '')
 
     # Filter products based on the selected category
     if category_id:
@@ -64,7 +64,7 @@ def home(request):
 
     # Paginate products
     paginator = Paginator(products, 12)
-    featured_paginator = Paginator(featured_products, 12)
+    featured_paginator = Paginator(featured_products, 6)
 
     page = request.GET.get('page', 1)
 
@@ -131,32 +131,53 @@ def auth_view(request):
 
             if register_form.is_valid():
                 try:
-                    email = register_form.cleaned_data['email']
+                    email = register_form.cleaned_data['email'].lower()  # Ensure email is always lowercase
                     password = register_form.cleaned_data['password1']
 
+                    # Save user without committing to add extra logic
                     user = register_form.save(commit=False)
-                    user.email = user.email.lower()
+                    user.email = email
                     user.save()
 
-                    # Add the user to the "customer" group
-                    customer_group = Group.objects.get(name='customer')
+                    # Get or create the customer group to avoid race conditions or missing group errors
+                    customer_group, created = Group.objects.get_or_create(name='customer')
                     user.groups.add(customer_group)
+
+                    # Prepare email context
                     mail_context = {
-                    'email':email,
-                    'password':password,
+                        'email': email,
+                        'password': password,
                     }
+
+                    # Use Celery to send the email asynchronously
                     celery_mail.delay(
-                    to_email=email,
-                    context=mail_context,
-                    template_name='user-register'
+                        to_email=email,
+                        context=mail_context,
+                        template_name='user-register'
                     )
-                    messages.success(request, 'Register Successfully')
+
+                    # Display success message
+                    messages.success(request, 'Registered successfully. Please check your email.')
+
                     return redirect('auth-view')
+
                 except IntegrityError:
-                    messages.error(request, 'A user with that email already exists.')
+                    # Handle user already existing scenario
+                    messages.error(request, 'A user with that email already exists. Please try again.')
+
+                except Group.DoesNotExist:
+                    # Handle missing group scenario
+                    messages.error(request, 'An error occurred. Please contact support.')
+
+                except Exception as e:
+                    # Catch all other exceptions and log them
+                    messages.error(request, 'An unexpected error occurred. Please try again.')
+
             else:
-                for msg in register_form.error_messages:
-                    messages.error(request, f'{msg}: {register_form.error_messages[msg]}')
+                # Display form validation errors in a cleaner way
+                for field, errors in register_form.errors.items():
+                    for error in errors:
+                        messages.error(request, f'{field}: {error}')
     else:
         login_form = LoginForm()
         register_form = CustomUserCreationForm()

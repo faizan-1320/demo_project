@@ -22,6 +22,24 @@
 
 	{% block css %}
 	<style>
+		#loadMore {
+    padding: 10px;
+    text-align: center;
+    background-color: #33739E;
+    color: #fff;
+    border-width: 0 1px 1px 0;
+    border-style: solid;
+    border-color: #fff;
+    box-shadow: 0 1px 1px #ccc;
+    transition: all 600ms ease-in-out;
+    -webkit-transition: all 600ms ease-in-out;
+    -moz-transition: all 600ms ease-in-out;
+    -o-transition: all 600ms ease-in-out;
+}
+#loadMore:hover {
+    background-color: #fff;
+    color: #33739E;
+}
 		.product-name {
 			font-size: 14px;
 			white-space: nowrap;
@@ -29,7 +47,9 @@
 			text-overflow: ellipsis;
 			display: block;
 		}
-
+		.productinfo{
+			min-height: 330px;
+		}
 		.fixed-size-image {
 			width: 150px;
 			/* Set the desired width */
@@ -135,6 +155,7 @@
 									</div>
 								</li>
 								{% else %}
+								<li><a class="dropdown-item" href="{% url 'track-order' %}"><i class="fa fa-truck"></i> Order Track</a></li>
 								<li><a href="{% url 'auth-view' %}"><i class="fa fa-lock"></i>Login/Register</a></li>
 								{% endif %}
 							</ul>
@@ -180,7 +201,6 @@
 						</a>
 					</div>
 				</div>
-
 			</div>
 		</div>
 	</section><!--/slider-->
@@ -200,6 +220,60 @@
 
 				<!-- Products Tab -->
 				<div class="col-sm-9 padding-right">
+					<!--features_items-->
+					<div class="features_items">
+						<h2 class="title text-center">Featured Items</h2>
+						<!-- <div class="row"> -->
+							<div class="row">
+							{% for featured_product in featured_products %}
+								<div class="col-sm-4">
+									<div class="product-image-wrapper">
+										<div class="single-products">
+												<div class="productinfo text-center">
+													{% if featured_product.product.all %}
+														<img src="{{ featured_product.product.last.image.url }}" alt="{{ featured_product.name }}" class="fixed-size-image" />
+													{% else %}
+														<img src="images/home/default_product.jpg" alt="{{ featured_product.name }}" class="fixed-size-image" />
+													{% endif %}
+													<h2>${{ featured_product.price }}</h2>
+													<p class="product-name">{{ featured_product.name }}</p>
+													<p class="product-quantity" style="color: {% if featured_product.quantity|is_out_of_stock %} red {% else %} green {% endif %};">
+														{% if featured_product.quantity|is_out_of_stock %} Out of stock {% else %} In Stock {% endif %}
+													</p>
+													
+													<!-- Display buttons based on quantity -->
+													{% if featured_product.quantity > 0 %}
+														<a href="{% url 'add-to-cart' featured_product.id %}" class="btn btn-default add-to-cart" id="add-to-cart">
+															<i class="fa fa-shopping-cart"></i> Add to cart
+														</a>
+														<a href="{% url 'add-to-wishlist' featured_product.id %}" class="btn btn-default add-to-wishlist" id="add-to-wishlist">
+															<i class="fa fa-heart"></i> Add to wishlist
+														</a>
+													{% endif %}
+												</div>
+												<div class="product-overlay">
+													<div class="overlay-content">
+														<h2>${{ featured_product.price }}</h2>
+														<a href="{% url 'product-detail' featured_product.id %}">
+														<p class="product-name">{{ featured_product.name }}</p></a>
+														{% if featured_product.quantity > 0 %}
+														<a href="{% url 'add-to-cart' featured_product.id %}" class="btn btn-default add-to-cart" id="add-to-cart">
+															<i class="fa fa-shopping-cart"></i> Add to cart
+														</a>
+														<a href="{% url 'add-to-wishlist' featured_product.id %}" class="btn btn-default add-to-wishlist" id="add-to-wishlist">
+															<i class="fa fa-heart"></i> Add to wishlist
+														</a>
+														{% endif %}
+													</div>
+												</div>
+										</div>
+									</div>
+								</div>
+							{% endfor %}
+							</div>
+						<!-- </div> -->
+					</div>	
+					<!--category-tab-->
 					<div class="category-tab">
 						<h2 class="title text-center">
 							{% if selected_category %}
@@ -284,59 +358,8 @@
 								{% endif %}
 							</span>
 						</div>
-						
-						<div class="features_items">
-							<h2 class="title text-center">Featured Items</h2>
-							<div class="row">
-								{% for featured_product in featured_products %}
-									<div class="col-sm-3">
-										<div class="product-image-wrapper">
-											<div class="single-products">
-												
-													<div class="productinfo text-center">
-														{% if featured_product.product.all %}
-															<img src="{{ featured_product.product.last.image.url }}" alt="{{ featured_product.name }}" class="fixed-size-image" />
-														{% else %}
-															<img src="images/home/default_product.jpg" alt="{{ featured_product.name }}" class="fixed-size-image" />
-														{% endif %}
-														<h2>${{ featured_product.price }}</h2>
-														<p class="product-name">{{ featured_product.name }}</p>
-														<p class="product-quantity" style="color: {% if featured_product.quantity|is_out_of_stock %} red {% else %} green {% endif %};">
-															{% if featured_product.quantity|is_out_of_stock %} Out of stock {% else %} In Stock {% endif %}
-														</p>
-														
-														<!-- Display buttons based on quantity -->
-														{% if featured_product.quantity > 0 %}
-															<a href="{% url 'add-to-cart' featured_product.id %}" class="btn btn-default add-to-cart" id="add-to-cart">
-																<i class="fa fa-shopping-cart"></i> Add to cart
-															</a>
-															<a href="{% url 'add-to-wishlist' featured_product.id %}" class="btn btn-default add-to-wishlist" id="add-to-wishlist">
-																<i class="fa fa-heart"></i> Add to wishlist
-															</a>
-														{% endif %}
-													</div>
-													<div class="product-overlay">
-														<div class="overlay-content">
-															<h2>${{ featured_product.price }}</h2>
-															<a href="{% url 'product-detail' featured_product.id %}">
-															<p class="product-name">{{ featured_product.name }}</p></a>
-															{% if featured_product.quantity > 0 %}
-															<a href="{% url 'add-to-cart' featured_product.id %}" class="btn btn-default add-to-cart" id="add-to-cart">
-																<i class="fa fa-shopping-cart"></i> Add to cart
-															</a>
-															<a href="{% url 'add-to-wishlist' featured_product.id %}" class="btn btn-default add-to-wishlist" id="add-to-wishlist">
-																<i class="fa fa-heart"></i> Add to wishlist
-															</a>
-															{% endif %}
-														</div>
-													</div>
-											</div>
-										</div>
-									</div>
-								{% endfor %}
-							</div>
-						</div>						
-					
+
+
 				</div>
 			</div>
 		</div>
@@ -434,7 +457,7 @@
             });
         "{% endfor %}"
     "{% endif %}"
-	
+
 	$(document).ready(function() {
     $('.add-to-cart').click(function(e) {
         e.preventDefault();
