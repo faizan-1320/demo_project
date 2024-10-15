@@ -5,7 +5,7 @@
     /* Order Tracking Styles */
     .order-tracking {
         text-align: center;
-        width: 22%; /* Adjusted to fit steps within container */
+        width: 22%; /* Adjusted to fit steps within the container */
         position: relative;
         display: inline-block;
         margin-bottom: 30px;
@@ -15,13 +15,16 @@
         display: block;
         position: relative;
         border-radius: 50%;
-        height: 35px;
-        width: 35px;
+        height: 40px;
+        width: 40px;
         background-color: #f7be16; /* Yellow for incomplete */
         margin: 0 auto;
         transition: background 0.25s linear;
         z-index: 2;
         border: 2px solid #f7be16;
+        line-height: 40px;
+        text-align: center;
+        color: white;
     }
 
     .order-tracking.completed .is-complete {
@@ -49,7 +52,7 @@
         background-color: #f7be16;
         position: absolute;
         left: -50%;
-        top: 17px;
+        top: 19px;
         z-index: 1;
     }
 
@@ -64,12 +67,11 @@
     /* Adjusting container and row */
     .container .row {
         justify-content: space-between;
-        padding: 0 10px;
     }
 
     .order-status-container {
         margin-top: 20px;
-        padding: 20px;
+        padding: 10px;
         background-color: #f9f9f9;
         border-radius: 5px;
     }
@@ -100,36 +102,54 @@
                     <div class="form-group">
                         <label for="order_id">Enter your Order ID:</label>
                         <input type="text" id="order_id" name="order_id" value="{{order_id}}" class="form-control" placeholder="Order ID" required>
+                        <label for="order_id" style="margin-top: 10px;">Enter your Email ID:</label>
+                        <input type="email" id="email" name="email" style="margin-bottom: 10px;" value="{{email}}" class="form-control" placeholder="Eamil ID" required>
                     </div>
-                    <div class="text-center mt-3">
+                    <div class="text-center" style="margin-bottom: 10px;">
                         <button type="submit" class="btn btn-warning btn-block">Track Order</button>
                     </div>
                 </form>
 
                 {% if order_status %}
 
-                    <div class="container">
-                        <div class="row" style="margin-top: 30px;">
-                            <div class="order-tracking {% if order_status >= 1 %}completed{% endif %}">
-                                <span class="is-complete"></span>
-                                <p>Not Packed<br><span>{{ order.ordered_date }}</span></p>
-                            </div>
-                            <div class="order-tracking {% if order_status >= 2 %}completed{% endif %}">
-                                <span class="is-complete"></span>
-                                <p>Ready For Shipment<br><span>{{ order.shipped_date }}</span></p>
-                            </div>
-                            <div class="order-tracking {% if order_status >= 3 %}completed{% endif %}">
-                                <span class="is-complete"></span>
-                                <p>Shipped<br><span>{{ order.shipped_date }}</span></p>
-                            </div>
-                            <div class="order-tracking {% if order_status == 4 %}completed{% endif %}">
-                                <span class="is-complete"></span>
-                                <p>Delivered<br><span>{{ order.delivered_date }}</span></p>
-                            </div>
+                <div class="container order-status-container" style="margin-bottom: 20px;">
+                    <div class="row" style="margin-top: 30px; display: flex; justify-content: space-between;">
+                        <!-- Not Packed -->
+                        <div class="order-tracking {% if order_status >= 1 %}completed{% endif %}">
+                            <span class="is-complete">
+                                <i class="fa fa-cube" style="font-size: 24px;"></i> <!-- Icon for Not Packed -->
+                            </span>
+                            <p>Not Packed<br><span>{{ order.ordered_date }}</span></p>
+                        </div>
+                
+                        <!-- Ready For Shipment -->
+                        <div class="order-tracking {% if order_status >= 2 %}completed{% endif %}">
+                            <span class="is-complete">
+                                <i class="fa fa-truck" style="font-size: 24px;"></i> <!-- Icon for Ready For Shipment -->
+                            </span>
+                            <p>Ready For Shipment<br><span>{{ order.shipped_date }}</span></p>
+                        </div>
+                
+                        <!-- Shipped -->
+                        <div class="order-tracking {% if order_status >= 3 %}completed{% endif %}">
+                            <span class="is-complete">
+                                <i class="fa fa-shopping-cart" style="font-size: 24px;"></i><!-- Icon for Shipped -->
+                            </span>
+                            <p>Shipped<br><span>{{ order.shipped_date }}</span></p>
+                        </div>
+                
+                        <!-- Delivered -->
+                        <div class="order-tracking {% if order_status == 4 %}completed{% endif %}">
+                            <span class="is-complete">
+                                <i class="fa fa-check-circle" style="font-size: 24px;"></i> <!-- Icon for Delivered -->
+                            </span>
+                            <p>Delivered<br><span>{{ order.delivered_date }}</span></p>
                         </div>
                     </div>
+                </div>
+                
                 {% elif order_not_found %}
-                    <div class="alert alert-danger text-center">
+                    <div class="alert alert-danger text-center" style="margin-top: 10px;">
                         <h4 class="alert-heading">No Order Found</h4>
                         <p>Please check the Order ID and try again.</p>
                     </div>

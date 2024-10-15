@@ -28,7 +28,7 @@ from project.users.models import User
 from project.product.models import Category,Product
 from project.order.models import Order
 from project.coupon.models import Coupon
-from project.utils.custom_required import admin_required
+from project.utils.custom_required import admin_required,check_login_admin
 from .models import Banner,ContactUs,EmailTemplate,NewsletterSubscriber
 from .tasks import celery_mail,send_contact_email
 from .forms import (
@@ -83,8 +83,9 @@ def logoutadmin(request):
     logout(request)
     return redirect('adminlogin')
 
-@admin_required
 def change_password(request):
+    if not check_login_admin(request.user):
+        return redirect('adminlogin')
     if request.method == 'POST':
         form = PasswordChangeForm(request.user, request.POST)
         if form.is_valid():
@@ -98,11 +99,12 @@ def change_password(request):
         form = PasswordChangeForm(request.user)
     return render(request, 'admin/authentication/change_password.html', {'form': form})
 
-@admin_required
 def dashboard(request):
     """
     Handle the admin dashboard.
     """
+    if not check_login_admin(request.user):
+        return redirect('adminlogin')
     user_count = User.objects.filter(is_superuser=False, is_active=True).count()
     product_count = Product.objects.filter(is_active=True,is_delete=False).count()
     category_count = Category.objects.filter(is_active=True,is_delete=False).count()
@@ -228,10 +230,10 @@ def dashboard(request):
     }
     return render(request,'admin/dashboard.html',context)
 
-@admin_required
 def export_sales_report_csv(request):
     """Sales Report CSV Generate with Validations and Default to All Data"""
-
+    if not check_login_admin(request.user):
+        return redirect('adminlogin')
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
 
@@ -310,10 +312,10 @@ def export_sales_report_csv(request):
 
     return response
 
-@admin_required
 def customer_registration_report(request):
     """New User Report with Validation and Default to All Data"""
-
+    if not check_login_admin(request.user):
+        return redirect('adminlogin')
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
 
@@ -373,10 +375,10 @@ def customer_registration_report(request):
 
     return response
 
-@admin_required
 def coupons_used_report(request):
     """Used Coupon Report with Validation and Default to All Data"""
-
+    if not check_login_admin(request.user):
+        return redirect('adminlogin')
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
 

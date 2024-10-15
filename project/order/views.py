@@ -22,7 +22,7 @@ from django.db.models import Q
 from django.utils import timezone
 from project.users.models import Address
 from project.coupon.models import Coupon
-from project.users.models import Wishlist
+from project.users.models import Wishlist,User
 from .models import Product,ProductInOrder,Order
 
 ##############
@@ -210,6 +210,10 @@ def checkout(request):
             'total_price': product.price * quantity
         })
         cart_sub_total += product.price * quantity
+        # Check if the product is out of stock
+        if product.quantity < quantity:
+            messages.error(request, f"{product.name} is out of stock.")
+            return redirect('cart-detail')
 
     eco_tax = Decimal('2.00')  # Initialize eco_tax
     shipping_cost = Decimal('0.00')  # Initialize shipping_cost
@@ -426,21 +430,22 @@ def paypal_webhook(request):
     """
     if request.method == 'POST':
         webhook_event = json.loads(request.body)
+        print('webhook_event: ', webhook_event)
 
         # Verify the webhook event type
         event_type = webhook_event.get('event_type')
+        print('event_type: ', event_type)
 
         if event_type == 'PAYMENT.SALE.COMPLETED':
             # Payment has been completed
             payment_id = webhook_event['resource']['parent_payment']
 
-            # Update the order in your system
+            # Update the order in system
             try:
                 order = Order.objects.get(paypal_payment_id=payment_id)
-                order.payment_status = 1  # Mark as Paid
+                order.payment_status = 1
                 order.save()
                 request.session['cart'] = {}
-                # Additional processing (e.g., send confirmation email)
                 # send_order_confirmation_email(order)
 
                 return HttpResponse(status=200)
@@ -486,22 +491,26 @@ def order_confirmation(request,pk):
 def track_order(request):
     order_status = None
     order_not_found = False
-    order_id = request.POST.get('order_id') if request.method == 'POST' else None
+    order_id = request.POST.get('order_id') if request.method == 'POST' else ''
+    email = request.POST.get('email') if request.method == 'POST' else ''
 
     if order_id:
         try:
-            order = Order.objects.get(order_id=order_id)
+            user = User.objects.get(email=email)
+            order = Order.objects.get(order_id=order_id,user=user)
             order_status = order.status  # This is the integer status
+        except User.DoesNotExist:
+            order_not_found = True
         except Order.DoesNotExist:
             order_not_found = True
 
     return render(request, 'front_end/order/user/track_order.html', {
         'order_id': order_id,
+        'email':email,
         'order_status': order_status,
         'order': order if order_status else None,
         'order_not_found': order_not_found,
     })
-
 
 @login_required
 def order_list(request):

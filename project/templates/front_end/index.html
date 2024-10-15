@@ -220,59 +220,6 @@
 
 				<!-- Products Tab -->
 				<div class="col-sm-9 padding-right">
-					<!--features_items-->
-					<div class="features_items">
-						<h2 class="title text-center">Featured Items</h2>
-						<!-- <div class="row"> -->
-							<div class="row">
-							{% for featured_product in featured_products %}
-								<div class="col-sm-4">
-									<div class="product-image-wrapper">
-										<div class="single-products">
-												<div class="productinfo text-center">
-													{% if featured_product.product.all %}
-														<img src="{{ featured_product.product.last.image.url }}" alt="{{ featured_product.name }}" class="fixed-size-image" />
-													{% else %}
-														<img src="images/home/default_product.jpg" alt="{{ featured_product.name }}" class="fixed-size-image" />
-													{% endif %}
-													<h2>${{ featured_product.price }}</h2>
-													<p class="product-name">{{ featured_product.name }}</p>
-													<p class="product-quantity" style="color: {% if featured_product.quantity|is_out_of_stock %} red {% else %} green {% endif %};">
-														{% if featured_product.quantity|is_out_of_stock %} Out of stock {% else %} In Stock {% endif %}
-													</p>
-													
-													<!-- Display buttons based on quantity -->
-													{% if featured_product.quantity > 0 %}
-														<a href="{% url 'add-to-cart' featured_product.id %}" class="btn btn-default add-to-cart" id="add-to-cart">
-															<i class="fa fa-shopping-cart"></i> Add to cart
-														</a>
-														<a href="{% url 'add-to-wishlist' featured_product.id %}" class="btn btn-default add-to-wishlist" id="add-to-wishlist">
-															<i class="fa fa-heart"></i> Add to wishlist
-														</a>
-													{% endif %}
-												</div>
-												<div class="product-overlay">
-													<div class="overlay-content">
-														<h2>${{ featured_product.price }}</h2>
-														<a href="{% url 'product-detail' featured_product.id %}">
-														<p class="product-name">{{ featured_product.name }}</p></a>
-														{% if featured_product.quantity > 0 %}
-														<a href="{% url 'add-to-cart' featured_product.id %}" class="btn btn-default add-to-cart" id="add-to-cart">
-															<i class="fa fa-shopping-cart"></i> Add to cart
-														</a>
-														<a href="{% url 'add-to-wishlist' featured_product.id %}" class="btn btn-default add-to-wishlist" id="add-to-wishlist">
-															<i class="fa fa-heart"></i> Add to wishlist
-														</a>
-														{% endif %}
-													</div>
-												</div>
-										</div>
-									</div>
-								</div>
-							{% endfor %}
-							</div>
-						<!-- </div> -->
-					</div>	
 					<!--category-tab-->
 					<div class="category-tab">
 						<h2 class="title text-center">
@@ -340,26 +287,78 @@
 								<p style="text-align: center; color: red; text-decoration: none;">No products available.</p>
 							{% endif %}
 						</div>
-						
-						<div class="pagination">
-							<span class="step-links">
-								{% if products.has_previous %}
-									<a href="?page=1{% if selected_category %}&category={{ selected_category }}{% endif %}{% if min_price_filter %}&min_price={{ min_price_filter }}{% endif %}{% if max_price_filter %}&max_price={{ max_price_filter }}{% endif %}">&laquo; first</a>
-									<a href="?page={{ products.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if min_price_filter %}&min_price={{ min_price_filter }}{% endif %}{% if max_price_filter %}&max_price={{ max_price_filter }}{% endif %}">previous</a>
-								{% endif %}
-								
-								<span class="current">
-									Page {{ products.number }} of {{ products.paginator.num_pages }}.
-								</span>
-								
-								{% if products.has_next %}
-									<a href="?page={{ products.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if min_price_filter %}&min_price={{ min_price_filter }}{% endif %}{% if max_price_filter %}&max_price={{ max_price_filter }}{% endif %}">next</a>
-									<a href="?page={{ products.paginator.num_pages }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if min_price_filter %}&min_price={{ min_price_filter }}{% endif %}{% if max_price_filter %}&max_price={{ max_price_filter }}{% endif %}">last &raquo;</a>
-								{% endif %}
+					</div>
+					<!--features_items-->
+					<div class="features_items">
+						<h2 class="title text-center">Featured Items</h2>
+						<!-- <div class="row"> -->
+							<div class="row">
+							{% for featured_product in featured_products %}
+								<div class="col-sm-4">
+									<div class="product-image-wrapper">
+										<div class="single-products">
+												<div class="productinfo text-center">
+													{% if featured_product.product.all %}
+														<img src="{{ featured_product.product.last.image.url }}" alt="{{ featured_product.name }}" class="fixed-size-image" />
+													{% else %}
+														<img src="images/home/default_product.jpg" alt="{{ featured_product.name }}" class="fixed-size-image" />
+													{% endif %}
+													<h2>${{ featured_product.price }}</h2>
+													<p class="product-name">{{ featured_product.name }}</p>
+													<p class="product-quantity" style="color: {% if featured_product.quantity|is_out_of_stock %} red {% else %} green {% endif %};">
+														{% if featured_product.quantity|is_out_of_stock %} Out of stock {% else %} In Stock {% endif %}
+													</p>
+													
+													<!-- Display buttons based on quantity -->
+													{% if featured_product.quantity > 0 %}
+														<a href="{% url 'add-to-cart' featured_product.id %}" class="btn btn-default add-to-cart" id="add-to-cart">
+															<i class="fa fa-shopping-cart"></i> Add to cart
+														</a>
+														<a href="{% url 'add-to-wishlist' featured_product.id %}" class="btn btn-default add-to-wishlist" id="add-to-wishlist">
+															<i class="fa fa-heart"></i> Add to wishlist
+														</a>
+													{% endif %}
+												</div>
+												<div class="product-overlay">
+													<div class="overlay-content">
+														<h2>${{ featured_product.price }}</h2>
+														<a href="{% url 'product-detail' featured_product.id %}">
+														<p class="product-name">{{ featured_product.name }}</p></a>
+														{% if featured_product.quantity > 0 %}
+														<a href="{% url 'add-to-cart' featured_product.id %}" class="btn btn-default add-to-cart" id="add-to-cart">
+															<i class="fa fa-shopping-cart"></i> Add to cart
+														</a>
+														<a href="{% url 'add-to-wishlist' featured_product.id %}" class="btn btn-default add-to-wishlist" id="add-to-wishlist">
+															<i class="fa fa-heart"></i> Add to wishlist
+														</a>
+														{% endif %}
+													</div>
+												</div>
+										</div>
+									</div>
+								</div>
+							{% endfor %}
+							</div>
+						<!-- </div> -->
+					</div>	
+					<!--paginations-->
+					<div class="pagination">
+						<span class="step-links">
+							{% if products.has_previous %}
+								<a href="?page=1{% if selected_category %}&category={{ selected_category }}{% endif %}{% if min_price_filter %}&min_price={{ min_price_filter }}{% endif %}{% if max_price_filter %}&max_price={{ max_price_filter }}{% endif %}">&laquo; first</a>
+								<a href="?page={{ products.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if min_price_filter %}&min_price={{ min_price_filter }}{% endif %}{% if max_price_filter %}&max_price={{ max_price_filter }}{% endif %}">previous</a>
+							{% endif %}
+							
+							<span class="current">
+								Page {{ products.number }} of {{ products.paginator.num_pages }}.
 							</span>
-						</div>
-
-
+							
+							{% if products.has_next %}
+								<a href="?page={{ products.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if min_price_filter %}&min_price={{ min_price_filter }}{% endif %}{% if max_price_filter %}&max_price={{ max_price_filter }}{% endif %}">next</a>
+								<a href="?page={{ products.paginator.num_pages }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if min_price_filter %}&min_price={{ min_price_filter }}{% endif %}{% if max_price_filter %}&max_price={{ max_price_filter }}{% endif %}">last &raquo;</a>
+							{% endif %}
+						</span>
+					</div>
 				</div>
 			</div>
 		</div>
