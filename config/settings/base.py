@@ -70,7 +70,7 @@ SOCIALACCOUNT_PROVIDERS = {
             'profile',
             'email'
         ],
-        'AUTH_PARAMS':{'access_type':'online'}
+        'AUTH_PARAMS':{'access_type':'online','prompt': 'select_account'}
     }
 }
 
@@ -187,7 +187,7 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
-# ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+SOCIALACCOUNT_LOGIN_ON_GET = True
 
 AUTHENTICATION_BACKENDS = (
     'project.users.backends.EmailBackend',

@@ -4,6 +4,8 @@ Views for the product application.
 
 This module contains views for listing, creating, editing, and deleting User.
 """
+from allauth.socialaccount.providers.google.provider import GoogleProvider
+from allauth.socialaccount.models import SocialApp
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout

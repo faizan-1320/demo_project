@@ -63,6 +63,7 @@ def cart_detail(request):
     Cart Detail View
     """
     cart = get_cart(request)
+    print('cart: ', cart)
     cart_items = []
     cart_sub_total = 0
 
@@ -410,6 +411,7 @@ def paypal_execute_payment(request): #pylint: disable=R0914
                         quantity=quantity,
                         price=product.price * quantity
                     )
+                request.session['cart'] = {}
                 messages.success(request, "Payment completed successfully!")
                 return redirect('order-confirmation', pk=order.id)
             else:
@@ -430,42 +432,32 @@ def paypal_webhook(request):
     """
     if request.method == 'POST':
         webhook_event = json.loads(request.body)
-        print('webhook_event: ', webhook_event)
 
-        # Verify the webhook event type
         event_type = webhook_event.get('event_type')
-        print('event_type: ', event_type)
 
         if event_type == 'PAYMENT.SALE.COMPLETED':
-            # Payment has been completed
             payment_id = webhook_event['resource']['parent_payment']
 
-            # Update the order in system
             try:
                 order = Order.objects.get(paypal_payment_id=payment_id)
                 order.payment_status = 1
                 order.save()
-                request.session['cart'] = {}
                 # send_order_confirmation_email(order)
 
                 return HttpResponse(status=200)
 
             except Order.DoesNotExist:
-                # Handle case where order does not exist
                 return HttpResponse(status=404)
 
         elif event_type == 'PAYMENT.SALE.DENIED':
-            # Handle denied payment scenario
             payment_id = webhook_event['resource']['parent_payment']
             try:
                 order = Order.objects.get(paypal_payment_id=payment_id)
-                order.payment_status = 2  # Mark as Denied
+                order.payment_status = 2
                 order.save()
                 return HttpResponse(status=200)
             except Order.DoesNotExist:
                 return HttpResponse(status=404)
-
-        # Add more webhook event types as needed
 
     return HttpResponse(status=400)
 
