@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 import environ
 import os
+from celery.schedules import crontab
 
 env = environ.Env()
 environ.Env.read_env()
@@ -59,6 +60,7 @@ THIRD_PARTY_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.facebook',
     'corsheaders'
 ]
 
@@ -194,3 +196,14 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 )
+
+CELERY_BEAT_SCHEDULE = {
+    'send-daily-orders-report': {
+        'task': 'project.customadmin.tasks.send_daily_orders_report',
+        'schedule': crontab(hour=0, minute=0),  # Runs every day at midnight
+    },
+    'send-weekly-wishlist-report': {
+        'task': 'project.customadmin.tasks.send_weekly_wishlist_report',
+        'schedule': crontab(day_of_week='mon', hour=0, minute=0),  # Every Monday at 8 AM
+    },
+}

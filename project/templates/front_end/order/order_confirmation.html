@@ -35,7 +35,7 @@
     <p>Your order has been placed successfully.</p>
     <p>Order ID: <strong>{{ order.order_id }}</strong></p>
 
-    <div class="order-summary">
+    <div class="order-summary" style="margin-bottom: 10px;">
         <h3>Order Summary</h3>
         <table class="table table-bordered">
             <thead>
@@ -46,7 +46,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for item in order.productinorder_set.all %}
+                {% for item in order.order_items.all %}
                 <tr>
                     <td>{{ item.product.name }}</td>
                     <td>{{ item.quantity }}</td>
@@ -61,9 +61,9 @@
         <p><strong>Total Amount:</strong> ${{ order.total_amount }}</p>
         <p><strong>Payment Status:</strong> {{ order.get_payment_status_display }}</p>
         <p><strong>Shipping Method:</strong> {{ order.get_shipping_method_display }}</p>
-        <p><strong>Delivery Address:</strong> {{ order.address }}</p>
+        <p><strong>Delivery Address:</strong> {{ order.shipping_address }}</p>
     </div>
 
-    <a href="{% url 'home' %}" class="btn btn-primary mt-4">Continue Shopping</a>
+    <a href="{% url 'home' %}" class="btn btn-primary" style="margin-bottom: 10px;">Continue Shopping</a>
 </div>
 {% endblock content %}

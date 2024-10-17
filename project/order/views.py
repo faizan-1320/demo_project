@@ -19,10 +19,12 @@ from django.http import JsonResponse,HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.db import transaction
 from django.utils import timezone
 from project.users.models import Address
 from project.coupon.models import Coupon
 from project.users.models import Wishlist,User
+from project.customadmin.tasks import celery_mail
 from .models import Product,ProductInOrder,Order
 
 ##############
@@ -181,6 +183,7 @@ def calculate_cart_subtotal(cart):
     return subtotal
 
 @login_required
+@transaction.atomic
 def checkout(request):
     """
     Checkout view
@@ -206,9 +209,11 @@ def checkout(request):
     for product_id, quantity in cart.items():
         product = Product.objects.get(id=product_id)
         cart_items.append({
-            'product': product,
+            'product_id': product.id,
+            'product_name': product.name,
+            'product_price': str(product.price),
             'quantity': quantity,
-            'total_price': product.price * quantity
+            'total_price': str(product.price * quantity)
         })
         cart_sub_total += product.price * quantity
         # Check if the product is out of stock
@@ -309,7 +314,6 @@ def checkout(request):
                     messages.error(request, "An error occurred while processing your payment")
 
             elif payment_method == 'cash_on_delivery':
-                # Create order for cash on delivery
                 order = Order.objects.create(
                     user=user,
                     total_amount=total,
@@ -324,20 +328,38 @@ def checkout(request):
 
                 # Save each product in the order
                 for item in cart_items:
-                    product = item['product']
-                    product.quantity -= item['quantity']  # Deduct quantity
+                    product = get_object_or_404(Product, id=item['product_id'])
+                    product.quantity -= item['quantity']
                     product.save()
+                    
+                    product_price = Decimal(item['product_price'])
                     ProductInOrder.objects.create(
                         order=order,
-                        product=item['product'],
+                        product_id=item['product_id'],
                         quantity=item['quantity'],
-                        price=product.price
+                        price=product_price
                     )
+                email_context = {
+                    'order': order.order_id,
+                    'cart_items': cart_items,
+                    'total': str(total),
+                    'billing_address': billing_address_str,
+                    'shipping_address': shipping_address_str,
+                }
+                celery_mail.delay(
+                    to_email=user.email,
+                    context=email_context,
+                    template_name='order_confirmation'
+                )
+                celery_mail.delay(
+                    to_email='faizanmahammed.neosoftmail@gmail.com',
+                    context=email_context,
+                    template_name='New Order Placed'
+                )
                 messages.success(request, "Order placed successfully with Cash on Delivery!")
                 request.session['cart'] = {}
                 return redirect('order-confirmation', pk=order.id)
 
-    # For GET request, get the user's addresses
     addresses = Address.objects.filter(user=user)
 
     context = {
@@ -351,12 +373,13 @@ def checkout(request):
         'coupons': active_coupons,
         'applied_coupon': coupon,
         'discount_amount': discount_amount,
-        'addresses': addresses  # Pass the user's addresses to the template
+        'addresses': addresses
     }
 
     return render(request, 'front_end/order/checkout.html', context)
 
 @login_required
+@transaction.atomic
 def paypal_execute_payment(request): #pylint: disable=R0914
     """
     Paypal execute view
@@ -403,13 +426,11 @@ def paypal_execute_payment(request): #pylint: disable=R0914
                 cart = get_cart(request)
                 for product_id, quantity in cart.items():
                     product = Product.objects.get(id=product_id)
-                    product.quantity = product.quantity - quantity
-                    product.save()
                     ProductInOrder.objects.create( #pylint: disable=E1101
                         order=order,
                         product=product,
                         quantity=quantity,
-                        price=product.price * quantity
+                        price=product.price
                     )
                 request.session['cart'] = {}
                 messages.success(request, "Payment completed successfully!")
@@ -426,38 +447,88 @@ def paypal_execute_payment(request): #pylint: disable=R0914
         return redirect('checkout')
 
 @csrf_exempt
+@transaction.atomic
 def paypal_webhook(request):
     """
     PayPal Webhook listener view
     """
     if request.method == 'POST':
-        webhook_event = json.loads(request.body)
+        try:
+            # Parse the webhook payload
+            webhook_event = json.loads(request.body)
+            event_type = webhook_event.get('event_type')
 
-        event_type = webhook_event.get('event_type')
+            if event_type == 'PAYMENT.SALE.COMPLETED':
+                payment_id = webhook_event['resource']['parent_payment']
 
-        if event_type == 'PAYMENT.SALE.COMPLETED':
-            payment_id = webhook_event['resource']['parent_payment']
+                # Fetch the order based on PayPal payment ID
+                try:
+                    order = Order.objects.get(paypal_payment_id=payment_id)
+                    
+                    if order.payment_status == 1:
+                        return HttpResponse(status=200)
 
-            try:
-                order = Order.objects.get(paypal_payment_id=payment_id)
-                order.payment_status = 1
-                order.save()
-                # send_order_confirmation_email(order)
+                    # Update order status to 'Completed'
+                    order.payment_status = 1
+                    order.save()
 
-                return HttpResponse(status=200)
+                    cart_items = []
+                    # Deduct stock for each product in the order
+                    products_in_order = ProductInOrder.objects.filter(order=order)
+                    for item in products_in_order:
+                        cart_items.append({
+                            'product_name': item.product.name,
+                            'total_price': str(item.price * item.quantity),
+                            'quantity': str(item.quantity)
+                        })
+                        product = item.product
+                        product.quantity -= item.quantity
+                        product.save()
 
-            except Order.DoesNotExist:
-                return HttpResponse(status=404)
+                    user_email = order.user.email
 
-        elif event_type == 'PAYMENT.SALE.DENIED':
-            payment_id = webhook_event['resource']['parent_payment']
-            try:
-                order = Order.objects.get(paypal_payment_id=payment_id)
-                order.payment_status = 2
-                order.save()
-                return HttpResponse(status=200)
-            except Order.DoesNotExist:
-                return HttpResponse(status=404)
+                    # Prepare email context for order confirmation
+                    email_context = {
+                        'order': order.order_id,
+                        'cart_items': cart_items,
+                        'total': order.total_amount,
+                        'billing_address': order.billing_address,
+                        'shipping_address': order.shipping_address,
+                    }
+
+                    # Send order confirmation email to user
+                    celery_mail.delay(
+                        to_email=user_email,
+                        context=email_context,
+                        template_name='order_confirmation'
+                    )
+                    # Send notification to admin
+                    celery_mail.delay(
+                        to_email='faizanmahammed.neosoftmail@gmail.com',
+                        context=email_context,
+                        template_name='New Order Placed'
+                    )
+
+                    return HttpResponse(status=200)
+
+                except Order.DoesNotExist:
+                    return HttpResponse(status=404)
+
+            elif event_type == 'PAYMENT.SALE.DENIED':
+                payment_id = webhook_event['resource']['parent_payment']
+
+                try:
+                    order = Order.objects.get(paypal_payment_id=payment_id)
+                    order.payment_status = 2
+                    order.save()
+
+                    return HttpResponse(status=200)
+
+                except Order.DoesNotExist:
+                    return HttpResponse(status=404)
+
+        except json.JSONDecodeError:
+            return HttpResponse(status=400)
 
     return HttpResponse(status=400)
 
@@ -483,24 +554,34 @@ def order_confirmation(request,pk):
 def track_order(request):
     order_status = None
     order_not_found = False
-    order_id = request.POST.get('order_id') if request.method == 'POST' else ''
-    email = request.POST.get('email') if request.method == 'POST' else ''
+    order = None
 
-    if order_id:
-        try:
-            user = User.objects.get(email=email)
-            order = Order.objects.get(order_id=order_id,user=user)
-            order_status = order.status  # This is the integer status
-        except User.DoesNotExist:
-            order_not_found = True
-        except Order.DoesNotExist:
-            order_not_found = True
+    if request.method == 'POST':
+        order_id = request.POST.get('order_id', '').strip()
+        email = request.POST.get('email', '').strip()
+
+        if not order_id:
+            messages.error(request, 'Please enter an Order ID.')
+        if not email:
+            messages.error(request, 'Please enter an Email ID.')
+
+        if order_id and email:
+            try:
+                user = User.objects.get(email=email)
+                order = Order.objects.get(order_id=order_id, user=user)
+                order_status = order.status
+            except User.DoesNotExist:
+                messages.error(request, 'No user found with the provided email.')
+                order_not_found = True
+            except Order.DoesNotExist:
+                messages.error(request, 'No order found with the provided Order ID for this user.')
+                order_not_found = True
 
     return render(request, 'front_end/order/user/track_order.html', {
-        'order_id': order_id,
-        'email':email,
+        'order_id': order_id if request.method == 'POST' else '',
+        'email': email if request.method == 'POST' else '',
         'order_status': order_status,
-        'order': order if order_status else None,
+        'order': order,
         'order_not_found': order_not_found,
     })
 

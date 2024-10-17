@@ -96,12 +96,13 @@ class ContactForm(forms.ModelForm):
         Meta Class.
         """
         model = ContactUs
-        fields = ['name','subject','email','message']
+        fields = ['name','subject','email','phone','message']
         widgets = {
             'name':forms.TextInput(attrs={'class':'form-control'}),
             'subject':forms.TextInput(attrs={'class':'form-control'}),
             'email':forms.EmailInput(attrs={'class':'form-control'}),
             'message':forms.Textarea(attrs={'class':'form-control'}),
+            'phone':forms.TextInput(attrs={'class':'form-control'}),
         }
 
 class NewsletterForm(forms.ModelForm):

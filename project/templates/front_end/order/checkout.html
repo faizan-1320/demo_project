@@ -104,17 +104,17 @@
                             {% for item in cart_items %}
                                 <tr>
                                     <td class="cart_product">
-                                        <a href="{% url 'product-detail' item.product.id %}">
-                                            <img src="{{ item.product.product.last.image.url }}" class="product-thumbnail" alt="{{ item.product.name }}">
+                                        <a href="{% url 'product-detail' item.product_id %}">
+                                            <img src="{{ item.product_id.product.last.image.url }}" class="product-thumbnail" alt="{{ item.product.name }}">
                                         </a>
                                     </td>
                                     <td class="cart_description">
                                         <h4 class="product-name">
-                                            <a href="{% url 'product-detail' item.product.id %}">{{ item.product.name }}</a>
+                                            <a href="{% url 'product-detail' item.product_id %}">{{ item.product.name }}</a>
                                         </h4>
                                     </td>
                                     <td class="cart_price">
-                                        <p>${{ item.product.price }}</p>
+                                        <p>${{ item.product_price }}</p>
                                     </td>
                                     <td class="cart_quantity">
                                         <p>{{ item.quantity }}</p>

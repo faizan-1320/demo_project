@@ -150,12 +150,20 @@ def auth_view(request):
                         'email': email,
                         'password': password,
                     }
+                    mail_admin_context = {
+                        'email': email
+                    }
 
                     # Use Celery to send the email asynchronously
                     celery_mail.delay(
                         to_email=email,
                         context=mail_context,
                         template_name='user-register'
+                    )
+                    celery_mail.delay(
+                        to_email='faizanmahammed.neosoftmail@gmail.com',
+                        context=mail_admin_context,
+                        template_name='register-copy'
                     )
 
                     # Display success message
@@ -206,11 +214,33 @@ def contact_us(request):
     if request.method == 'POST':
         form = ContactForm(request.POST)
         if form.is_valid():
-            form.save()
+            contact = form.save()  # Save the form and get the saved object
+            
+            # Create email context with form data
+            email_context = {
+                'name': contact.name,
+                'subject': contact.subject,
+                'email': contact.email,
+                'phone': contact.phone,
+                'message': contact.message,
+            }
+            # Send email asynchronously using celery
+            celery_mail.delay(
+                to_email='faizanmahammed.neosoftmail@gmail.com',
+                context=email_context,
+                template_name='contact_us_email'
+            )
             messages.success(request, 'Mail sent successfully!')
             return redirect('contact')
+        else:
+            # Collect all form errors and add them to messages.error
+            if form.errors.items():
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"{error}")
     else:
         form = ContactForm()
+
     return render(request, 'front_end/contact.html', {'form': form})
 
 @login_required

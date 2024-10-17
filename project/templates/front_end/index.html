@@ -47,8 +47,8 @@
 			text-overflow: ellipsis;
 			display: block;
 		}
-		.productinfo{
-			min-height: 330px;
+		.productinfo{	
+			min-height: 300px;
 		}
 		.fixed-size-image {
 			width: 150px;
@@ -233,7 +233,7 @@
 						<div class="col-sm-12">
 							<ul class="nav nav-tabs">
 								<!-- 'All' category -->
-								<li class="{% if selected_category is None %}active{% endif %}">
+								<li class="{% if not selected_category %}active{% endif %}">
 									<a href="?">All</a>
 								</li>
 						
